@@ -18,6 +18,7 @@ info.params = ExpStruct.Expt_Params;
 info.path = path;
 info.outputNames = ExpStruct.output_names;
 info.FR=FR;
+info.offsets = offsets; %motion correction and clipping offsets.
 
 disp('got info')
 
