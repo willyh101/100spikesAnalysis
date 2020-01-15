@@ -6,8 +6,24 @@ numExps = numel(loadList);
 
 clear All
 for ind = 1:numExps
+    pTime =tic;
+    fprintf(['Loading Experiment ' num2str(ind) '...']);
     All(ind) = load(fullfile(loadPath,loadList{ind}),'out');
+    fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
+
+%% Known Error Manual Catching
+All(1).out.exp.stimParamsBackup = All(1).out.exp.stimParams;
+All(1).out.exp.holoTargetsBackup = All(1).out.exp.holoTargets;
+%%
+All(1).out.exp.stimParams.Seq([3 4])=[];
+All(1).out.exp.stimParams.numPulse([3 4])=[];
+All(1).out.exp.stimParams.roi([3 4])=[];
+All(1).out.exp.stimParams.Hz([2 3])=[];
+All(1).out.exp.stimParams.numCells([2 3])=[];
+All(1).out.exp.holoTargets([2 3])=[];
+
+
 
 %% Clean Data and stuff i dunno come up with a better title someday
 
@@ -15,6 +31,9 @@ FRDefault=6;
 recWinSec = [1.25 2.5];
 
  for ind =1:numExps
+     pTime =tic;
+     fprintf(['Processing Experiment ' num2str(ind) '...']);
+     
      All(ind).out.anal.numCells = size(All(ind).out.exp.zdfData,1);
      numCells(ind) = size(All(ind).out.exp.zdfData,1);
      
@@ -46,6 +65,9 @@ recWinSec = [1.25 2.5];
      temp(isnan(temp))=[];
      All(ind).out.anal.targets = temp;
      numUniqueTargets(ind) =numel(temp);
+     
+     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+
  end
 %% Determine the OSI from the Vis section of each cell.
 
@@ -150,18 +172,23 @@ end
 
 %% Pretty plots of OSI and tunings
 
-clear allOSI ensOSI meanOSI
+clear allOSI ensOSI meanOSI ensNum roiNum
 % OSI across all cells, all experiments
 for i = 1:numel(All)
     allOSI{i} = All(i).out.anal.OSI(:);
     ensOSI{i} = All(i).out.anal.ensembleOSI(:);
     meanOSI{i} = All(i).out.anal.meanOSI(:);
+    
+    ensNum{i} = cellfun(@(x) sum(~isnan(x)),All(i).out.exp.holoTargets)'; %number of discovered Cells in ensemble
+    roiNum{i} = cellfun(@(x) sum(~isnan(x)),All(i).out.exp.rois)'; %number of shot targets in ensemble
 end
 
 % unroll
 allOSI = cell2mat(allOSI(:));
 ensOSI = cell2mat(ensOSI(:));
 meanOSI = cell2mat(meanOSI(:));
+ensNum = cell2mat(ensNum(:));
+roiNum = cell2mat(roiNum(:));
 
 % plot
 figure(1)
@@ -206,7 +233,7 @@ for i = 1:numel(All)
     istuned = All(i).out.anal.ensembleOSI > OSIthreshold;
     tunedEnsembles = All(i).out.exp.holoTargets(istuned);
     untunedEnsembles = All(i).out.exp.holoTargets(~istuned);
-    tunedEnsembleIdx = find(All(i).out.anal.ensembleOSI => OSIthreshold);
+    tunedEnsembleIdx = find(All(i).out.anal.ensembleOSI >= OSIthreshold);
     untunedEnsembleIdx = find(All(i).out.anal.ensembleOSI < OSIthreshold);
     All(i).out.anal.tunedEnsembles = tunedEnsembles;
     All(i).out.anal.untunedEnsembles = untunedEnsembles;
@@ -216,15 +243,15 @@ end
 
 % plot the OSIs of tuned vs untuned ensembles
 for i = 1:numel(All)
-    allOSI{i} = All(i).out.anal.OSI(:);
-    ensOSI{i} = All(i).out.anal.ensembleOSI(:);
-    meanOSI{i} = All(i).out.anal.meanOSI(:);
+    allOSIT{i} = All(i).out.anal.OSI(:);
+    ensOSIT{i} = All(i).out.anal.ensembleOSI(:);
+    meanOSIT{i} = All(i).out.anal.meanOSI(:);
 end
 
 % unroll
-allOSI = cell2mat(allOSI(:));
-ensOSI = cell2mat(ensOSI(:));
-meanOSI = cell2mat(meanOSI(:));
+allOSIT = cell2mat(allOSIT(:));
+ensOSIT = cell2mat(ensOSIT(:));
+meanOSIT = cell2mat(meanOSIT(:));
 
 f3 = subplots(1,2,1)
 
@@ -232,17 +259,159 @@ f3 = subplots(1,2,1)
 
     
     
+%% Get the number of spikes in each stimulus
 
+clear numSpikesEachStim numCellsEachEns
+for ind = 1:numExps
+    temp = All(ind).out.exp.stimParams.numPulse;
+    numSpikes=[];
+    c=0;
+    for i=1:numel(temp); %overly complicated way of aligning 0s to be safe if we have 0s that aren't in the begining
+        if temp(i)==0
+            numSpikes(i)=0;
+        else
+            c=c+1;
+            numSpikes(i) = temp(i)*All(ind).out.exp.stimParams.numCells(c);
+        end
+    end
+    
+    
+    All(ind).out.anal.numSpikesAddedPerCond = numSpikes;
+    numSpikesEachStim{ind} = numSpikes;
+    numCellsEachEns{ind} = All(ind).out.exp.stimParams.numCells;
+end
+    numSpikesEachStim=cell2mat(numSpikesEachStim(:)');
+    numSpikesEachEns = numSpikesEachStim;
+    numSpikesEachEns(numSpikesEachStim==0)=[];
+    
+    numCellsEachEns=cell2mat(numCellsEachEns(:)');
+    
+    %% Make all dataPlots into matrixes of mean responses
+    
+    
+    clear popResponse
+    for ind=1:numExps
+        pTime =tic;
+        fprintf(['Processing Experiment ' num2str(ind) '...']);
+        
+        trialsToUse = All(ind).out.exp.lowMotionTrials;
+        
+        clear respMat baseMat %Order stims,vis,cells
+        for i=1:numel(unique(All(ind).out.exp.stimID))
+            us = unique(All(ind).out.exp.stimID);
+            s = us(i);
+            
+            for k= 1 : numel(unique(All(ind).out.exp.visID))
+                vs = unique(All(ind).out.exp.visID);
+                v = vs(k);
+                
+                respMat(i,k,:) = mean(All(ind).out.exp.rdData(:,...
+                    trialsToUse & All(ind).out.exp.stimID ==s &...
+                    All(ind).out.exp.visID ==v), 2) ;
+                baseMat(i,k,:) = mean(All(ind).out.exp.bdata(:,...
+                    trialsToUse & All(ind).out.exp.stimID ==s &...
+                    All(ind).out.exp.visID ==v), 2) ;
+            end
+        end
+        
+        All(ind).out.anal.respMat = respMat;
+        All(ind).out.anal.baseMat = baseMat;
+        
+        
+        %%offtargetRisk
+        stimCoM = All(ind).out.exp.stimCoM;
+        numCells = size(All(ind).out.exp.zdfData,1);
+        allCoM = All(ind).out.exp.allCoM;
+        stimDepth = All(ind).out.exp.stimDepth;
+        allDepth = All(ind).out.exp.allDepth;
+        muPerPx = 800/512;
+        
+        allLoc = [allCoM*muPerPx (allDepth-1)*30];
+        stimLoc = [stimCoM*muPerPx (stimDepth-1)*30];
+        
+        roisTargets = All(ind).out.exp.rois;
+        
+        thisPlaneTolerance = 10;10; %in pixels
+        onePlaneTolerance = 20;20;
+        
+        radialDistToStim=zeros([size(stimCoM,1) numCells]);
+        axialDistToStim = zeros([size(stimCoM,1) numCells]);
+        StimDistance = zeros([size(stimCoM,1) numCells]);
+        for i=1:size(stimCoM,1);
+            for k=1:numCells;
+                D = sqrt(sum((stimCoM(i,:)-allCoM(k,:)).^2));
+                radialDistToStim(i,k)=D;
+                z = stimDepth(i)-allDepth(k);
+                axialDistToStim(i,k) = z;
+                StimDistance(i,k) = sqrt(sum((stimLoc(i,:)-allLoc(k,:)).^2));
+                
+            end
+        end
+        
+        offTargetRisk = zeros([numel(roisTargets) numCells]);
+        for i=1:numel(roisTargets)
+            Tg = roisTargets{i};
+            
+            if numel(Tg) == 1
+                temp = radialDistToStim(Tg,:)<thisPlaneTolerance & axialDistToStim(Tg,:) ==0;
+                temp2 = radialDistToStim(Tg,:)<onePlaneTolerance & abs(axialDistToStim(Tg,:)) ==1;
+            else
+                temp = any(radialDistToStim(Tg,:)<thisPlaneTolerance & axialDistToStim(Tg,:) ==0);
+                temp2 = any(radialDistToStim(Tg,:)<onePlaneTolerance & abs(axialDistToStim(Tg,:)) ==1);
+            end
+            offTargetRisk(i,:) = temp | temp2;
+        end
+        All(ind).out.anal.offTargetRisk = offTargetRisk;
+        
+        
+        %%ROIinArtifact
+        try
+            yoffset = -All(ind).out.info.offsets(2);
+        catch
+            yoffset = 0 ;
+        end
+        
+        ArtifactSizeLeft = 100;
+        ArtifactSizeRight = 100;
+        ROIinArtifact = allCoM(:,2)<ArtifactSizeLeft-yoffset | allCoM(:,2)>511-(ArtifactSizeRight+yoffset);
+        All(ind).out.anal.ROIinArtifact = ROIinArtifact;
+        
+        %%Get Pop Responses
+        %         v=1; %best bet for no vis stim.
+        clear popResp
+        for v = 1:numel(vs)
+            for i= 1:numel(All(ind).out.exp.stimParams.Seq)
+                %             try
+                holo =All(ind).out.exp.stimParams.Seq(i) ;% roi{i}{1};
+                %             catch
+                %                 holo =All(ind).out.exp.stimParams.roi{i};
+                %             end
+                
+                if i==1;
+                    cellsToUse = ~ROIinArtifact';
+                else
+                    cellsToUse = ~ROIinArtifact' & ~offTargetRisk(holo,:);
+                end
+                popResp(i,v) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+            end
+        end
+        
+        popResponse{ind} = popResp(:,1);
+        fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+    end
+    
+    popResponse = cell2mat(popResponse(:));
+    popResponseEns=popResponse;
+    popResponseEns(numSpikesEachStim==0)=[];
 
-
-
-
-
-
-
-
-
-
+    %% Plot
+    figure(37);
+    ensemblesToUse = numSpikesEachEns>75 ;%& numCellsEachEns<10 ;
+    scatter(meanOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
+    
+    xlabel('Ensemble OSI')
+    ylabel('Population Mean Response')
+    
 
 
 
