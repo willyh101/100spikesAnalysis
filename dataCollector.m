@@ -23,6 +23,7 @@ info.offsets = offsets; %motion correction and clipping offsets.
 disp('got info')
 
 %%experiment epoch
+exp.DAQepoch = DAQepoch;
 exp.zdfData = zdfData;
 exp.allData = allData;
 exp.runVal = runVector;
@@ -30,7 +31,11 @@ exp.lowMotionTrials = lowMotionTrials;
 exp.stimID = stimID;
 try
 exp.visID = visID;
-catch;end
+exp.visStart = visStart;
+exp.visStop = visStop; 
+catch;
+disp('No VisID')
+end
 exp.holoTargets = HoloTargets;
 exp.rois = roisTargets;
 exp.allCoM = allCoM;
@@ -39,6 +44,7 @@ exp.stimCoM = stimCoM;
 exp.stimDepth = stimDepth;
 exp.targetedCells = targettedCells;
 exp.outputsInfo = outputPatternTranslator(ExpStruct,uniqueStims);
+% exp.output_names = ExpStruct.output_names;
 
 exp.stimParams = stimParam;
 try
@@ -58,12 +64,17 @@ vis.lowMotionTrials = lowMotionTrials;
 vis.visID = visID;
 vis.visStart = visStart;
 vis.visStop = visStop; 
+vis.DAQepoch = DAQepoch;
 disp('got vis')
 
 %% run to save
 
 out.info = info;
 out.exp = exp;
+try %if merging two or more experiments put them in here
+out.exp1 = exp1;
+out.exp2 = exp2;
+catch; end;
 try
     out.vis = vis;
 catch
@@ -71,6 +82,29 @@ catch
 end
 
 save([basePath info.date '_' info.mouse '_outfile'], 'out')
-save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
+% save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
+save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
 
 disp('All data saved!')
+
+%% Merge exps. simple experiments that can be merged should be done so here
+%be aware that some identical experiments, can have different numbers of
+%frames
+
+ex1 = exp1;
+ex2 = exp2;
+
+ex=ex1;
+
+frameLen = min(size(ex1.zdfData,2),size(ex2.zdfData,2));
+
+ex.zdfData = cat(3,ex1.zdfData(:,1:frameLen,:),ex2.zdfData(:,1:frameLen,:));
+ex.allData = cat(3,ex1.allData(:,1:frameLen,:),ex2.allData(:,1:frameLen,:));
+ex.runVal = cat(1,ex1.runVal,ex2.runVal);
+ex.lowMotionTrials = cat(2,ex1.lowMotionTrials,ex2.lowMotionTrials);
+ex.stimID = cat(2,ex1.stimID,ex2.stimID);
+ex.visID = cat(2,ex1.visID,ex2.visID);
+ex.DAQepoch = [ex1.DAQepoch ex2.DAQepoch];
+
+exp = ex;
+
