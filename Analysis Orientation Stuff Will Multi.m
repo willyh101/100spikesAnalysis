@@ -1,7 +1,7 @@
 %% Load Experiments
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
-
+%%
 numExps = numel(loadList);
 
 clear All
@@ -65,6 +65,12 @@ recWinSec = [1.25 2.5];
      temp(isnan(temp))=[];
      All(ind).out.anal.targets = temp;
      numUniqueTargets(ind) =numel(temp);
+     
+     %ensure has a visID
+     if ~isfield(All(ind).out.exp,'visID')
+         All(ind).out.exp.visID = ones(size(All(ind).out.exp.stimID));
+         disp(['Added visID to Exp ' num2str(ind)]);
+     end
      
      fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 
@@ -242,6 +248,7 @@ for i = 1:numel(All)
 end
 
 % plot the OSIs of tuned vs untuned ensembles
+clear allOSIT ensOSIT meanOSIT
 for i = 1:numel(All)
     allOSIT{i} = All(i).out.anal.OSI(:);
     ensOSIT{i} = All(i).out.anal.ensembleOSI(:);
@@ -253,7 +260,7 @@ allOSIT = cell2mat(allOSIT(:));
 ensOSIT = cell2mat(ensOSIT(:));
 meanOSIT = cell2mat(meanOSIT(:));
 
-f3 = subplots(1,2,1)
+% f3 = subplots(1,2,1)
 
 % and thier preferred oris
 
@@ -289,7 +296,8 @@ numCellsEachEns=cell2mat(numCellsEachEns(:)');
 %% Make all dataPlots into matrixes of mean responses
 
 
-clear popResponse
+clear popResponse 
+ensIndNumber=[];
 for ind=1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
@@ -397,17 +405,23 @@ for ind=1:numExps
     end
 
     popResponse{ind} = popResp(:,1);
+    ensIndNumber = [ensIndNumber ones(size(popResp(:,1)'))*ind];
+    
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
 
 popResponse = cell2mat(popResponse(:));
 popResponseEns=popResponse;
 popResponseEns(numSpikesEachStim==0)=[];
+
+ensIndNumber(numSpikesEachStim==0)=[];
+
     
 %% Plot
 figure(37);
-ensemblesToUse = numSpikesEachEns>75 ;%& numCellsEachEns<10 ;
+ensemblesToUse = numSpikesEachEns>=75 &  numSpikesEachEns<=125  ;% & ensIndNumber==15; %& numCellsEachEns>10 ;
 scatter(meanOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
+% scatter(ensOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
 
 xlabel('Ensemble OSI')
 ylabel('Population Mean Response')
@@ -415,8 +429,8 @@ ylabel('Population Mean Response')
 %% what do the mean/normalized tuning look like for low, middle, and high OSI values?
 clear oriShifted lowOSIidx midOSIidx highOSIidx lowOSIcurve midOSIcurve highOSIcurve alignedOris
 % set bounds for OSI
-low = 0.4;
-high = 0.6;
+low = 0.2;
+high = 0.8;
 
 for i = 1:numel(All)
     
