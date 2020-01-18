@@ -436,100 +436,126 @@ set(gcf(),'Name','OSIs by Ensemble Size')
 cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
 cb.Label.String = 'Number of Cells in Ensemble';
 
+%% group conditions
+% not proud of this but it did prevent me from re-writing a bunch of code
+
+numCellsEachEnsBackup = numCellsEachEns;
+
+numCellsEachEns(numCellsEachEns <=5) = 5;
+numCellsEachEns(numCellsEachEns > 10) = 20;
 
 %% fit ensembles of different sizes
-% not working yet
 
 f5 = figure(5);
 clf(f5)
 numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
-maxcol = 3;
-maxrow = floor(numEns/maxcol);
+
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 
 for i=1:numEns
     ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
-    fit = polyfit(meanOSI(ens2plot),popResponseEns(ens2plot),1);
+    p = polyfit(ensOSI(ens2plot),popResponseEns(ens2plot),1);
+    f = polyval(p, ensOSI(ens2plot));
     fits(i,:) = fit;
-    subplot(maxrow,maxcol,i)
-    scatter(meanOSI(ens2plot),popResponseEns(ens2plot))
+    subplot(1,numEns,i)
+    plt = plot(ensOSI(ens2plot),popResponseEns(ens2plot), '.', 'MarkerSize',12);
     hold on
-    plot(fit, 'LineWidth', 2)
+    fline = plot(ensOSI(ens2plot), f, 'LineWidth', 1);
+    xlabel('OSI')
+    ylabel('Pop Response')
+    title(['Ensembles of size ' num2str(uniqueEns(i))])
 end
-%% more simple, take the means, population response by ensemble size
 
+linkaxes
+
+%% more simple, take the means, population response by ensemble size
+clear avg err ns ens2plt
 f6 = figure(6);
 clf(f6)
 numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
-maxcol = 3;
-maxrow = floor(numEns/maxcol);
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 
 x = 1:numEns;
 
 for i=1:numEns
     ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
+    data{i} = popResponseEns(ens2plot);
+    names{i} = string(uniqueEns(i));
     avg(i) = mean(popResponseEns(ens2plot));
     err(i) = sem(popResponseEns(ens2plot));
     ns(i) = numel(popResponseEns(ens2plot));
 end
 
-% plotSpread(popResponseEns(ensemblesToUse), 'categoryIdx', numCellsEachEns(ensemblesToUse)')
-bar(x, avg)
-hold on
-er = errorbar(x, avg, err);
-er.Color = [0 0 0];
-er.LineStyle = 'none';
-hold off
+cmap=colormap(viridis(numEns));
+p = plotSpread(data, 'xNames', names, 'showMM', 4, 'distributionColors',cmap);
+% bar(x, avg)
+% hold on
+% er = errorbar(x, avg, err);
+% er.Color = [0 0 0];
+% er.LineStyle = 'none';
+% hold off
 ylabel('Population Response (vis responsive)')
-xticklabels(uniqueEns)
-xticks = 1:6;
+% xticklabels(uniqueEns)
+% xticks = 1:6;
 title('Mean population response to holo')
 xlabel('Ensemble Size')
 set(gcf(),'Name','Mean population response to holo')
-ns
+% ns
 
-%% look at just the 10s data for each mouse
-
-
-allens2plt = popResponse(numCellsEachEns(ensemblesToUse))';
-
-f7 = figure(7);
-clf(f7)
-ii=0;
-for s=unique(numCellsEachEns(ensemblesToUse))
-    ii=ii+1;
-subplot(1,numel(unique(numCellsEachEns(ensemblesToUse))),ii)
-id = ensIndNumber(ensemblesToUse);
-tens = numCellsEachEns(ensemblesToUse)==s;
-expid = id(tens);
-ens2plt = popResponse(numCellsEachEns(ensemblesToUse)==s)';
-
-c=0;
-for i=unique(expid)
-    c = c+1;
-%     subplot(maxrow, maxcol, c);
-    exp2plt{c} = ens2plt(expid==i);
-    names{c}=strrep(All(i).out.info.mouse, '_', '.');
-%     p{c}=plotSpread(exp2plt','xNames',{All(i).out.info.mouse},'showMM',4);
-end
-
-cmap=colormap(viridis(numel(exp2plt)));
-p=plotSpread(exp2plt,'xNames',names,'showMM',4,'distributionColors',cmap);
-
-% p{3}.XLim = [0.8 1.2];
 ax=p{3};
 set(findall(gcf(),'type','line'),'markerSize',16)
 p{2}(1).Color = rgb('darkgrey');
 p{2}(2).Color = rgb('darkgrey');
 p{2}(1).LineWidth = 1;
 p{2}(2).LineWidth = 1;
-xtickangle(45)
-title(['Ensembles of ' num2str(s)])
-end
-tightfig
-linkaxes
 
+%% look at just the 10s data for each mouse
+
+
+allens2plt = popResponseEns(numCellsEachEns(ensemblesToUse))';
+
+f7 = figure(7);
+clf(f7)
+k=0;
+ens_ids = ensIndNumber(ensemblesToUse);
+ens_sizes = numCellsEachEns(ensemblesToUse);
+clear sp
+for s=unique(ens_sizes)
+    clear ens2plt expid exp2plt names
+    k=k+1;
+    hold on
+    sp(k) = subplot(1,numel(unique(numCellsEachEns(ensemblesToUse))),k);
+    
+    expid = ens_ids(ens_sizes==s);
+    ens2plt = popResponseEns(ens_sizes==s)';
+
+    c=0;
+    for i=unique(expid)
+        
+        c = c+1;
+        exp2plt{c} = ens2plt(expid==i);
+        names{c}=strrep(All(i).out.info.mouse, '_', '.');
+    end
+
+    cmap=colormap(viridis(numel(exp2plt)));
+    p=plotSpread(exp2plt,'xNames',names,'showMM',4,'distributionColors',cmap);
+    ax=p{3};
+    set(findall(gcf(),'type','line'),'markerSize',16)
+    p{2}(1).Color = rgb('darkgrey');
+    p{2}(2).Color = rgb('darkgrey');
+    p{2}(1).LineWidth = 1.5;
+    p{2}(2).LineWidth = 1.5;
+    uistack(p{2},'bottom')
+    xtickangle(45)
+    title(['Ensembles of ' num2str(s)])
+    
+end
+
+linkaxes(sp(:), 'y')
+ax = findobj(sp(1), 'type', 'axes');
+set([ax.YLabel], 'string', 'Population Response')
+set(gcf(),'Name','Population response to holo by expt and size')
+sgtitle('Population response to holo by expt and size')
 
 %% what do the mean/normalized tuning look like for low, middle, and high OSI values?
 clear oriShifted lowOSIidx midOSIidx highOSIidx lowOSIcurve midOSIcurve highOSIcurve alignedOris
