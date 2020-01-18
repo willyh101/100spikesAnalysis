@@ -184,7 +184,7 @@ for i = 1:numel(All)
     allOSI{i} = All(i).out.anal.OSI(:);
     ensOSI{i} = All(i).out.anal.ensembleOSI(:);
     meanOSI{i} = All(i).out.anal.meanOSI(:);
-    
+
     ensNum{i} = cellfun(@(x) sum(~isnan(x)),All(i).out.exp.holoTargets)'; %number of discovered Cells in ensemble
     roiNum{i} = cellfun(@(x) sum(~isnan(x)),All(i).out.exp.rois)'; %number of shot targets in ensemble
 end
@@ -224,6 +224,8 @@ title('OSI Across All Expts')
 xlabel('Orientation Selectivity Index')
 ylabel('PDF')
 legend('All Cells', 'Ensemble', 'Ensemble Mean')
+ 
+
 
 %% now look at tuned ensembles
 % get plots for the 2 different methods with higher bin count
@@ -296,7 +298,7 @@ numCellsEachEns=cell2mat(numCellsEachEns(:)');
 %% Make all dataPlots into matrixes of mean responses
 
 
-clear popResponse 
+clear popResponse pVisR pVisT
 ensIndNumber=[];
 for ind=1:numExps
     pTime =tic;
@@ -383,6 +385,8 @@ for ind=1:numExps
     ArtifactSizeRight = 100;
     ROIinArtifact = allCoM(:,2)<ArtifactSizeLeft-yoffset | allCoM(:,2)>511-(ArtifactSizeRight+yoffset);
     All(ind).out.anal.ROIinArtifact = ROIinArtifact;
+    pVisR = All(ind).out.anal.pVisR;
+    pVisT = All(ind).out.anal.pVisT;
 
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
@@ -396,9 +400,9 @@ for ind=1:numExps
             %             end
 
             if i==1;
-                cellsToUse = ~ROIinArtifact';
+                cellsToUse = ~ROIinArtifact' & pVisR<0.01;
             else
-                cellsToUse = ~ROIinArtifact' & ~offTargetRisk(holo,:);
+                cellsToUse = ~ROIinArtifact' & pVisR<0.01 & ~offTargetRisk(holo,:);
             end
             popResp(i,v) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
         end
@@ -418,14 +422,115 @@ ensIndNumber(numSpikesEachStim==0)=[];
 
     
 %% Plot
-figure(37);
-ensemblesToUse = numSpikesEachEns>=75 &  numSpikesEachEns<=125  ;% & ensIndNumber==15; %& numCellsEachEns>10 ;
-scatter(meanOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
-% scatter(ensOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
+f3 = figure(3);
+clf(3)
+
+ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125;% & ensIndNumber==15; %& numCellsEachEns>10 ;
+%scatter(meanOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
+scatter(ensOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
 
 xlabel('Ensemble OSI')
 ylabel('Population Mean Response')
-    
+title('OSIs by Ensemble Size')
+set(gcf(),'Name','OSIs by Ensemble Size')
+cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
+cb.Label.String = 'Number of Cells in Ensemble';
+
+
+%% fit ensembles of different sizes
+% not working yet
+
+f5 = figure(5);
+clf(f5)
+numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
+maxcol = 3;
+maxrow = floor(numEns/maxcol);
+uniqueEns = unique(numCellsEachEns(ensemblesToUse));
+
+for i=1:numEns
+    ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
+    fit = polyfit(meanOSI(ens2plot),popResponseEns(ens2plot),1);
+    fits(i,:) = fit;
+    subplot(maxrow,maxcol,i)
+    scatter(meanOSI(ens2plot),popResponseEns(ens2plot))
+    hold on
+    plot(fit, 'LineWidth', 2)
+end
+%% more simple, take the means, population response by ensemble size
+
+f6 = figure(6);
+clf(f6)
+numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
+maxcol = 3;
+maxrow = floor(numEns/maxcol);
+uniqueEns = unique(numCellsEachEns(ensemblesToUse));
+
+x = 1:numEns;
+
+for i=1:numEns
+    ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
+    avg(i) = mean(popResponseEns(ens2plot));
+    err(i) = sem(popResponseEns(ens2plot));
+    ns(i) = numel(popResponseEns(ens2plot));
+end
+
+% plotSpread(popResponseEns(ensemblesToUse), 'categoryIdx', numCellsEachEns(ensemblesToUse)')
+bar(x, avg)
+hold on
+er = errorbar(x, avg, err);
+er.Color = [0 0 0];
+er.LineStyle = 'none';
+hold off
+ylabel('Population Response (vis responsive)')
+xticklabels(uniqueEns)
+xticks = 1:6;
+title('Mean population response to holo')
+xlabel('Ensemble Size')
+set(gcf(),'Name','Mean population response to holo')
+ns
+
+%% look at just the 10s data for each mouse
+
+
+allens2plt = popResponse(numCellsEachEns(ensemblesToUse))';
+
+f7 = figure(7);
+clf(f7)
+ii=0;
+for s=unique(numCellsEachEns(ensemblesToUse))
+    ii=ii+1;
+subplot(1,numel(unique(numCellsEachEns(ensemblesToUse))),ii)
+id = ensIndNumber(ensemblesToUse);
+tens = numCellsEachEns(ensemblesToUse)==s;
+expid = id(tens);
+ens2plt = popResponse(numCellsEachEns(ensemblesToUse)==s)';
+
+c=0;
+for i=unique(expid)
+    c = c+1;
+%     subplot(maxrow, maxcol, c);
+    exp2plt{c} = ens2plt(expid==i);
+    names{c}=strrep(All(i).out.info.mouse, '_', '.');
+%     p{c}=plotSpread(exp2plt','xNames',{All(i).out.info.mouse},'showMM',4);
+end
+
+cmap=colormap(viridis(numel(exp2plt)));
+p=plotSpread(exp2plt,'xNames',names,'showMM',4,'distributionColors',cmap);
+
+% p{3}.XLim = [0.8 1.2];
+ax=p{3};
+set(findall(gcf(),'type','line'),'markerSize',16)
+p{2}(1).Color = rgb('darkgrey');
+p{2}(2).Color = rgb('darkgrey');
+p{2}(1).LineWidth = 1;
+p{2}(2).LineWidth = 1;
+xtickangle(45)
+title(['Ensembles of ' num2str(s)])
+end
+tightfig
+linkaxes
+
+
 %% what do the mean/normalized tuning look like for low, middle, and high OSI values?
 clear oriShifted lowOSIidx midOSIidx highOSIidx lowOSIcurve midOSIcurve highOSIcurve alignedOris
 % set bounds for OSI
