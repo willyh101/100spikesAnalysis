@@ -420,6 +420,8 @@ popResponseEns(numSpikesEachStim==0)=[];
 
 ensIndNumber(numSpikesEachStim==0)=[];
 
+noStimPopResp = popResponse(numSpikesEachStim==0);
+
     
 %% Plot
 f3 = figure(3);
@@ -476,7 +478,7 @@ numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 
 x = 1:numEns;
-
+clear data names
 for i=1:numEns
     ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
     data{i} = popResponseEns(ens2plot);
@@ -486,7 +488,11 @@ for i=1:numEns
     ns(i) = numel(popResponseEns(ens2plot));
 end
 
+data{end+1} = noStimPopResp;
+names{end+1} = 'No Stim';
+
 cmap=colormap(viridis(numEns));
+cmap(end+1,:)=rgb('grey');
 p = plotSpread(data, 'xNames', names, 'showMM', 4, 'distributionColors',cmap);
 % bar(x, avg)
 % hold on
@@ -508,6 +514,17 @@ p{2}(1).Color = rgb('darkgrey');
 p{2}(2).Color = rgb('darkgrey');
 p{2}(1).LineWidth = 1;
 p{2}(2).LineWidth = 1;
+
+ r = refline(0);
+    r.LineStyle=':';
+    r.Color = rgb('grey');
+
+pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off')
+
+ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
+ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
+ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
+
 
 %% look at just the 10s data for each mouse
 
@@ -548,6 +565,10 @@ for s=unique(ens_sizes)
     uistack(p{2},'bottom')
     xtickangle(45)
     title(['Ensembles of ' num2str(s)])
+    
+    r = refline(0);
+    r.LineStyle=':';
+    r.Color = rgb('grey');
     
 end
 
