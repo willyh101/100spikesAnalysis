@@ -72,6 +72,10 @@ recWinSec = [1.25 2.5];
          disp(['Added visID to Exp ' num2str(ind)]);
      end
      
+     if numel(All(ind).out.vis.visID) ~= numel(All(ind).out.vis.lowMotionTrials)
+         All(ind).out.vis.lowMotionTrials(end+1:numel(All(ind).out.vis.visID))= 0 ;
+     end
+     
      fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 
  end
@@ -87,6 +91,7 @@ for ind=1:numExps
     oriCurve=[];
     for i=1:numel(uVisID)
         v= uVisID(i);
+ 
         trialsToUse = All(ind).out.vis.visID==v & All(ind).out.vis.lowMotionTrials;
         
         oriCurve(i,:)=mean(All(ind).out.vis.rdata(:,trialsToUse),2);
@@ -437,6 +442,8 @@ title('OSIs by Ensemble Size')
 set(gcf(),'Name','OSIs by Ensemble Size')
 cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
 cb.Label.String = 'Number of Cells in Ensemble';
+r = refline(0);
+r.LineStyle =':';
 
 %% group conditions
 % not proud of this but it did prevent me from re-writing a bunch of code
@@ -480,7 +487,7 @@ uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 x = 1:numEns;
 clear data names
 for i=1:numEns
-    ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
     data{i} = popResponseEns(ens2plot);
     names{i} = string(uniqueEns(i));
     avg(i) = mean(popResponseEns(ens2plot));
@@ -529,13 +536,15 @@ ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
 %% look at just the 10s data for each mouse
 
 
-allens2plt = popResponseEns(numCellsEachEns(ensemblesToUse))';
+% allens2plt = popResponseEns(numCellsEachEns(ensemblesToUse))';
 
 f7 = figure(7);
 clf(f7)
 k=0;
 ens_ids = ensIndNumber(ensemblesToUse);
 ens_sizes = numCellsEachEns(ensemblesToUse);
+popResponseClip = popResponseEns(ensemblesToUse); %indexing error need to subselect first 
+
 clear sp
 for s=unique(ens_sizes)
     clear ens2plt expid exp2plt names
@@ -544,7 +553,7 @@ for s=unique(ens_sizes)
     sp(k) = subplot(1,numel(unique(numCellsEachEns(ensemblesToUse))),k);
     
     expid = ens_ids(ens_sizes==s);
-    ens2plt = popResponseEns(ens_sizes==s)';
+    ens2plt = popResponseClip(ens_sizes==s)'; %indexing error need to subselect first 
 
     c=0;
     for i=unique(expid)
