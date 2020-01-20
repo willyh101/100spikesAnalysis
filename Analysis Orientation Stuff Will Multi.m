@@ -418,12 +418,12 @@ for ind=1:numExps
             if i~=1
                 Tg=All(ind).out.exp.rois{holo};
                 dists = StimDistance(Tg,:);
-                minDist = mean(dists);
+                minDist = min(dists);
                 
-                distBins = [0:50:500];
+                distBins = [0:25:500];
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
-                        pVisR<0.05 &...
+                        pVisR<10.05 &...
                         ~offTargetRisk(holo,:) &...
                         minDist > distBins(d) &...
                         minDist <= distBins(d+1) ;
@@ -677,6 +677,27 @@ set(gcf(),'Name','Mean OSI Curves')
 
 
 %% Plot Pop Response by Distance
-popDist = cell2mat(popResponseDist');
+popDistAll = cell2mat(popResponseDist');
+popDist = popDistAll(numSpikesEachStim~=0,:);
+
+ensSizes = unique(numCellsEachEns(ensemblesToUse))   ;
+
+colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
+
+figure(8);clf
+for i = 1:size(ensSizes,2)
+% subplot(1,size(ensSizes),i)
+dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
+meanDat = nanmean(dat)
+stdDat = nanstd(dat);
+numpDat = sum(~isnan(dat));
+semDat = stdDat./sqrt(numpDat);
 
 
+hold on
+errorbar(distBins(2:end),meanDat,semDat,'linewidth',2,'color',colorList{i})
+end
+r = refline(0);
+r.LineStyle=':';
+r.Color = rgb('grey');
+r.LineWidth = 2;
