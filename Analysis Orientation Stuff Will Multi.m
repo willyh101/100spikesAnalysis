@@ -701,3 +701,6 @@ r = refline(0);
 r.LineStyle=':';
 r.Color = rgb('grey');
 r.LineWidth = 2;
+xlabel('Minimal distance from a target')
+ylabel('Population Response (mean of ensembles'' pop response)')
+
