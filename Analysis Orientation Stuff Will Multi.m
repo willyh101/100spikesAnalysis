@@ -345,9 +345,10 @@ for ind=1:numExps
     stimLoc = [stimCoM*muPerPx (stimDepth-1)*30];
 
     roisTargets = All(ind).out.exp.rois;
+    holoTargets = All(ind).out.exp.holoTargets;
 
-    thisPlaneTolerance = 10;10; %in pixels
-    onePlaneTolerance = 20;20;
+    thisPlaneTolerance = 15;10; %in pixels
+    onePlaneTolerance = 25;20;
 
     radialDistToStim=zeros([size(stimCoM,1) numCells]);
     axialDistToStim = zeros([size(stimCoM,1) numCells]);
@@ -366,7 +367,10 @@ for ind=1:numExps
     offTargetRisk = zeros([numel(roisTargets) numCells]);
     for i=1:numel(roisTargets)
         Tg = roisTargets{i};
-
+        try
+        TgCells = holoTargets{i};
+        catch;end;
+        
         if numel(Tg) == 1
             temp = radialDistToStim(Tg,:)<thisPlaneTolerance & axialDistToStim(Tg,:) ==0;
             temp2 = radialDistToStim(Tg,:)<onePlaneTolerance & abs(axialDistToStim(Tg,:)) ==1;
@@ -395,7 +399,7 @@ for ind=1:numExps
 
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
-    clear popResp
+    clear popResp popRespDist
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
             %             try
@@ -405,15 +409,42 @@ for ind=1:numExps
             %             end
 
             if i==1;
-                cellsToUse = ~ROIinArtifact' & pVisR<0.01;
+                cellsToUse = ~ROIinArtifact' & pVisR<0.05;
             else
-                cellsToUse = ~ROIinArtifact' & pVisR<0.01 & ~offTargetRisk(holo,:);
+                cellsToUse = ~ROIinArtifact' & pVisR<0.05 & ~offTargetRisk(holo,:);
             end
             popResp(i,v) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+            
+            if i~=1
+                Tg=All(ind).out.exp.rois{holo};
+                dists = StimDistance(Tg,:);
+                minDist = mean(dists);
+                
+                distBins = [0:50:500];
+                for d = 1:numel(distBins)-1
+                    cellsToUse = ~ROIinArtifact' &...
+                        pVisR<0.05 &...
+                        ~offTargetRisk(holo,:) &...
+                        minDist > distBins(d) &...
+                        minDist <= distBins(d+1) ;
+                    popRespDist(i,v,d) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                end
+            end
+        
+        
         end
     end
-
-    popResponse{ind} = popResp(:,1);
+    
+    VisCondToUse = 1; %1 is no vis
+    if VisCondToUse > size(popResp,2) 
+        popResponse{ind} = single(nan(size(popResp(:,1))));
+        popResponseDist{ind} = single(nan(size(squeeze(popRespDist(:,1,:)))));
+    else
+        popResponse{ind} = popResp(:,VisCondToUse);
+        popResponseDist{ind} = squeeze(popRespDist(:,VisCondToUse,:));
+    end
+    popResponseAll{ind} = popResp;
+    
     ensIndNumber = [ensIndNumber ones(size(popResp(:,1)'))*ind];
     
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
@@ -645,6 +676,7 @@ set(gcf(),'Name','Mean OSI Curves')
 
 
 
-
+%% Plot Pop Response by Distance
+popDist = cell2mat(popResponseDist');
 
 
