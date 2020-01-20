@@ -142,7 +142,7 @@ for ind=1:numExps
     All(ind).out.anal.pVisR = pVisR;
     All(ind).out.anal.pVisT = pVisT;
     
-    alpha = 0.05;
+    alpha = 0.01;
     
     All(ind).out.anal.visPercent = sum(pVisR<alpha) / numel(pVisR);
     visPercent(ind) =  All(ind).out.anal.visPercent;
@@ -201,6 +201,8 @@ meanOSI = cell2mat(meanOSI(:));
 ensNum = cell2mat(ensNum(:));
 roiNum = cell2mat(roiNum(:));
 
+
+
 % plot
 figure(1)
 clf(1)
@@ -237,8 +239,9 @@ legend('All Cells', 'Ensemble', 'Ensemble Mean')
 f2 = figure(2);
 clf(f2)
 hold on
-h(1) = histogram(ensOSI, 50);
-%h(2) = histogram(meanOSI, 50);
+h(1) = histogram(meanOSI, 50);
+h(2) = histogram(ensOSI, 50);
+
 
 % try using ensembleOSI > 0.3 for "tuned", this is arbitrary
 OSIthreshold = 0.3;
@@ -271,7 +274,7 @@ meanOSIT = cell2mat(meanOSIT(:));
 
 % and thier preferred oris
 
-    
+legend('Mean OSI', 'Ensemble OSI')
     
 %% Get the number of spikes in each stimulus
 
@@ -435,7 +438,7 @@ for ind=1:numExps
         end
     end
     
-    VisCondToUse = 1; %1 is no vis
+    VisCondToUse = 4; %1 is no vis
     if VisCondToUse > size(popResp,2) 
         popResponse{ind} = single(nan(size(popResp(:,1))));
         popResponseDist{ind} = single(nan(size(squeeze(popRespDist(:,1,:)))));
@@ -463,10 +466,16 @@ noStimPopResp = popResponse(numSpikesEachStim==0);
 f3 = figure(3);
 clf(3)
 
+
 ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125;% & ensIndNumber==15; %& numCellsEachEns>10 ;
 %scatter(meanOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
 scatter(ensOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
 
+% p = polyfit(ensOSI(ensemblesToUse),popResponseEns(ensemblesToUse),1);
+% f = polyval(p, ensOSI(ensemblesToUse));
+% hold on
+% plot(ensOSI(ensemblesToUse), f)
+% hold off
 xlabel('Ensemble OSI')
 ylabel('Population Mean Response')
 title('OSIs by Ensemble Size')
@@ -476,16 +485,19 @@ cb.Label.String = 'Number of Cells in Ensemble';
 r = refline(0);
 r.LineStyle =':';
 
+
+
 %% group conditions
 % not proud of this but it did prevent me from re-writing a bunch of code
 
 numCellsEachEnsBackup = numCellsEachEns;
+%numCellsEachEns = numCellsEachEnsBackup;
 
 numCellsEachEns(numCellsEachEns <=5) = 5;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
 %% fit ensembles of different sizes
-
+clear f p ens2plt fits
 f5 = figure(5);
 clf(f5)
 numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
@@ -496,7 +508,7 @@ for i=1:numEns
     ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
     p = polyfit(ensOSI(ens2plot),popResponseEns(ens2plot),1);
     f = polyval(p, ensOSI(ens2plot));
-    fits(i,:) = fit;
+    %fits(i,:) = f;
     subplot(1,numEns,i)
     plt = plot(ensOSI(ens2plot),popResponseEns(ens2plot), '.', 'MarkerSize',12);
     hold on
@@ -682,6 +694,7 @@ popDist = popDistAll(numSpikesEachStim~=0,:);
 
 ensSizes = unique(numCellsEachEns(ensemblesToUse))   ;
 
+
 colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
 
 figure(8);clf
@@ -703,4 +716,6 @@ r.Color = rgb('grey');
 r.LineWidth = 2;
 xlabel('Minimal distance from a target')
 ylabel('Population Response (mean of ensembles'' pop response)')
+xlim([0 250])
+legend('Small', 'Medium', 'Big')
 
