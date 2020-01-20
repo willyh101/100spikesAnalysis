@@ -76,6 +76,19 @@ recWinSec = [1.25 2.5];
          All(ind).out.vis.lowMotionTrials(end+1:numel(All(ind).out.vis.visID))= 0 ;
      end
      
+     %ensure stimparam correct and properly formatted
+     %Caution may erase stimparams if they are complex
+     for r = 1:size(All(ind).out.exp.stimParams.roi,2)
+         x = All(ind).out.exp.stimParams.roi{r};
+         if iscell(x)
+             All(ind).out.exp.stimParams.roi{r} = x{1};
+         end
+         if numel(x)>1
+             All(ind).out.exp.stimParams.roi{r} = r-1;
+         end
+     end
+     
+     
      fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 
  end
@@ -296,6 +309,8 @@ for ind = 1:numExps
     All(ind).out.anal.numSpikesAddedPerCond = numSpikes;
     numSpikesEachStim{ind} = numSpikes;
     numCellsEachEns{ind} = All(ind).out.exp.stimParams.numCells;
+    hzEachEns{ind} = All(ind).out.exp.stimParams.Hz;
+    
 end
 numSpikesEachStim=cell2mat(numSpikesEachStim(:)');
 numSpikesEachEns = numSpikesEachStim;
@@ -303,6 +318,7 @@ numSpikesEachEns(numSpikesEachStim==0)=[];
 
 numCellsEachEns=cell2mat(numCellsEachEns(:)');
     
+hzEachEns = cell2mat(hzEachEns(:)');
 %% Make all dataPlots into matrixes of mean responses
 
 
@@ -350,8 +366,8 @@ for ind=1:numExps
     roisTargets = All(ind).out.exp.rois;
     holoTargets = All(ind).out.exp.holoTargets;
 
-    thisPlaneTolerance = 15;10; %in pixels
-    onePlaneTolerance = 25;20;
+    thisPlaneTolerance = 10;10; %in pixels
+    onePlaneTolerance = 15;20;
 
     radialDistToStim=zeros([size(stimCoM,1) numCells]);
     axialDistToStim = zeros([size(stimCoM,1) numCells]);
@@ -402,11 +418,12 @@ for ind=1:numExps
 
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
-    clear popResp popRespDist
+    clear popResp popRespDist popRespDistNumCells
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
             %             try
-            holo =All(ind).out.exp.stimParams.Seq(i) ;% roi{i}{1};
+%             holo =All(ind).out.exp.stimParams.Seq(i) ;% roi{i}{1};
+            holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
             %             catch
             %                 holo =All(ind).out.exp.stimParams.roi{i};
             %             end
@@ -431,6 +448,7 @@ for ind=1:numExps
                         minDist > distBins(d) &...
                         minDist <= distBins(d+1) ;
                     popRespDist(i,v,d) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                    popRespDistNumCells(i,v,d) = sum(cellsToUse);
                 end
             end
         
@@ -438,15 +456,18 @@ for ind=1:numExps
         end
     end
     
-    VisCondToUse = 4; %1 is no vis
+    VisCondToUse = 1; %1 is no vis
     if VisCondToUse > size(popResp,2) 
         popResponse{ind} = single(nan(size(popResp(:,1))));
         popResponseDist{ind} = single(nan(size(squeeze(popRespDist(:,1,:)))));
+        popResponseNumCells{ind} = single(nan(size(squeeze(popRespDistNumCells(:,1,:)))));
     else
         popResponse{ind} = popResp(:,VisCondToUse);
         popResponseDist{ind} = squeeze(popRespDist(:,VisCondToUse,:));
+        popResponseNumCells{ind} = squeeze(popRespDistNumCells(:,VisCondToUse,:));
     end
     popResponseAll{ind} = popResp;
+    popResponseAllNumCells{ind} = popRespDistNumCells;
     
     ensIndNumber = [ensIndNumber ones(size(popResp(:,1)'))*ind];
     
@@ -691,6 +712,10 @@ set(gcf(),'Name','Mean OSI Curves')
 %% Plot Pop Response by Distance
 popDistAll = cell2mat(popResponseDist');
 popDist = popDistAll(numSpikesEachStim~=0,:);
+
+popNumCells = cell2mat(popResponseNumCells');
+popNCells = popNumCells(numSpikesEachStim~=0,:);
+
 
 ensSizes = unique(numCellsEachEns(ensemblesToUse))   ;
 
