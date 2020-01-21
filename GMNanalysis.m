@@ -120,13 +120,14 @@ for ind=1:numExps
         for k= 1 : numel(unique(All(ind).out.exp.visID))
             vs = unique(All(ind).out.exp.visID);
             v = vs(k);
-
-            respMat(i,k,:) = mean(All(ind).out.exp.rdData(:,...
-                trialsToUse & All(ind).out.exp.stimID ==s &...
-                All(ind).out.exp.visID ==v), 2) ;
-            baseMat(i,k,:) = mean(All(ind).out.exp.bdata(:,...
-                trialsToUse & All(ind).out.exp.stimID ==s &...
-                All(ind).out.exp.visID ==v), 2) ;
+            if v~=0
+                respMat(i,v,:) = mean(All(ind).out.exp.rdData(:,...
+                    trialsToUse & All(ind).out.exp.stimID ==s &...
+                    All(ind).out.exp.visID ==v), 2) ;
+                baseMat(i,v,:) = mean(All(ind).out.exp.bdata(:,...
+                    trialsToUse & All(ind).out.exp.stimID ==s &...
+                    All(ind).out.exp.visID ==v), 2) ;
+            end
         end
     end
 
@@ -200,7 +201,8 @@ for ind=1:numExps
 
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
-    clear popResp popRespDist popRespDistNumCells
+    vs(vs==0)=[];
+    clear popResp popRespDist popRespDistNumCells popRespDistSubtracted
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
             %             try
@@ -230,7 +232,9 @@ for ind=1:numExps
                         minDist <= distBins(d+1) ;
                     popRespDist(i,v,d) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                     popRespDistNumCells(i,v,d) = sum(cellsToUse);
+                    popRespDistSubtracted(i,v,d) = popRespDist(i,v,d) - (mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse))));
                 end
+
             end
         
         
@@ -250,6 +254,7 @@ for ind=1:numExps
     end
     popResponseAll{ind} = popResp;
     popResponseAllDist{ind} = popRespDist;
+    popResponseAllDistSub{ind} = popRespDistSubtracted;
     popResponseAllNumCells{ind} = popRespDistNumCells;
     
     ensIndNumber = [ensIndNumber ones(size(popResp(:,1)'))*ind];
@@ -452,11 +457,16 @@ figure(11);clf
 
     
 popDatNoVis = cell2mat(cellfun(@(x) squeeze(x(2:end,1,:)), popResponseAllDist,'uniformoutput',0)');
-popDatNoVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,1,:)), popResponseAllDist,'uniformoutput',0)'));
+% popDatNoVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,1,:)), popResponseAllDist,'uniformoutput',0)'));
 
 popDatMaxVis = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDist,'uniformoutput',0)');
-popDatMaxVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,end,:)), popResponseAllDist,'uniformoutput',0)'));
-popDatMaxVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:) - x(1,end,:)), popResponseAllDist,'uniformoutput',0)');
+% popDatMaxVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,end,:)), popResponseAllDist,'uniformoutput',0)'));
+popDatMaxVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDistSub,'uniformoutput',0)');
+
+
+divider = 1;
+popDatVis2 = cell2mat(cellfun(@(x) squeeze(x(2:end,round(size(x,2)/divider),:)), popResponseAllDist,'uniformoutput',0)');
+popDatVis2Subtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,round(size(x,2)/divider),:)), popResponseAllDistSub,'uniformoutput',0)');
 
 subplot(1,2,1)
 
@@ -484,11 +494,12 @@ xlabel('Minimal distance from a target')
 ylabel('Population Response (mean of ensembles'' pop response)')
 xlim([0 250])
 legend('Small', 'Medium', 'Big')
+title('Holographic induced changes 0 Contrast')
 
 subplot(1,2,2)
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)
-dat = popDatMaxVis(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
+dat = popDatMaxVisSubtracted(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
 meanDat = nanmean(dat);
 stdDat = nanstd(dat);
 numpDat = sum(~isnan(dat));
@@ -504,3 +515,38 @@ xlabel('Minimal distance from a target')
 ylabel('Population Response (mean of ensembles'' pop response)')
 xlim([0 250])
 legend('Small', 'Medium', 'Big')
+title('Holographic induced changes Max Contrast')
+
+
+figure(12);clf
+contrastsToView = [6 3 2 1.5 1.25 1] ;%I know its weird i just wanted to be able to catch times that we were using different contrasts, will work out to 1:6 if there are 6 contrasts; 1:6;
+for c=1:numel(contrastsToView)
+ax(c) = subplot(1,numel(contrastsToView),c);
+divider = contrastsToView(c);
+popDatVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSub,'uniformoutput',0)');
+
+for i = 1:size(ensSizes,2)
+% subplot(1,size(ensSizes),i)
+dat = popDatVisSubtracted(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
+meanDat = nanmean(dat);
+stdDat = nanstd(dat);
+numpDat = sum(~isnan(dat));
+semDat = stdDat./sqrt(numpDat);
+hold on
+errorbar(distBins(2:end),meanDat,semDat,'linewidth',2,'color',colorList{i})
+end
+r = refline(0);
+r.LineStyle=':';
+r.Color = rgb('grey');
+r.LineWidth = 2;
+xlabel('Minimal distance from a target')
+ylabel('Population Response (mean of ensembles'' pop response)')
+xlim([0 250])
+legend('Small', 'Medium', 'Big')
+title(['Contrast ' num2str(c) ] );
+
+
+
+end
+
+linkaxes([ax{:}])
