@@ -549,4 +549,4 @@ title(['Contrast ' num2str(c) ] );
 
 end
 
-linkaxes([ax{:}])
+linkaxes([ax(:)])
