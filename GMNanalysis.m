@@ -1,9 +1,11 @@
 %% Load Experiments
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
+
+% 'U:\ioldenburg\outputdata1'
 %%
 numExps = numel(loadList);
-
+if numExps ~= 0
 clear All
 for ind = 1:numExps
     pTime =tic;
@@ -11,11 +13,14 @@ for ind = 1:numExps
     All(ind) = load(fullfile(loadPath,loadList{ind}),'out');
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
+else
+    disp('Did you press this by accident?')
+end
 
 %% Clean Data and stuff i dunno come up with a better title someday
 
 FRDefault=6;
-recWinSec = [1.25 2.5];
+recWinRange = [1 2];% %from vis Start [1.25 2.5];
 
  for ind =1:numExps
      pTime =tic;
@@ -29,6 +34,14 @@ recWinSec = [1.25 2.5];
      end
      
      sz = size(All(ind).out.exp.zdfData);
+         
+     
+     if ~isfield(All(ind).out.exp,'visStart')
+         All(ind).out.exp.visStart = 0.5;
+         disp(['Added visStart to Exp' num2str(ind)]);
+     end
+     
+     recWinSec = recWinRange + All(ind).out.exp.visStart; %recording window relative to when vis start
      
      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
      rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse,:),2));
@@ -69,9 +82,11 @@ recWinSec = [1.25 2.5];
 
  end
  
+
+ 
  %% Get the number of spikes in each stimulus
 
-clear numSpikesEachStim numCellsEachEns
+clear numSpikesEachStim numCellsEachEns hzEachEns
 for ind = 1:numExps
     temp = All(ind).out.exp.stimParams.numPulse;
     numSpikes=[];
@@ -102,7 +117,8 @@ hzEachEns = cell2mat(hzEachEns(:)');
 
 
 %% Make all dataPlots into matrixes of mean responses
-
+ %%Determine Vis Responsive and Process Correlation
+ 
 
 clear popResponse pVisR pVisT
 ensIndNumber=[];
@@ -199,10 +215,29 @@ for ind=1:numExps
 %     pVisR = All(ind).out.anal.pVisR;
 %     pVisT = All(ind).out.anal.pVisT;
 
+
+    %ID tuned Cells, should comparing no contrast to with contrast
+    pVisR=[];%pVisT=[];
+    for i=1:All(ind).out.anal.numCells
+        trialsToUse = All(ind).out.exp.visID~=0 & All(ind).out.exp.lowMotionTrials & All(ind).out.exp.stimID==min(All(ind).out.exp.stimID);
+ %(All(ind).out.exp.visID==1 | All(ind).out.exp.visID==max(All(ind).out.exp.visID) ) & All(ind).out.exp.lowMotionTrials;
+        pVisR(i) = anova1(All(ind).out.exp.rdData(i,trialsToUse),All(ind).out.exp.visID(trialsToUse),'off');
+%          pVisR(i) = ranksum(All(ind).out.exp.rdData(i,trialsToUse & All(ind).out.exp.visID==1),...
+%              All(ind).out.exp.rdData(i,trialsToUse & All(ind).out.exp.visID== max(All(ind).out.exp.visID)) );
+         
+%         trialsToUse = All(ind).out.vis.visID~=0 & All(ind).out.vis.visID~=1 & All(ind).out.vis.lowMotionTrials;
+%         pVisT(i) = anova1(All(ind).out.vis.rdata(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
+    end
+     All(ind).out.anal.pVisR = pVisR;
+     visAlpha = 0.01;
+    
+    All(ind).out.anal.visPercent = sum(pVisR<visAlpha) / numel(pVisR);
+    visPercent(ind) =  All(ind).out.anal.visPercent;
+
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
     vs(vs==0)=[];
-    clear popResp popRespDist popRespDistNumCells popRespDistSubtracted
+    clear popResp popRespDist popRespDistNumCells popRespDistSubtracted  popRespDistVisNumCells popRespDistSubVis
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
             %             try
@@ -233,6 +268,12 @@ for ind=1:numExps
                     popRespDist(i,v,d) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                     popRespDistNumCells(i,v,d) = sum(cellsToUse);
                     popRespDistSubtracted(i,v,d) = popRespDist(i,v,d) - (mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse))));
+                    cellsToUse = cellsToUse & pVisR<visAlpha;
+                    tempResp = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                    popRespDistSubVis(i,v,d) = tempResp - (mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse))));
+                    popRespDistVisNumCells(i,v,d) = sum(cellsToUse);
+
+                  
                 end
 
             end
@@ -256,8 +297,12 @@ for ind=1:numExps
     popResponseAllDist{ind} = popRespDist;
     popResponseAllDistSub{ind} = popRespDistSubtracted;
     popResponseAllNumCells{ind} = popRespDistNumCells;
+    popResponseAllDistSubVis{ind} = popRespDistSubVis;
+    popResponseAllDistSubVisNC{ind} = popRespDistVisNumCells;
     
     ensIndNumber = [ensIndNumber ones(size(popResp(:,1)'))*ind];
+    
+
     
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
@@ -428,7 +473,7 @@ ensSizes = unique(numCellsEachEns(ensemblesToUse))   ;
 
 colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
 
-figure(8);clf
+figure(9);clf
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)
 dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
@@ -462,6 +507,7 @@ popDatNoVis = cell2mat(cellfun(@(x) squeeze(x(2:end,1,:)), popResponseAllDist,'u
 popDatMaxVis = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDist,'uniformoutput',0)');
 % popDatMaxVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,end,:)), popResponseAllDist,'uniformoutput',0)'));
 popDatMaxVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDistSub,'uniformoutput',0)');
+popDatMaxVisSubVis = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDistSubVis,'uniformoutput',0)');
 
 
 divider = 1;
@@ -523,7 +569,10 @@ contrastsToView = [6 3 2 1.5 1.25 1] ;%I know its weird i just wanted to be able
 for c=1:numel(contrastsToView)
 ax(c) = subplot(1,numel(contrastsToView),c);
 divider = contrastsToView(c);
-popDatVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSub,'uniformoutput',0)');
+% popDatVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSub,'uniformoutput',0)');
+
+popDatVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSubVis,'uniformoutput',0)');
+
 
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)

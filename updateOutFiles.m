@@ -38,3 +38,34 @@ for ind = 1:numExps
     
 end
 disp('Done')
+
+
+%%
+%% ID lack of visStart
+
+for ind = 1:numExps
+    if ~isfield(All(ind).out.exp,'visStart')
+         pTime =tic;
+    fprintf(['Loading Experiment ' num2str(ind) '...']);
+    try
+        out = All(ind).out;
+        pth = fileparts(All(ind).out.info.path);
+        x = dir(fullfile(pth,'Analysis*'));
+        
+        inDat = load(fullfile(pth,x(1).name),'visStart','visStop');
+       out.exp.visStart = inDat.visStart;
+       out.exp.visStop = inDat.visStop;
+        
+        fprintf(['\nVisStart was: ' num2str(inDat.visStart) '\n']);
+        
+        save(fullfile(loadPath,loadList{ind}),'out')
+    catch
+        disp(['Unable to edit Experiment ' num2str(ind)])
+    end
+        
+    fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+
+    end
+    
+end
+disp('Done')
