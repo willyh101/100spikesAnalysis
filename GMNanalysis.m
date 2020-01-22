@@ -241,13 +241,7 @@ for ind=1:numExps
     clear minDistbyHolo
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
-            %             try
-%             holo =All(ind).out.exp.stimParams.Seq(i) ;% roi{i}{1};
             holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
-            %             catch
-            %                 holo =All(ind).out.exp.stimParams.roi{i};
-            %             end
-
             if i==1;
                 cellsToUse = ~ROIinArtifact';
             else
@@ -812,7 +806,6 @@ for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
     data = EnsL2(ens2plot,:);
     
-    
     e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
 %         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
 
@@ -845,4 +838,236 @@ end
 xlim([0 250])
 legend('small', 'medium', 'large')
 
+
+%% Correlation Analyisis Determine Correlation Coefficients
+
+for ind = 1:numExps
+      pTime =tic;
+    fprintf(['Processing Experiment ' num2str(ind) '...']);
+    us = unique(All(ind).out.exp.stimID);
+
+    %Spont Corr - correlation coefficient on time series from no stim
+    %period
+    trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.stimID == us(1) &...
+        All(ind).out.exp.visID == 1;
+    unrollData = All(ind).out.exp.zdfData(:,:,trialsToUse);
+    sz = size(unrollData);
+    unrollData = reshape(unrollData,[sz(1) sz(2)*sz(3)]);
+    
+    [SpontCorr SpCoP] = corr(unrollData');
+    
+    %AllCorr - the correlation coef on all time series
+    trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.stimID == us(1) ;
+    unrollData = All(ind).out.exp.zdfData(:,:,trialsToUse);
+    sz = size(unrollData);
+    unrollData = reshape(unrollData,[sz(1) sz(2)*sz(3)]);
+    
+    [AllCorr AlCoP] = corr(unrollData');
+    
+    %All corr mean - correlation coef of response (not time series)
+    trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.stimID == us(1) ;
+    unrollData = All(ind).out.exp.rdData(:,trialsToUse);
+    sz = size(unrollData);
+    
+    [AllMCorr AmCoP] = corr(unrollData');
+    
+    %noise corr - correlation coef of residual trial response (not time
+    %series) i.e. trial response - mean response for that condition
+     trialsToUse = All(ind).out.exp.lowMotionTrials &...
+         All(ind).out.exp.stimID == us(1) ;
+    vs = unique(All(ind).out.exp.visID);
+    unrollData = [];
+    meanResps = [];
+    for k = 1:numel(vs)
+        v = vs(k);
+        trialsToUseThis = trialsToUse & All(ind).out.exp.visID==v;
+        
+        dataPart = All(ind).out.exp.rdData(:,trialsToUseThis);
+        mData = mean(dataPart');
+        meanResps(k,:) =  mData;
+        dataPart = dataPart-mData';
+        
+        unrollData = cat(2,unrollData,dataPart);
+    end
+        
+    [NoiseCorr NoCoP] = corr(unrollData');
+    [SignalCorr SiCoP] = corr(meanResps);
+
+    
+    All(ind).out.anal.SpontCorr = SpontCorr;
+    All(ind).out.anal.SpCoP = SpCoP;
+
+    All(ind).out.anal.AllCorr = AllCorr;
+    All(ind).out.anal.AlCoP = AlCoP;
+    
+    All(ind).out.anal.AllMCorr = AllMCorr;
+    All(ind).out.anal.AmCoP =AmCoP;
+    
+    All(ind).out.anal.SignalCorr = SignalCorr;
+    All(ind).out.anal.SiCoP =SiCoP;
+
+    All(ind).out.anal.NoiseCorr = NoiseCorr;
+    All(ind).out.anal.NoCoP = NoCoP;
+
+    
+    fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+end
+
+%%Determine the Ensemble CoCorrelation
+
+ensSpCo=[];ensAlCo=[];ensAmCo=[];ensSiCo=[];ensNoCo=[];
+for ind = 1:numExps
+    clear ensembleSoCo ensembleAlCo ensembleAmCo ensembleSiCo ensembleNoCo
+    for i =1:numel(All(ind).out.exp.holoTargets)
+        ht = All(ind).out.exp.holoTargets{i};
+        ht(isnan(ht))=[];
+        corrToUse = All(ind).out.anal.SpontCorr;
+        corMat = corrToUse(ht,ht); 
+        corMat(logical(eye(numel(ht))))=nan;
+        ensembleSpCo(i) = nanmean(corMat(:));
+        
+        corrToUse = All(ind).out.anal.AllCorr;
+        corMat = corrToUse(ht,ht); 
+        corMat(logical(eye(numel(ht))))=nan;
+        ensembleAlCo(i) =nanmean(corMat(:));
+        
+        corrToUse = All(ind).out.anal.AllMCorr;
+        corMat = corrToUse(ht,ht); 
+        corMat(logical(eye(numel(ht))))=nan;
+        ensembleAmCo(i) = nanmean(corMat(:));
+        
+        corrToUse = All(ind).out.anal.SignalCorr;
+        corMat = corrToUse(ht,ht); 
+        corMat(logical(eye(numel(ht))))=nan;
+        ensembleSiCo(i) =nanmean(corMat(:));
+        
+        corrToUse = All(ind).out.anal.NoiseCorr;
+        corMat = corrToUse(ht,ht); 
+        corMat(logical(eye(numel(ht))))=nan;
+        ensembleNoCo(i) =nanmean(corMat(:));
+    end
+    All(ind).out.anal.ensembleSpCo = ensembleSpCo;
+    All(ind).out.anal.ensembleAlCo = ensembleAlCo;
+    All(ind).out.anal.ensembleAmCo = ensembleAmCo;
+    All(ind).out.anal.ensembleSiCo = ensembleSiCo;
+    All(ind).out.anal.ensembleNoCo = ensembleNoCo;
+    
+    ensSpCo = cat(2,ensSpCo,ensembleSpCo);
+    ensAlCo = cat(2,ensAlCo,ensembleAlCo);
+    ensAmCo = cat(2,ensAmCo,ensembleAmCo);
+    ensSiCo = cat(2,ensSiCo,ensembleSiCo);
+    ensNoCo = cat(2,ensNoCo,ensembleNoCo);
+end
+figure(14);clf
+dat = {ensSpCo(ensemblesToUse), ensAlCo(ensemblesToUse), ensAmCo(ensemblesToUse),  ensSiCo(ensemblesToUse), ensNoCo(ensemblesToUse)}; 
+names = {'Spont' 'All' 'All (v2)' 'Signal' 'Noise'};
+fancyPlotSpread(dat,names);
+title('Ensemble Mean Correlations by type')
+ylabel('Correlation (Rho)')
+
+%% plot Pop Response by Correlation
+f3 = figure(3);
+clf(3)
+
+for i=1:5
+    subplot(5,1,i)
+    dataToUse = dat{i};
+scatter(dataToUse,popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
+% scatter(1:sum(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
+
+xlabel([names{i} ' Correlation'])
+ylabel('Population Mean Response')
+% title('OSIs by Ensemble Size')
+set(gcf(),'Name','OSIs by Ensemble Size')
+cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
+cb.Label.String = 'Number of Cells in Ensemble';
+r = refline(0);
+r.LineStyle =':';
+end
+
+
+%% Plot 
+clear popResponseCorr
+for ind = 1:numExps
+
+    corrToUse  = All(ind).out.anal.SpontCorr;
+
+    
+    vs =  unique(All(ind).out.exp.visID);
+    vs(vs==0)=[];
+    respMat = All(ind).out.anal.respMat;
+    baseMat = All(ind).out.anal.baseMat;
+    
+    ROIinArtifact = All(ind).out.anal.ROIinArtifact;
+    offTargetRisk = All(ind).out.anal.offTargetRisk;
+    
+    clear popRespCorr minDistbyHolo cellsToUse
+ for v = 1:numel(vs)
+        for i= 1:numel(All(ind).out.exp.stimParams.Seq)
+            holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
+            if i==1
+                cellsToUse = ~ROIinArtifact';
+            else
+                cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:);
+            end
+%             popResp(i,v) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+            
+            if i~=1
+                Tg=All(ind).out.exp.holoTargets{holo};
+                Tg(isnan(Tg))=[];
+                
+                distCorr = corrToUse(Tg,:);
+                minDist = mean(distCorr);
+                
+                if numel(Tg)==0
+                    minDistbyHolo(i,:) = ones([1 size(minDist,2)])*1000;
+                else
+                    minDistbyHolo(i,:) = minDist;
+                end
+                distBins = linspace(-1,1,40);
+                for d = 1:numel(distBins)-1
+                    cellsToUse = ~ROIinArtifact' &...
+                        ~offTargetRisk(holo,:) &...
+                        minDist > distBins(d) &...
+                        minDist <= distBins(d+1) ;
+                    popRespCorr(i,v,d) = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                end
+            end
+        end
+ end
+ popRespCorr(1,:,:)=[];
+  popResponseCorr{ind} = popRespCorr;
+end
+% 
+% popResponseCorr = cell2mat(popResponseCorr(:));
+% popResponseCorr(numSpikesEachStim==0)=[];
+
+popRespCorr;
+
+temp = cellfun(@(x) squeeze(x(:,1,:)),popResponseCorr,'uniformoutput',0) ;
+EnsCorR = cat(1,temp{:});
+
+figure(15);clf
+% subplot(1,3,1)
+hold on
+for i=1:numEns
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
+    data = EnsCorR(ens2plot,:);
+    
+    
+    e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
+%         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
+
+    e.Color = colorList{i};
+    e.LineWidth = 2;
+%     names{i} = string(uniqueEns(i));
+%     avg(i) = mean(popResponseEns(ens2plot));
+%     err(i) = sem(popResponseEns(ens2plot));
+%     ns(i) = numel(popResponseEns(ens2plot));
+end
+xlim([-0.4 0.4])
+legend('small', 'medium', 'large')
 
