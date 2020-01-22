@@ -229,7 +229,7 @@ for ind=1:numExps
 %         pVisT(i) = anova1(All(ind).out.vis.rdata(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
     end
      All(ind).out.anal.pVisR = pVisR;
-     visAlpha = 0.01;
+     visAlpha = 0.05;
     
     All(ind).out.anal.visPercent = sum(pVisR<visAlpha) / numel(pVisR);
     visPercent(ind) =  All(ind).out.anal.visPercent;
@@ -237,7 +237,8 @@ for ind=1:numExps
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
     vs(vs==0)=[];
-    clear popResp popRespDist popRespDistNumCells popRespDistSubtracted  popRespDistVisNumCells popRespDistSubVis
+    clear popResp popRespDist popRespDistNumCells popRespDistSubtracted  popRespDistVisNumCells popRespDistSubVis popRespDistVis
+    clear minDistbyHolo
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
             %             try
@@ -259,6 +260,7 @@ for ind=1:numExps
                 dists = StimDistance(Tg,:);
                 minDist = min(dists);
                 
+                minDistbyHolo(i,:) = minDist;
                 distBins = [0:25:500];
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
@@ -271,6 +273,7 @@ for ind=1:numExps
                     cellsToUse = cellsToUse & pVisR<visAlpha;
                     tempResp = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                     popRespDistSubVis(i,v,d) = tempResp - (mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse))));
+                    popRespDistVis(i,v,d) = tempResp;
                     popRespDistVisNumCells(i,v,d) = sum(cellsToUse);
 
                   
@@ -281,6 +284,8 @@ for ind=1:numExps
         
         end
     end
+    
+    All(ind).out.anal.minDistbyHolo = minDistbyHolo;
     
     VisCondToUse = 1; %1 is no vis
     if VisCondToUse > size(popResp,2) 
@@ -298,6 +303,7 @@ for ind=1:numExps
     popResponseAllDistSub{ind} = popRespDistSubtracted;
     popResponseAllNumCells{ind} = popRespDistNumCells;
     popResponseAllDistSubVis{ind} = popRespDistSubVis;
+    popResponseAllDistVis{ind} = popRespDistVis;
     popResponseAllDistSubVisNC{ind} = popRespDistVisNumCells;
     
     ensIndNumber = [ensIndNumber ones(size(popResp(:,1)'))*ind];
@@ -569,14 +575,14 @@ contrastsToView = [6 3 2 1.5 1.25 1] ;%I know its weird i just wanted to be able
 for c=1:numel(contrastsToView)
 ax(c) = subplot(1,numel(contrastsToView),c);
 divider = contrastsToView(c);
-% popDatVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSub,'uniformoutput',0)');
-
-popDatVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSubVis,'uniformoutput',0)');
-
+% popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSub,'uniformoutput',0)');
+% popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDist,'uniformoutput',0)');
+popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSubVis,'uniformoutput',0)');
+% popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistVis,'uniformoutput',0)');
 
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)
-dat = popDatVisSubtracted(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
+dat = popDatToPlot(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
 meanDat = nanmean(dat);
 stdDat = nanstd(dat);
 numpDat = sum(~isnan(dat));
@@ -599,3 +605,244 @@ title(['Contrast ' num2str(c) ] );
 end
 
 linkaxes([ax(:)])
+
+
+%% Calculate L1 and L2 
+contrastsToView = [6 3 2 1.5 1.25 1] ;%I know its weird i just wanted to be able to catch times that we were using different contrasts, will work out to 1:6 if there are 6 contrasts; 1:6;
+
+clear EnsL1 EnsL2
+c=0;
+for ind =1:numExps
+    
+  for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
+            holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
+    
+            divider =1;
+            maxV = max(All(ind).out.exp.visID);
+            v = max(round(maxV/divider),1);
+            
+            trialsToUse = All(ind).out.exp.lowMotionTrials & All(ind).out.exp.visID==v;
+%             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & All(ind).out.anal.offTargetRisk(holo,:);
+                        cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~any(All(ind).out.anal.offTargetRisk(:,:));
+
+                        
+            us = unique(All(ind).out.exp.stimID); 
+            
+            testData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(h+1));
+            ExpectedData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(1));
+            [L1 L2 L3] =  calcL1L2(testData,ExpectedData);
+            L1= L1/size(testData,1);
+            L2 = L2/sqrt(size(testData,1));
+            L3 = L3/ ((size(testData,1))^(1/3)) ;
+
+            
+            c=c+1;
+            EnsL1(c) = L1;
+            EnsL2(c) = L2;      
+  end
+    
+end
+
+
+clear avg err ns ens2plt
+f6 = figure(10);
+clf(f6)
+numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
+uniqueEns = unique(numCellsEachEns(ensemblesToUse));
+
+subplot(1,3,1)
+x = 1:numEns;
+clear data names
+for i=1:numEns
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
+    data{i} = EnsL1(ens2plot);
+    names{i} = string(uniqueEns(i));
+    avg(i) = mean(popResponseEns(ens2plot));
+    err(i) = sem(popResponseEns(ens2plot));
+    ns(i) = numel(popResponseEns(ens2plot));
+end
+
+% data{end+1} = noStimPopResp;
+% names{end+1} = 'No Stim';
+
+cmap=colormap(viridis(numEns));
+% cmap(end+1,:)=rgb('grey');
+p = plotSpread(data, 'xNames', names, 'showMM', 4, 'distributionColors',cmap);
+ylabel('L1')
+% xticklabels(uniqueEns)
+% xticks = 1:6;
+% title('Mean population response to holo')
+xlabel('Ensemble Size')
+set(gcf(),'Name','L1 of Nonstimulated Cells to holo')
+
+ax=p{3};
+set(findall(gcf(),'type','line'),'markerSize',16)
+p{2}(1).Color = rgb('darkgrey');
+p{2}(2).Color = rgb('darkgrey');
+p{2}(1).LineWidth = 1;
+p{2}(2).LineWidth = 1;
+
+subplot(1,3,2)
+x = 1:numEns;
+clear data names
+for i=1:numEns
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
+    data{i} = EnsL2(ens2plot);
+    names{i} = string(uniqueEns(i));
+    avg(i) = mean(popResponseEns(ens2plot));
+    err(i) = sem(popResponseEns(ens2plot));
+    ns(i) = numel(popResponseEns(ens2plot));
+end
+
+% data{end+1} = noStimPopResp;
+% names{end+1} = 'No Stim';
+
+cmap=colormap(viridis(numEns));
+% cmap(end+1,:)=rgb('grey');
+p = plotSpread(data, 'xNames', names, 'showMM', 4, 'distributionColors',cmap);
+ylabel('L2')
+% xticklabels(uniqueEns)
+% xticks = 1:6;
+% title('Mean population response to holo')
+xlabel('Ensemble Size')
+set(gcf(),'Name','L2 of Nonstimulated Cells to holo')
+
+ax=p{3};
+set(findall(gcf(),'type','line'),'markerSize',16)
+p{2}(1).Color = rgb('darkgrey');
+p{2}(2).Color = rgb('darkgrey');
+p{2}(1).LineWidth = 1;
+p{2}(2).LineWidth = 1;
+
+subplot(1,3,3)
+x = 1:numEns;
+clear data names
+for i=1:numEns
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
+    data{i} = EnsL1(ens2plot)./EnsL2(ens2plot);
+    names{i} = string(uniqueEns(i));
+    avg(i) = mean(popResponseEns(ens2plot));
+    err(i) = sem(popResponseEns(ens2plot));
+    ns(i) = numel(popResponseEns(ens2plot));
+end
+
+% data{end+1} = noStimPopResp;
+% names{end+1} = 'No Stim';
+
+cmap=colormap(viridis(numEns));
+% cmap(end+1,:)=rgb('grey');
+p = plotSpread(data, 'xNames', names, 'showMM', 4, 'distributionColors',cmap);
+ylabel('L1/L2')
+ax=p{3};
+set(findall(gcf(),'type','line'),'markerSize',16)
+p{2}(1).Color = rgb('darkgrey');
+p{2}(2).Color = rgb('darkgrey');
+p{2}(1).LineWidth = 1;
+p{2}(2).LineWidth = 1;
+
+% pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off')
+% 
+% ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
+% ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
+% ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
+%% L1 L2 by dist
+All(ind).out.anal.minDistbyHolo;
+                distBins = [0:25:500];
+                
+                clear EnsL1 EnsL2
+c=0;
+for ind =1:numExps
+    
+  for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
+            holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
+    divider = 6;
+            x = max(All(ind).out.exp.visID);
+            v = max(round(size(x,2)/divider),1);
+            
+            trialsToUse = All(ind).out.exp.lowMotionTrials & All(ind).out.exp.visID==1;
+            cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
+            
+            us = unique(All(ind).out.exp.stimID); 
+            
+            c=c+1;
+
+            for d = 1:numel(distBins)-1
+                D = distBins(d+1);
+                cellsToUseDist = cellsToUse &...
+                    All(ind).out.anal.minDistbyHolo(h+1,:) <=distBins(d+1) &...
+                    All(ind).out.anal.minDistbyHolo(h+1,:) >distBins(d) ;
+            
+            testData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(h+1));
+            ExpectedData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(1));
+            [L1 L2] =  calcL1L2(testData,ExpectedData);
+            L1= L1/size(testData,1);
+            L2 = L2/sqrt(size(testData,1));
+            
+            EnsL1(c,d) = L1;
+            EnsL2(c,d) = L2;   
+            
+            end
+  end
+    
+end
+
+figure(11);clf
+subplot(1,3,1)
+hold on
+for i=1:numEns
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
+    data = EnsL1(ens2plot,:);
+    
+    
+    e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
+%         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
+
+    e.Color = colorList{i};
+    e.LineWidth = 2;
+%     names{i} = string(uniqueEns(i));
+%     avg(i) = mean(popResponseEns(ens2plot));
+%     err(i) = sem(popResponseEns(ens2plot));
+%     ns(i) = numel(popResponseEns(ens2plot));
+end
+xlim([0 250])
+legend('small', 'medium', 'large')
+subplot(1,3,2)
+hold on
+for i=1:numEns
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
+    data = EnsL2(ens2plot,:);
+    
+    
+    e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
+%         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
+
+    e.Color = colorList{i};
+    e.LineWidth = 2;
+%     names{i} = string(uniqueEns(i));
+%     avg(i) = mean(popResponseEns(ens2plot));
+%     err(i) = sem(popResponseEns(ens2plot));
+%     ns(i) = numel(popResponseEns(ens2plot));
+end
+xlim([0 250])
+legend('small', 'medium', 'large')
+subplot(1,3,3)
+hold on
+for i=1:numEns
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
+    data = EnsL1(ens2plot,:)./EnsL2(ens2plot,:);
+    
+    
+    e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
+%         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
+
+    e.Color = colorList{i};
+    e.LineWidth = 2;
+%     names{i} = string(uniqueEns(i));
+%     avg(i) = mean(popResponseEns(ens2plot));
+%     err(i) = sem(popResponseEns(ens2plot));
+%     ns(i) = numel(popResponseEns(ens2plot));
+end
+xlim([0 250])
+legend('small', 'medium', 'large')
+
+
