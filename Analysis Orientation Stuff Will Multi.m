@@ -1,6 +1,8 @@
 %% Load Experiments
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
+
+% loadPath = 'Z:\ioldenburg\outputdata1'
 %%
 numExps = numel(loadList);
 
@@ -743,4 +745,25 @@ xlabel('Minimal distance from a target')
 ylabel('Population Response (mean of ensembles'' pop response)')
 xlim([0 250])
 legend('Small', 'Medium', 'Big')
+
+%% ID vis stim conditions
+% load in visConds.mat
+
+for i=1:numel(All)
+    All(i).out.exp.visKey = vis_out{i};
+    visCond = [];
+    for k=All(i).out.exp.visID
+        visCond(k) = vis_out{i}(k,:);
+    end
+    All(i).out.exp.visCond = visCond;
+end
+
+
+
+%% ensemble size vs distance (pop response)
+
+
+
+
+
 
