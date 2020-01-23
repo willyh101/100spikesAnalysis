@@ -157,9 +157,9 @@ for ind=1:numExps
     All(ind).out.anal.pVisR = pVisR;
     All(ind).out.anal.pVisT = pVisT;
     
-    alpha = 0.01;
+    visAlpha = 0.05;
     
-    All(ind).out.anal.visPercent = sum(pVisR<alpha) / numel(pVisR);
+    All(ind).out.anal.visPercent = sum(pVisR<visAlpha) / numel(pVisR);
     visPercent(ind) =  All(ind).out.anal.visPercent;
 
     meanOSI=[];ensembleOSI=[];ensembleOriCurve =[];ensemblePref=[];
@@ -293,7 +293,7 @@ legend('Mean OSI', 'Ensemble OSI')
     
 %% Get the number of spikes in each stimulus
 
-clear numSpikesEachStim numCellsEachEns
+clear numSpikesEachStim numCellsEachEns hzEachEns
 for ind = 1:numExps
     temp = All(ind).out.exp.stimParams.numPulse;
     numSpikes=[];
