@@ -771,10 +771,19 @@ legend(string(ensSizes))
 
 %% Ensemble stims and vis things
 
-% for i=1:numExps
-%     
-% 
-% 
+for i=1:numExps
+    trialsToUse = All(i).out.exp.lowMotionTrials;
+    % first, use this to index stimID and visCond
+    vis2use = All(i).out.exp.visCond(trialsToUse);
+    stim2use = All(i).out.exp.stimID(trialsToUse);
+    
+    
+    for unique(All(i).out.anal.tunedEnsembleIdx)
+        tunedtrials = 
+    % just need to do a find here for each tuned ensemble
+    
+
+
 
 
 
