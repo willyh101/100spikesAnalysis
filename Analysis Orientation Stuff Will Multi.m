@@ -447,7 +447,7 @@ for ind=1:numExps
                 Tg=All(ind).out.exp.rois{holo};
                 dists = StimDistance(Tg,:);
                 minDist = min(dists,[],1);
-                geoDist = geomean(dists,1); 
+                geoDist = geo_mean(dists,1); 
                 meanDist = mean(dists,1);
                 harmDist = harmmean(dists,1);
                 
@@ -769,21 +769,13 @@ ylabel('Population Response (mean of ensembles'' pop response)')
 legend('Small', 'Medium', 'Big')
 legend(string(ensSizes))
 
-%% ID vis stim conditions
-% load in visConds.mat
+%% Ensemble stims and vis things
 
-for i=1:numel(All)
-    All(i).out.exp.visKey = vis_out{i};
-    visCond = [];
-    for k=All(i).out.exp.visID
-        visCond(k) = vis_out{i}(k,:);
-    end
-    All(i).out.exp.visCond = visCond;
-end
+% for i=1:numExps
+%     
+% 
+% 
 
-
-
-%% ensemble size vs distance (pop response)
 
 
 %% Correlation Analyisis Determine Correlation Coefficients
@@ -933,7 +925,7 @@ cb.Label.String = 'Number of Cells in Ensemble';
 r = refline(0);
 r.LineStyle =':';
 end
-linkaxes
+
 
 %% Plot 
 clear popResponseCorr

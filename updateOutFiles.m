@@ -99,3 +99,28 @@ for ind = 1:numExps
     
 end
 disp('Done')
+%% add vis stim IDs to out files
+ptime=tic;
+clear invar
+for ind = 1:numExps
+    pTime =tic;
+    fprintf(['Loading Experiment ' num2str(ind) '...']);
+    invar(ind) = load(fullfile(loadPath,loadList{ind}),'out');
+    fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+end
+
+for ind = 1:numExps
+    out = invar(ind).out;
+    vises = All(ind).out.exp.visCond;
+    out.exp.visCond = vises;
+    save(fullfile(savePath,loadList{ind}),'out')
+    fprintf([' Took ' num2str(toc(pTime)) 's.\n'])   
+end
+disp('Done')
+
+
+
+
+
+
+
