@@ -771,17 +771,37 @@ legend(string(ensSizes))
 
 %% Ensemble stims and vis things
 
+visTrials = [];
+noVisTrials = [];
+
 for i=1:numExps
     trialsToUse = All(i).out.exp.lowMotionTrials;
     % first, use this to index stimID and visCond
-    vis2use = All(i).out.exp.visCond(trialsToUse);
-    stim2use = All(i).out.exp.stimID(trialsToUse);
+    try
+        oris2use = All(i).out.exp.visCond(2,trialsToUse);
+        visTrials = [visTrials i];
+    catch
+        disp(['No vis data for expt ' num2str(i) '!'])
+        noVisTrials = [noVisTrials i];
+        continue
+    end
+    uniqueStims = unique(All(i).out.exp.stimID(trialsToUse));
+    % fix stims
+    stimID = [];
+    for u = uniqueStims
+        s = find(All(i).out.exp.outputsInfo.OutputStims == u);
+        stimID = [stimID s];
+    end
+end
+
     
     
-    for unique(All(i).out.anal.tunedEnsembleIdx)
-        tunedtrials = 
-    % just need to do a find here for each tuned ensemble
-    
+%     
+%     
+%     for unique(All(i).out.anal.tunedEnsembleIdx)
+%         
+%     % just need to do a find here for each tuned ensemble
+%         tunedTrials = find(
 
 
 
