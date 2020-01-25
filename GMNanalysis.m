@@ -3,6 +3,8 @@
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
 % loadPath = 'U:\ioldenburg\outputdata1'
+% loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
+
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -238,7 +240,7 @@ for ind=1:numExps
     %         v=1; %best bet for no vis stim.
     vs(vs==0)=[];
     clear popResp popRespDist popRespDistNumCells popRespDistSubtracted  popRespDistVisNumCells popRespDistSubVis popRespDistVis
-    clear minDistbyHolo
+    clear minDistbyHolo geoDistbyHolo meanDistbyHolo harmDistbyHolo
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
             holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
@@ -252,15 +254,30 @@ for ind=1:numExps
             if i~=1
                 Tg=All(ind).out.exp.rois{holo};
                 dists = StimDistance(Tg,:);
-                minDist = min(dists);
+                
+                minDist = min(dists,[],1);
+                geoDist = geomean(dists,1); 
+                meanDist = mean(dists,1);
+                harmDist = harmmean(dists,1);
                 
                 minDistbyHolo(i,:) = minDist;
-                distBins = [0:25:500];
+                geoDistbyHolo(i,:) = geoDist;
+                meanDistbyHolo(i,:) = meanDist;
+                harmDistbyHolo(i,:) = harmDist;
+                
+                distToUse = minDist; % CHANGE THIS (when you want to change whats being analyzed)
+
+%                 cellsToUse = ~ROIinArtifact' &...
+%                         ~offTargetRisk(holo,:) &...
+%                         minDist > 75; 
+%                  popResp(i,v) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                
+                distBins = [0:25:1000];
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
                         ~offTargetRisk(holo,:) &...
-                        minDist > distBins(d) &...
-                        minDist <= distBins(d+1) ;
+                        distToUse > distBins(d) &...
+                        distToUse <= distBins(d+1) ;
                     popRespDist(i,v,d) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                     popRespDistNumCells(i,v,d) = sum(cellsToUse);
                     noHoloPopResponse = mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse)));
@@ -282,8 +299,11 @@ for ind=1:numExps
         end
     end
     
-    All(ind).out.anal.minDistbyHolo = minDistbyHolo;
-    
+       All(ind).out.anal.minDistbyHolo = minDistbyHolo;
+        All(ind).out.anal.geoDistbyHolo = geoDistbyHolo;
+        All(ind).out.anal.meanDistbyHolo = meanDistbyHolo;
+        
+        
     VisCondToUse = 1; %1 is no vis
     if VisCondToUse > size(popResp,2) 
         disp(['VisCond Not available ind: ' num2str(ind)])
@@ -497,9 +517,9 @@ r = refline(0);
 r.LineStyle=':';
 r.Color = rgb('grey');
 r.LineWidth = 2;
-xlabel('Minimal distance from a target')
+xlabel('Distance from a target')
 ylabel('Population Response (mean of ensembles'' pop response)')
-xlim([0 400])
+% xlim([0 400])
 legend('Small', 'Medium', 'Big')
 
 %% as above but for full and no vis Conditions
@@ -1011,7 +1031,7 @@ end
 clear popResponseCorr
 for ind = 1:numExps
 
-    corrToUse  = All(ind).out.anal.AllCorr;
+    corrToUse  = All(ind).out.anal.SignalCorr;
 
     
     vs =  unique(All(ind).out.exp.visID);
