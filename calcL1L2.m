@@ -4,6 +4,7 @@ function [L1 L2 L3] =  calcL1L2(testData,ExpectedData)
 meanResp = mean(ExpectedData,2);
 
 Err = meanResp - testData ;
+% Err = testData;
 Err = mean(Err'); 
 
 L1 = sum(abs(Err));
