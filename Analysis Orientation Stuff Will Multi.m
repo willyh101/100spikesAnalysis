@@ -860,11 +860,11 @@ for i=1:numExps
     end
 end
 
-
-    for k = unique(All(i).out.anal.tunedEnsembleIdx)
-        tunedtrials = [];
-    end
-end
+% 
+%     for k = unique(All(i).out.anal.tunedEnsembleIdx)
+%         tunedtrials = [];
+%     end
+% end
 
 % just need to do a find here for each tuned ensemble
 
