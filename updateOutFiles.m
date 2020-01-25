@@ -84,7 +84,12 @@ for ind = 1:numExps
         inDat = load(fullfile(pth,x(1).name),'physfile');
         inDat2 = load(inDat.physfile,'ExpStruct');
         
-        uniqueStims =unique(All(1).out.exp.stimID);
+        uniqueStims =unique(All(ind).out.exp.stimID);
+        if any(uniqueStims==0)
+            disp('Unholly abomination of a stimID==0. Be afraid')
+            uniqueStims(uniqueStims==0)=[];
+        end
+        
         out.exp.outputsInfo = outputPatternTranslator(inDat2.ExpStruct,uniqueStims);
        
              

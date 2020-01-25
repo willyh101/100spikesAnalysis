@@ -447,7 +447,7 @@ for ind=1:numExps
                 Tg=All(ind).out.exp.rois{holo};
                 dists = StimDistance(Tg,:);
                 minDist = min(dists,[],1);
-                geoDist = geo_mean(dists,1); 
+                geoDist = geomean(dists,1); 
                 meanDist = mean(dists,1);
                 harmDist = harmmean(dists,1);
                 
@@ -456,7 +456,7 @@ for ind=1:numExps
                 meanDistbyHolo(i,:) = meanDist;
                 harmDistbyHolo(i,:) = harmDist;
                 
-                distToUse = minDist; % CHANGE THIS (when you want to change whats being analyzed)
+                distToUse = meanDist; % CHANGE THIS (when you want to change whats being analyzed)
                 
                 distBins = [0:25:500];
                 for d = 1:numel(distBins)-1
@@ -778,8 +778,11 @@ for i=1:numExps
     stim2use = All(i).out.exp.stimID(trialsToUse);
     
     
-    for unique(All(i).out.anal.tunedEnsembleIdx)
-        tunedtrials = 
+    for k = unique(All(i).out.anal.tunedEnsembleIdx)
+        tunedtrials = [];
+    end
+end
+
     % just need to do a find here for each tuned ensemble
     
 
@@ -937,10 +940,12 @@ end
 
 
 %% Plot 
+
+
 clear popResponseCorr
 for ind = 1:numExps
 
-    corrToUse  = All(ind).out.anal.AllCorr;
+    corrToUse  = All(ind).out.anal.NoiseCorr; %Change This if you need
 
     
     vs =  unique(All(ind).out.exp.visID);
@@ -979,7 +984,7 @@ for ind = 1:numExps
                 corrHolo = meanCorr;
               
                 
-                distBins = linspace(-1,1,80);
+                distBins = linspace(-1,1,40);
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
                         ~offTargetRisk(holo,:) &...
@@ -1039,8 +1044,8 @@ for i=1:numEns
 
     e.Color = colorList{i};
     e.LineWidth = 2;
-    hack = num2cell(distBins(1:end-1));
-    hack = cellfun(@(x) num2str(x),hack,'uniformoutput',0);
+%     hack = num2cell(distBins(1:end-1));
+%     hack = cellfun(@(x) num2str(x),hack,'uniformoutput',0);
 %     p = plotSpread(data, 'xNames', hack, 'showMM', 4);
 % fancyPlotSpread(data,hack)
 %     names{i} = string(uniqueEns(i));
@@ -1060,7 +1065,51 @@ xlabel('Responder to Ensemble Correlation')
 
 
 
-%%
+%% Within Ensemble Size Correlation by ensemble OSI
+figure(16);clf
+hold on
+
+OSItoUse = ensOSI';%meanOSI';
+
+lowOSI = 0.3;
+highOSI = 0.7;
+
+EnsSizeToUse = 10;
+
+% temp = cellfun(@(x) reshape(x(:,1,:),size(x(:,1,:),1),size(x(:,1,:),3)),popResponseCorr,'uniformoutput',0) ;
+temp = cellfun(@(x) reshape(x(:,end,:),size(x(:,end,:),1),size(x(:,end,:),3)),popResponseCorr,'uniformoutput',0) ;
+
+EnsCorR = cat(1,temp{:});
+
+OSIrange = [0 lowOSI highOSI 1];
+numOfEnsUsed=[];
+for i = 1:numel(OSIrange)-1
+    ens2plot = find( ensemblesToUse & highVisPercentInd &...
+        numCellsEachEns==EnsSizeToUse &...
+         OSItoUse >= OSIrange(i) &  OSItoUse < OSIrange(i+1)  ); %numCellsEachEns==EnsSizeToUse &...
+    
+     data = EnsCorR(ens2plot,:);
+     numOfEnsUsed(i) = size(data,1);
+     try
+     e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
+     e.Color = colorList{i};
+     e.LineWidth = 2;
+     catch
+     end
+end
+r = refline(0);
+r.LineStyle = ':';
+r.Color = rgb('grey');
+r.LineWidth = 2;
+legend(['Low OSI: ' num2str(numOfEnsUsed(1)) ' Ens'],...
+    ['Medium OSI: ' num2str(numOfEnsUsed(2)) ' Ens'],...
+    ['High OSI: ' num2str(numOfEnsUsed(3)) ' Ens'], 'No Change')
+
+
+ylabel('Pop Resp to HoloStim')
+xlabel('Responder to Ensemble Correlation')
+title([num2str(EnsSizeToUse) ' Target Holograms, by OSI'])
+
 
 %% Calculate L1 and L2 
 contrastsToView = [6 3 2 1.5 1.25 1] ;%I know its weird i just wanted to be able to catch times that we were using different contrasts, will work out to 1:6 if there are 6 contrasts; 1:6;
@@ -1072,7 +1121,7 @@ for ind =1:numExps
   for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
             holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
     
-            divider =1;
+            divider =6;
             maxV = max(All(ind).out.exp.visID);
             v = max(round(maxV/divider),1);
             
@@ -1211,18 +1260,18 @@ for ind =1:numExps
     
   for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
             holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
-%             divider = 1; %6 is no vis, 1 is max vis
-%             x = max(All(ind).out.exp.visID);
-%             v = max(round(size(x,2)/divider),1);
+            divider = 1; %6 is no vis, 1 is max vis
+            x = max(All(ind).out.exp.visID);
+            v = max(round(x/divider),1);
             
-            trialsToUse = All(ind).out.exp.lowMotionTrials & All(ind).out.exp.visID==1;
+            trialsToUse = All(ind).out.exp.lowMotionTrials & All(ind).out.exp.visID==v;
             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
             
             us = unique(All(ind).out.exp.stimID); 
             
             c=c+1;
 
-            distByHoloToUse =  All(ind).out.anal.geoDistbyHolo;
+            distByHoloToUse = All(ind).out.anal.minDistbyHolo;% All(ind).out.anal.geoDistbyHolo;
             
             for d = 1:numel(distBins)-1
                 D = distBins(d+1);
