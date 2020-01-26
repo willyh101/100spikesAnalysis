@@ -836,41 +836,54 @@ legend('Small', 'Medium', 'Big')
 legend(string(ensSizes))
 
 %% Ensemble stims and vis things
-
-visTrials = [];
-noVisTrials = [];
-
-for i=1:numExps
-    trialsToUse = All(i).out.exp.lowMotionTrials &  All(ind).out.exp.lowRunTrials;
-    % first, use this to index stimID and visCond
-    try
-        oris2use = All(i).out.exp.visCond(2,trialsToUse);
-        visTrials = [visTrials i];
-    catch
-        disp(['No vis data for expt ' num2str(i) '!'])
-        noVisTrials = [noVisTrials i];
-        continue
-    end
-    uniqueStims = unique(All(i).out.exp.stimID(trialsToUse));
-    % fix stims
-    stimID = [];
-    for u = uniqueStims
-        s = find(All(i).out.exp.outputsInfo.OutputStims == u);
-        stimID = [stimID s];
-    end
-end
-
 % 
-%     for k = unique(All(i).out.anal.tunedEnsembleIdx)
-%         tunedtrials = [];
+% visExpts = [];
+% noVisExpts = [];
+% 
+% for i=1:numExps
+%     trialsToUse = All(i).out.exp.lowMotionTrials &  All(i).out.exp.lowRunTrials;
+%     % first, use this to index stimID and visCond
+%     try
+%         oris2use = All(i).out.exp.visCond(2,trialsToUse);
+%         visExpts = [visExpts i];
+%     catch
+%         disp(['No vis data for expt ' num2str(i) '!'])
+%         noVisExpts = [noVisExpts i];
+%         continue
 %     end
+%     uniqueStims = unique(All(i).out.exp.stimID(trialsToUse));
+%     % fix stims
+%     stimID = [];
+%     for u = uniqueStims
+%         s = find(All(i).out.exp.outputsInfo.OutputStims == u);
+%         stimID = [stimID s];
+%     end
+%     All(i).out.exp.outNum = stimID
+%     
+%     % find tuned-iso matches first
+%     for k = unique(All(i).out.anal.ensemblePrefDeg)
+%         isoTrials = find(All(i).out.exp.visCond == k)
+%     for k = unique(stimID)
+%         % ID ensembles that mach
+%         isoTrialsTuned = All(i).out.anal.tunedEnsembleIdx(k)
+%     
+%     
+%     
+%     
 % end
-
-% just need to do a find here for each tuned ensemble
-
-
-
-
+% % visExpts
+% % noVisExpts
+% % 
+% %     for k = unique(All(i).out.anal.tunedEnsembleIdx)
+% %         tunedtrials = [];
+% %     end
+% % end
+% 
+% % just need to do a find here for each tuned ensemble
+% 
+% 
+% 
+% 
 
 
 %% Correlation Analyisis Determine Correlation Coefficients
