@@ -248,7 +248,7 @@ end
 
 %% Pretty plots of OSI and tunings
 
-clear allOSI ensOSI meanOSI ensNum roiNum
+clear allOSI ensOSI meanOSI ensNum roiNum h allOSI2 ensOSI2 meanOSI2 ensNum2 roiNum2 h
 % OSI across all cells, all experiments
 for i = 1:numel(All)
     allOSI{i} = All(i).out.anal.OSI(:);
@@ -266,7 +266,12 @@ meanOSI = cell2mat(meanOSI(:));
 ensNum = cell2mat(ensNum(:));
 roiNum = cell2mat(roiNum(:));
 
-
+% remove any nans
+allOSI2 = allOSI(~isnan(allOSI));
+ensOSI2 = ensOSI(~isnan(ensOSI));
+meanOSI2 = meanOSI(~isnan(meanOSI));
+ensNum2 = ensNum(~isnan(ensNum));
+roiNum2 = roiNum(~isnan(roiNum));
 
 % plot
 figure(1)
@@ -303,11 +308,7 @@ legend('All Cells', 'Ensemble', 'Ensemble Mean')
 % get plots for the 2 different methods with higher bin count
 f2 = figure(2);
 clf(f2)
-hold on
-h(1) = histogram(meanOSI, 50);
-h(2) = histogram(ensOSI, 50);
-
-
+clear allOSIT ensOSIT meanOSIT allOSIun ensOSIun meanOSIun h
 % try using ensembleOSI > 0.3 for "tuned", this is arbitrary
 OSIthreshold = 0.3;
 for i = 1:numel(All)
@@ -316,30 +317,69 @@ for i = 1:numel(All)
     untunedEnsembles = All(i).out.exp.holoTargets(~istuned);
     tunedEnsembleIdx = find(All(i).out.anal.ensembleOSI >= OSIthreshold);
     untunedEnsembleIdx = find(All(i).out.anal.ensembleOSI < OSIthreshold);
+    
     All(i).out.anal.tunedEnsembles = tunedEnsembles;
     All(i).out.anal.untunedEnsembles = untunedEnsembles;
     All(i).out.anal.tunedEnsembleIdx = tunedEnsembleIdx;
     All(i).out.anal.untunedEnsembleIdx = untunedEnsembleIdx;
-end
-
-% plot the OSIs of tuned vs untuned ensembles
-clear allOSIT ensOSIT meanOSIT
-for i = 1:numel(All)
-    allOSIT{i} = All(i).out.anal.OSI(:);
-    ensOSIT{i} = All(i).out.anal.ensembleOSI(:);
-    meanOSIT{i} = All(i).out.anal.meanOSI(:);
+    
+    allOSIT{i} = All(i).out.anal.OSI(All(i).out.anal.OSI>OSIthreshold)';
+    ensOSIT{i} = All(i).out.anal.ensembleOSI(tunedEnsembleIdx)';
+    meanOSIT{i} = All(i).out.anal.meanOSI(tunedEnsembleIdx)';
+    allOSIun{i} = All(i).out.anal.OSI(All(i).out.anal.OSI<=OSIthreshold)';
+    ensOSIun{i} = All(i).out.anal.ensembleOSI(untunedEnsembleIdx)';
+    meanOSIun{i} = All(i).out.anal.meanOSI(untunedEnsembleIdx)';
 end
 
 % unroll
 allOSIT = cell2mat(allOSIT(:));
 ensOSIT = cell2mat(ensOSIT(:));
 meanOSIT = cell2mat(meanOSIT(:));
+allOSIun = cell2mat(allOSIun(:));
+ensOSIun = cell2mat(ensOSIun(:));
+meanOSIun = cell2mat(meanOSIun(:));
+% de-nanify
+allOSIT2 = allOSIT(~isnan(allOSIT));
+ensOSIT2 = ensOSIT(~isnan(ensOSIT));
+meanOSIT2 = meanOSIT(~isnan(meanOSIT));
+allOSIun2 = allOSIun(~isnan(allOSIun));
+ensOSIun2 = ensOSIun(~isnan(ensOSIun));
+meanOSIun2 = meanOSIun(~isnan(meanOSIun));
 
-% f3 = subplots(1,2,1)
 
+subplot(1,3,1)
+histogram(meanOSIT2, 50);
+hold on
+histogram(ensOSIT2, 50);
+title('Tuned Ensemble OSIs')
+
+subplot(1,3,2)
+histogram(meanOSIun2, 50);
+hold on
+histogram(ensOSIun2, 50);
+title('Un-tuned Ensemble OSIs')
+
+
+subplot(1,3,3)
+h(1) = histogram(ensOSIT2, 100);
+hold on
+h(2) = histogram(ensOSIun2, 100);
+for i=1:numel(h)
+    h(i).Normalization = 'pdf';
+    h(i).BinWidth = 0.02;
+    h(i).FaceColor = colors{i};
+    h(i).FaceAlpha = 0.44;
+    kde(i) = fitdist(h(i).Data, 'kernel');
+    p = plot(h(i).BinEdges, pdf(kde(i),h(i).BinEdges));
+    p.LineWidth=2;
+    p.Color= colors{i};
+end
+
+title('Tuned vs Un-tuned ensembles')
+legend('Tuned', 'Un-tuned')
 % and thier preferred oris
 
-legend('Mean OSI', 'Ensemble OSI')
+
 
 %% Get the number of spikes in each stimulus
 
@@ -606,11 +646,12 @@ clear f p ens2plt fits
 f5 = figure(5);
 clf(f5)
 numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
-
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 
 for i=1:numEns
     ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
+    nanloc = find(isnan(popResponseEns(ens2plot)));
+    ens2plot(nanloc) = [];
     p = polyfit(ensOSI(ens2plot),popResponseEns(ens2plot),1);
     f = polyval(p, ensOSI(ens2plot));
     %fits(i,:) = f;
@@ -836,41 +877,56 @@ legend('Small', 'Medium', 'Big')
 legend(string(ensSizes))
 
 %% Ensemble stims and vis things
-% 
-% visExpts = [];
-% noVisExpts = [];
-% 
-% for i=1:numExps
-%     trialsToUse = All(i).out.exp.lowMotionTrials &  All(i).out.exp.lowRunTrials;
-%     % first, use this to index stimID and visCond
-%     try
-%         oris2use = All(i).out.exp.visCond(2,trialsToUse);
-%         visExpts = [visExpts i];
-%     catch
-%         disp(['No vis data for expt ' num2str(i) '!'])
-%         noVisExpts = [noVisExpts i];
-%         continue
-%     end
-%     uniqueStims = unique(All(i).out.exp.stimID(trialsToUse));
-%     % fix stims
-%     stimID = [];
-%     for u = uniqueStims
-%         s = find(All(i).out.exp.outputsInfo.OutputStims == u);
-%         stimID = [stimID s];
-%     end
-%     All(i).out.exp.outNum = stimID
-%     
-%     % find tuned-iso matches first
+visExpts = [];
+noVisExpts = [];
+isoTrialsTuned = [];
+isoTrials = [];
+  
+for i=1:numExps
+    clear s
+    % trialsToUse = All(i).out.exp.lowMotionTrials &  All(i).out.exp.lowRunTrials;
+    % first, use this to index stimID and visCond
+    try
+        % oris2use = All(i).out.exp.visCond(2,trialsToUse);
+        oris2use = All(i).out.exp.visCond(2,:);
+        visExpts = [visExpts i];
+    catch
+        disp(['No vis data for expt ' num2str(i) '!'])
+        noVisExpts = [noVisExpts i];
+        continue
+    end
+    uniqueStims = All(i).out.exp.stimID;
+    % fix stims
+    stimID = [];
+    for u = 1:numel(uniqueStims)
+        s(u) = find(All(i).out.exp.outputsInfo.OutputStims == uniqueStims(u));
+        %stimID = [stimID s];
+    end
+    All(i).out.exp.outNum = stimID;
+    
+    % find tuned-iso matches first
+    
+    % this will be a list of trials where the vis cond matches any ensemble
+    % preferred ori
+    isoTrials = [];
+    isoTrialsTuned = [];
 %     for k = unique(All(i).out.anal.ensemblePrefDeg)
-%         isoTrials = find(All(i).out.exp.visCond == k)
+%         isoTrials = trialsToUse .* (All(i).out.exp.visCond(2,:) == k);
+% 
+% %         for j = unique(stimID)
+% %             isoTrialsTuned = (All(i).out.anal.tunedEnsembleIdx == j);
+% %         end
+%     end
+  
 %     for k = unique(stimID)
-%         % ID ensembles that mach
-%         isoTrialsTuned = All(i).out.anal.tunedEnsembleIdx(k)
-%     
-%     
-%     
-%     
-% end
+%         % ID ensembles that match
+%         isoTrialsTuned = [isoTrialsTuned find(All(i).out.anal.tunedEnsembleIdx == k)'];
+%     end
+    
+    
+    
+    
+end
 % % visExpts
 % % noVisExpts
 % % 
