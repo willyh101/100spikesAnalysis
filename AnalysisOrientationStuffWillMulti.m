@@ -20,7 +20,8 @@ All(1).out.exp.stimParamsBackup = All(1).out.exp.stimParams;
 All(1).out.exp.holoTargetsBackup = All(1).out.exp.holoTargets;
 
 % Exp 10 has a weird visID convention
-All(10).out.exp.visIDold = All(10).out.exp.visID
+All(10).out.exp.visIDold = All(10).out.exp.visID;
+All(15).out.exp.visIDold = All(15).out.exp.visID;
 %%
 All(1).out.exp.stimParams.Seq([3 4])=[];
 All(1).out.exp.stimParams.numPulse([3 4])=[];
@@ -39,6 +40,13 @@ newVisID(visID==1)=2;
 newVisID(visID~=0 & visID~=1)=0;
 All(10).out.exp.visID = newVisID;
 
+%% fix Exp15; merge two blank visIDs
+
+All(15).out.exp.visID = All(15).out.exp.visIDold;
+visID = All(15).out.exp.visID;
+newVisID = visID;
+newVisID(visID==4)=1;
+All(15).out.exp.visID = newVisID;
 
 %% Clean Data and stuff i dunno come up with a better title someday
 
@@ -77,7 +85,8 @@ for ind =1:numExps
     bwinToUse = max(round([0 visStart]*All(ind).out.info.FR),[1 1]);
     
     All(ind).out.anal.recWinUsed = winToUse;
-    
+    All(ind).out.anal.bwinToUse = bwinToUse;
+
     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
     
@@ -143,6 +152,11 @@ for ind =1:numExps
         disp(['Added visID to Exp ' num2str(ind)]);
     end
     
+    if all(All(ind).out.exp.visID==0)
+         All(ind).out.exp.visID = ones(size(All(ind).out.exp.visID));
+         disp(['Corrected VisID to ones'])
+    end
+    
     if numel(All(ind).out.vis.visID) ~= numel(All(ind).out.vis.lowMotionTrials)
         All(ind).out.vis.lowMotionTrials(end+1:numel(All(ind).out.vis.visID))= 0 ;
     end
@@ -165,6 +179,40 @@ for ind =1:numExps
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
     
 end
+
+%%Get the number of spikes in each stimulus
+
+clear numSpikesEachStim numCellsEachEns hzEachEns
+for ind = 1:numExps
+    temp = All(ind).out.exp.stimParams.numPulse;
+    numSpikes=[];
+    c=0;
+    for i=1:numel(temp); %overly complicated way of aligning 0s to be safe if we have 0s that aren't in the begining
+        if temp(i)==0
+            numSpikes(i)=0;
+        else
+            c=c+1;
+            h = All(ind).out.exp.stimParams.roi{i};
+            numSpikes(i) = temp(i)* numel(All(ind).out.exp.rois{h}); % more reliable number of holos per target
+            %             numSpikes(i) = temp(i)*All(ind).out.exp.stimParams.numCells(c);
+        end
+    end
+    
+    
+    All(ind).out.anal.numSpikesAddedPerCond = numSpikes;
+    numSpikesEachStim{ind} = numSpikes;
+    numCellsEachEns{ind} = All(ind).out.exp.stimParams.numCells;
+    hzEachEns{ind} = All(ind).out.exp.stimParams.Hz;
+    
+end
+numSpikesEachStim=cell2mat(numSpikesEachStim(:)');
+numSpikesEachEns = numSpikesEachStim;
+numSpikesEachEns(numSpikesEachStim==0)=[];
+
+numCellsEachEns=cell2mat(numCellsEachEns(:)');
+
+hzEachEns = cell2mat(hzEachEns(:)');
+
 %% Determine the OSI from the Vis section of each cell.
 
 for ind=1:numExps
@@ -276,7 +324,7 @@ end
 
 
 
-%% Pretty plots of OSI and tunings
+%%Pretty plots of OSI and tunings
 
 clear allOSI ensOSI meanOSI ensNum roiNum h allOSI2 ensOSI2 meanOSI2 ensNum2 roiNum2 h
 % OSI across all cells, all experiments
@@ -411,38 +459,7 @@ legend('Tuned', 'Un-tuned')
 
 
 
-%% Get the number of spikes in each stimulus
 
-clear numSpikesEachStim numCellsEachEns hzEachEns
-for ind = 1:numExps
-    temp = All(ind).out.exp.stimParams.numPulse;
-    numSpikes=[];
-    c=0;
-    for i=1:numel(temp); %overly complicated way of aligning 0s to be safe if we have 0s that aren't in the begining
-        if temp(i)==0
-            numSpikes(i)=0;
-        else
-            c=c+1;
-            h = All(ind).out.exp.stimParams.roi{i};
-            numSpikes(i) = temp(i)* numel(All(ind).out.exp.rois{h}); % more reliable number of holos per target
-            %             numSpikes(i) = temp(i)*All(ind).out.exp.stimParams.numCells(c);
-        end
-    end
-    
-    
-    All(ind).out.anal.numSpikesAddedPerCond = numSpikes;
-    numSpikesEachStim{ind} = numSpikes;
-    numCellsEachEns{ind} = All(ind).out.exp.stimParams.numCells;
-    hzEachEns{ind} = All(ind).out.exp.stimParams.Hz;
-    
-end
-numSpikesEachStim=cell2mat(numSpikesEachStim(:)');
-numSpikesEachEns = numSpikesEachStim;
-numSpikesEachEns(numSpikesEachStim==0)=[];
-
-numCellsEachEns=cell2mat(numCellsEachEns(:)');
-
-hzEachEns = cell2mat(hzEachEns(:)');
 %% Make all dataPlots into matrixes of mean responses
 baseline=1;
 
@@ -638,13 +655,16 @@ noStimInd = ensIndNumAll(numSpikesEachStim==0);
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
+excludeInds = ismember(ensIndNumber,[14]);
+
 willExportInds = ismember(ensIndNumber,[15 16]);
 
 
 ensemblesToUse = numSpikesEachEns > 75 &...
     numSpikesEachEns <125 &...
     highVisPercentInd &...
-    lowRunInds;%  %& numCellsEachEns>10 ;
+    lowRunInds &...
+    ~excludeInds;%  %& numCellsEachEns>10 ;
 %     ~willExportInds;%  %& numCellsEachEns>10 ;
 
 
@@ -662,16 +682,25 @@ for ind=1:numExps
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
     
+
     
     clear mRespTS sRespTS nResp
     for i = 1:numel(us);
         s = us(i);
         h = All(ind).out.exp.stimParams.roi{i};
         
+        if h>0
+            tg = All(ind).out.exp.holoTargets{h};
+            tg(isnan(tg))=[];
+        else
+            tg=[];
+        end
+        cellList = 1:numel(ROIinArtifact);
+        
         if i==1
             cellsToUse = ~ROIinArtifact';
         else
-            cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(h,:);
+            cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(h,:) & ~ismember(cellList,tg) ;
         end
         
         for k=1:numel(vs);
