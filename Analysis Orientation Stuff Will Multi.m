@@ -105,7 +105,17 @@ for ind =1:numExps
     
     percentLowRunTrials(ind) = mean(lowRunTrials);
     
-    
+    try
+        runVal = All(ind).out.vis.runVal;
+        rnSz = size(runVal);
+        runperiod = [1:min(All(ind).out.anal.visRecWinUsed(2),rnSz(2))];
+        runThreshold = 6 ;
+        lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
+        lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
+        All(ind).out.vis.lowRunTrials = lowRunTrials;
+    catch
+        disp('no vis run data?')
+    end
     
     
     % Total Number of Targets shot per recording
@@ -155,7 +165,9 @@ for ind=1:numExps
     for i=1:numel(uVisID)
         v= uVisID(i);
         
-        trialsToUse = All(ind).out.vis.visID==v & All(ind).out.vis.lowMotionTrials;
+        trialsToUse = All(ind).out.vis.visID==v &...
+            All(ind).out.vis.lowMotionTrials &...
+            All(ind).out.vis.lowRunTrials;
         
         oriCurve(i,:)=mean(All(ind).out.vis.rdata(:,trialsToUse),2);
     end
@@ -195,10 +207,15 @@ for ind=1:numExps
     
     pVisR=[];pVisT=[];
     for i=1:All(ind).out.anal.numCells
-        trialsToUse = All(ind).out.vis.visID~=0 & All(ind).out.vis.lowMotionTrials;
+        trialsToUse = All(ind).out.vis.visID~=0 &...
+            All(ind).out.vis.lowMotionTrials &...
+            All(ind).out.vis.lowRunTrials;
         pVisR(i) = anova1(All(ind).out.vis.rdata(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
         
-        trialsToUse = All(ind).out.vis.visID~=0 & All(ind).out.vis.visID~=1 & All(ind).out.vis.lowMotionTrials;
+        trialsToUse = All(ind).out.vis.visID~=0 &...
+            All(ind).out.vis.visID~=1 &...
+            All(ind).out.vis.lowMotionTrials &...
+            All(ind).out.vis.lowRunTrials;
         pVisT(i) = anova1(All(ind).out.vis.rdata(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
     end
     
@@ -374,7 +391,7 @@ numCellsEachEns=cell2mat(numCellsEachEns(:)');
 
 hzEachEns = cell2mat(hzEachEns(:)');
 %% Make all dataPlots into matrixes of mean responses
-baseline=01;
+baseline=1;
 
 clear popResponse pVisR pVisT
 ensIndNumber=[];
@@ -560,19 +577,29 @@ ensIndNumber(numSpikesEachStim==0)=[];
 noStimPopResp = popResponse(numSpikesEachStim==0);
 noStimInd = ensIndNumAll(numSpikesEachStim==0);
 
+
+
+
+%% main Ensembles to Use section
+% ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
+lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
+
+ensemblesToUse = numSpikesEachEns > 75 &...
+    numSpikesEachEns <125 &...
+    highVisPercentInd &...
+    lowRunInds;%  %& numCellsEachEns>10 ;
+
+IndsUsed = unique(ensIndNumber(ensemblesToUse));
 
 
 %% Plot
 f3 = figure(3);
 clf(3)
 
-% ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
-ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd;%  %& numCellsEachEns>10 ;
 %scatter(meanOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
 scatter(ensOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
 
-IndsUsed = unique(ensIndNumber(ensemblesToUse));
 
 % p = polyfit(ensOSI(ensemblesToUse),popResponseEns(ensemblesToUse),1);
 % f = polyval(p, ensOSI(ensemblesToUse));
@@ -610,14 +637,20 @@ numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 
 for i=1:numEns
-    ens2plot = find(numCellsEachEns(ensemblesToUse)==uniqueEns(i));
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & ~isnan(ensOSI'));
     p = polyfit(ensOSI(ens2plot),popResponseEns(ens2plot),1);
     f = polyval(p, ensOSI(ens2plot));
+    
+    [fs gs] = fit(ensOSI(ens2plot),popResponseEns(ens2plot),'poly1');
     %fits(i,:) = f;
     subplot(1,numEns,i)
     plt = plot(ensOSI(ens2plot),popResponseEns(ens2plot), '.', 'MarkerSize',12);
     hold on
-    fline = plot(ensOSI(ens2plot), f, 'LineWidth', 1);
+    %     fline = plot(ensOSI(ens2plot), f, 'LineWidth', 1);
+    fline = plot(fs);
+    fline.LineWidth = 1;
+    legend('Ensemble Mean',['RSquared: ' num2str(gs.rsquare)]);
+    
     xlabel('OSI')
     ylabel('Pop Response')
     title(['Ensembles of size ' num2str(uniqueEns(i))])
@@ -675,7 +708,7 @@ r.LineStyle=':';
 r.Color = rgb('grey');
 
 pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off')
-
+% 
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
@@ -757,7 +790,8 @@ for i = 1:numel(All)
     % peak align to the 3rd position
     % should this be normalized somehow?
     for j = 1:size(ensembleOriCurve,1)
-        oriShifted(j,:) = circshift(ensembleOriCurve(j,:),-ensemblePref(j)+3);
+        oriShifted(j,1) = ensembleOriCurve(j,1); %don't cir shift the no stim 
+        oriShifted(j,2:9) = circshift(ensembleOriCurve(j,2:9),-ensemblePref(j)+3);
     end
     
     alignedOris{i} = oriShifted;
@@ -838,7 +872,7 @@ legend(string(ensSizes))
 %% Ensemble stims and vis things
 
 for i=1:numExps
-    trialsToUse = All(i).out.exp.lowMotionTrials &  All(ind).out.exp.lowRunTrials;
+    trialsToUse = All(i).out.exp.lowMotionTrials &  All(i).out.exp.lowRunTrials;
     % first, use this to index stimID and visCond
     vis2use = All(i).out.exp.visCond(trialsToUse);
     stim2use = All(i).out.exp.stimID(trialsToUse);
@@ -866,7 +900,7 @@ for ind = 1:numExps
     %Spont Corr - correlation coefficient on time series from no stim
     %period
     trialsToUse = All(ind).out.vis.lowMotionTrials &...
-         All(ind).out.exp.lowRunTrials &...
+        All(ind).out.vis.lowRunTrials &...
         All(ind).out.vis.visID == 1;
     unrollData = All(ind).out.vis.zdfData(:,:,trialsToUse);
     sz = size(unrollData);
@@ -875,7 +909,7 @@ for ind = 1:numExps
     [SpontCorr SpCoP] = corr(unrollData');
     
     %AllCorr - the correlation coef on all time series
-    trialsToUse = All(ind).out.vis.lowMotionTrials &  All(ind).out.exp.lowRunTrials;
+    trialsToUse = All(ind).out.vis.lowMotionTrials & All(ind).out.vis.lowRunTrials;
     unrollData = All(ind).out.vis.zdfData(:,:,trialsToUse);
     sz = size(unrollData);
     unrollData = reshape(unrollData,[sz(1) sz(2)*sz(3)]);
@@ -883,7 +917,7 @@ for ind = 1:numExps
     [AllCorr AlCoP] = corr(unrollData');
     
     %All corr mean - correlation coef of response (not time series)
-    trialsToUse = All(ind).out.vis.lowMotionTrials &  All(ind).out.exp.lowRunTrials;
+    trialsToUse = All(ind).out.vis.lowMotionTrials & All(ind).out.vis.lowRunTrials;
     unrollData = All(ind).out.vis.rdata(:,trialsToUse);
     sz = size(unrollData);
     
@@ -891,7 +925,7 @@ for ind = 1:numExps
     
     %noise corr - correlation coef of residual trial response (not time
     %series) i.e. trial response - mean response for that condition
-    trialsToUse = All(ind).out.vis.lowMotionTrials &  All(ind).out.exp.lowRunTrials;
+    trialsToUse = All(ind).out.vis.lowMotionTrials & All(ind).out.vis.lowRunTrials;
     vs = unique(All(ind).out.vis.visID);
     vs(vs==0)=[];
     unrollData = [];
