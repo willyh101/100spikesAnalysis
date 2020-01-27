@@ -2,7 +2,9 @@
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
-% loadPath = 'Z:\ioldenburg\outputdata1'
+% loadPath = 'Z:\ioldenburg\outputdata1' ; %Ian Server Copy
+% loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1' ; %Ian local
+%
 %%
 numExps = numel(loadList);
 
@@ -15,8 +17,12 @@ for ind = 1:numExps
 end
 
 %% Known Error Manual Catching
+%Exp 1 has holograms that weren't shot
 All(1).out.exp.stimParamsBackup = All(1).out.exp.stimParams;
 All(1).out.exp.holoTargetsBackup = All(1).out.exp.holoTargets;
+
+% Exp 10 has a weird visID convention
+All(10).out.exp.visIDold = All(10).out.exp.visID
 %%
 All(1).out.exp.stimParams.Seq([3 4])=[];
 All(1).out.exp.stimParams.numPulse([3 4])=[];
@@ -25,8 +31,15 @@ All(1).out.exp.stimParams.Hz([2 3])=[];
 All(1).out.exp.stimParams.numCells([2 3])=[];
 All(1).out.exp.holoTargets([2 3])=[];
 
-
-
+%% fix Exp10; ignoring intermediate contrasts
+All(10).out.exp.visID = All(10).out.exp.visIDold;
+visID = All(10).out.exp.visID;
+newVisID = visID;
+newVisID(visID==0)=1;
+newVisID(visID==1)=2;
+newVisID(visID~=0 & visID~=1)=0;
+All(10).out.exp.visID = newVisID;
+%
 %% Clean Data and stuff i dunno come up with a better title someday
 
 FRDefault=6;
@@ -44,9 +57,9 @@ for ind =1:numExps
     end
     
     sz = size(All(ind).out.exp.zdfData);
-        
+    
     %Exp Section
-
+    
     %detect start of stimulation (call to vis stim) which will precede the
     %holo stim by a little bit. if can't find it default to 0.5
     try
@@ -77,7 +90,7 @@ for ind =1:numExps
     %Vis Section
     sz2 = size(All(ind).out.vis.zdfData);
     try
-    visStart = All(ind).out.vis.visStart;
+        visStart = All(ind).out.vis.visStart;
     catch
         visStart = 0.92; %seemed typical
         fprintf('\nError vis.visStart not detected...')
@@ -87,7 +100,7 @@ for ind =1:numExps
     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz2(2)]) ;
     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
     All(ind).out.anal.visRecWinUsed = winToUse;
-
+    
     rdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse,:),2));
     bdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse,:),2));
     
@@ -263,7 +276,7 @@ end
 
 
 
-%% Pretty plots of OSI and tunings
+%%Pretty plots of OSI and tunings
 
 clear allOSI ensOSI meanOSI ensNum roiNum
 % OSI across all cells, all experiments
@@ -290,6 +303,7 @@ figure(1)
 clf(1)
 colors = {rgb('royalblue'), rgb('firebrick'), rgb('coral')};
 
+clear h
 hold on
 h(1) = histogram(allOSI, 25);
 h(2) = histogram(ensOSI, 25);
@@ -600,6 +614,7 @@ clear allMeanTS allStdTS allnumTS allMeanTSVis allStdTSVis allnumTSVis
 for ind=1:numExps
     us = unique(All(ind).out.exp.stimID);
     vs = unique(All(ind).out.exp.visID);
+    vs(vs==0)=[];
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
         All(ind).out.exp.lowRunTrials;
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
@@ -612,9 +627,9 @@ for ind=1:numExps
         h = All(ind).out.exp.stimParams.roi{i};
         
         if i==1
-                cellsToUse = ~ROIinArtifact';
-            else
-                cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(h,:);
+            cellsToUse = ~ROIinArtifact';
+        else
+            cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(h,:);
         end
         
         for k=1:numel(vs);
@@ -641,9 +656,9 @@ for ind=1:numExps
     All(ind).out.anal.nResp = nResp;
     
     
-    allMeanTS{ind} = mRespTS(:,:,k);
-    allStdTS{ind} = sRespTS(:,:,k);
-    allnumTS{ind} = nResp(:,k);
+    allMeanTS{ind} = mRespTS(:,:,1);
+    allStdTS{ind} = sRespTS(:,:,1);
+    allnumTS{ind} = nResp(:,1);
     
     allMeanTSVis{ind} = mRespTS;
     allStdTSVis{ind} = sRespTS;
@@ -652,7 +667,7 @@ for ind=1:numExps
 end
 
 baseline=1;
-    
+
 shortestRec = min(cellfun(@(x) size(x,2),allMeanTS));
 temp = cellfun(@(x) x(2:end,1:shortestRec),allMeanTS,'uniformoutput',0);
 if baseline
@@ -666,6 +681,8 @@ stdTSSquare = cat(1,temp{:});
 
 figure(25);clf
 imagesc(meanTSSquare(ensemblesToUse,:))
+% imagesc(meanTSSquare(:,:))
+
 colormap rdbu
 caxis([-0.2 0.2])
 
@@ -784,7 +801,7 @@ r.LineStyle=':';
 r.Color = rgb('grey');
 
 pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off')
-% 
+%
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
@@ -866,7 +883,7 @@ for i = 1:numel(All)
     % peak align to the 3rd position
     % should this be normalized somehow?
     for j = 1:size(ensembleOriCurve,1)
-        oriShifted(j,1) = ensembleOriCurve(j,1); %don't cir shift the no stim 
+        oriShifted(j,1) = ensembleOriCurve(j,1); %don't cir shift the no stim
         oriShifted(j,2:9) = circshift(ensembleOriCurve(j,2:9),-ensemblePref(j)+3);
     end
     
@@ -1303,8 +1320,8 @@ for ind =1:numExps
         v = max(round(maxV/divider),1);
         
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
-             All(ind).out.exp.lowRunTrials &...
-             All(ind).out.exp.visID==v;
+            All(ind).out.exp.lowRunTrials &...
+            All(ind).out.exp.visID==v;
         %             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & All(ind).out.anal.offTargetRisk(holo,:);
         cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~any(All(ind).out.anal.offTargetRisk(:,:));
         
@@ -1444,8 +1461,8 @@ for ind =1:numExps
         v = max(round(x/divider),1);
         
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
-             All(ind).out.exp.lowRunTrials &...
-             All(ind).out.exp.visID==v;
+            All(ind).out.exp.lowRunTrials &...
+            All(ind).out.exp.visID==v;
         cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
         
         us = unique(All(ind).out.exp.stimID);
