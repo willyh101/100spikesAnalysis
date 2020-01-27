@@ -35,16 +35,16 @@ recWinSec = [0.35 2.5]; %[0.8 3.1];%[1.25 2.5];
 for ind =1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
-    
+
     All(ind).out.anal.numCells = size(All(ind).out.exp.zdfData,1);
     numCells(ind) = size(All(ind).out.exp.zdfData,1);
-    
+
     if ~isfield(All(ind).out.info,'FR')
         All(ind).out.info.FR=FRDefault;
     end
-    
+
     sz = size(All(ind).out.exp.zdfData);
-        
+
     %Exp Section
 
     %detect start of stimulation (call to vis stim) which will precede the
@@ -59,21 +59,21 @@ for ind =1:numExps
         fprintf('\nNo Exp VisStart Detected...');
         visStart=0.5;
     end
-    
+
     winToUse = min(round((visStart+recWinSec).*All(ind).out.info.FR),[inf sz(2)]) ;
     bwinToUse = max(round([0 visStart]*All(ind).out.info.FR),[1 1]);
-    
+
     All(ind).out.anal.recWinUsed = winToUse;
-    
+
     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
-    
+
     rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse,:),2));
     bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse,:),2));
-    
+
     All(ind).out.exp.rdData=rdata;
     All(ind).out.exp.bdata=bdata;
-    
+
     %Vis Section
     sz2 = size(All(ind).out.vis.zdfData);
     try
@@ -90,10 +90,10 @@ for ind =1:numExps
 
     rdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse,:),2));
     bdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse,:),2));
-    
+
     All(ind).out.vis.rdata=rdata;
     All(ind).out.vis.bdata=bdata;
-    
+
     %runProcessing Section
     runVal = All(ind).out.exp.runVal;
     rnSz = size(runVal);
@@ -102,9 +102,9 @@ for ind =1:numExps
     lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
     lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
     All(ind).out.exp.lowRunTrials = lowRunTrials;
-    
+
     percentLowRunTrials(ind) = mean(lowRunTrials);
-    
+
     try
         runVal = All(ind).out.vis.runVal;
         rnSz = size(runVal);
@@ -116,24 +116,24 @@ for ind =1:numExps
     catch
         disp('no vis run data?')
     end
-    
-    
+
+
     % Total Number of Targets shot per recording
     temp = unique([All(ind).out.exp.holoTargets{:}]);
     temp(isnan(temp))=[];
     All(ind).out.anal.targets = temp;
     numUniqueTargets(ind) =numel(temp);
-    
+
     %ensure has a visID
     if ~isfield(All(ind).out.exp,'visID')
         All(ind).out.exp.visID = ones(size(All(ind).out.exp.stimID));
         disp(['Added visID to Exp ' num2str(ind)]);
     end
-    
+
     if numel(All(ind).out.vis.visID) ~= numel(All(ind).out.vis.lowMotionTrials)
         All(ind).out.vis.lowMotionTrials(end+1:numel(All(ind).out.vis.visID))= 0 ;
     end
-    
+
     %ensure stimparam correct and properly formatted
     %Caution may erase stimparams if they are complex
     for r = 1:size(All(ind).out.exp.stimParams.roi,2)
@@ -145,111 +145,111 @@ for ind =1:numExps
             All(ind).out.exp.stimParams.roi{r} = r-1;
         end
     end
-    
+
     %infer a visStart
     %      All(7).out.exp.outputsInfo.OutputPatterns{2}
-    
+
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
-    
+
 end
 %% Determine the OSI from the Vis section of each cell.
 
 for ind=1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
-    
+
     uVisID = unique(All(ind).out.vis.visID);
     uVisID(uVisID==0)=[];
-    
+
     oriCurve=[];
     for i=1:numel(uVisID)
         v= uVisID(i);
-        
+
         trialsToUse = All(ind).out.vis.visID==v &...
             All(ind).out.vis.lowMotionTrials &...
             All(ind).out.vis.lowRunTrials;
-        
+
         oriCurve(i,:)=mean(All(ind).out.vis.rdata(:,trialsToUse),2);
     end
-    
+
     All(ind).out.anal.oriCurve = oriCurve;
-    
+
     [maxOriVal maxOriIndex]= max(oriCurve);
     All(ind).out.anal.prefOri = maxOriIndex;
-    
+
     % (Rpref ? Rorth)/(Rpref + Rorth)
     % visID 1 is always catch (I Hope... Will is more confident...ish)
-    
+
     prefOri = maxOriIndex;
     orthoOri = prefOri-2;
     orthoOri(orthoOri<2)=orthoOri(orthoOri<2)+8;
-    
+
     orthoOri2 = orthoOri+4;
     orthoOri2(orthoOri2>9) = orthoOri2(orthoOri2>9)-8;
-    
+
     orthoOri = cat(1,orthoOri, orthoOri2);
-    
-    
-    
+
+
+
     %     orthoOri(prefOri==1)=NaN;
-    
+
     oriCurveBL = oriCurve - min(oriCurve);%oriCurve(1,:);
-    
+
     OSI=[];
     for i=1:numel(prefOri)
         OSI(i) = (oriCurveBL(prefOri(i),i) - mean(oriCurveBL(orthoOri(:,i)',i)) ) / (oriCurveBL(prefOri(i),i)+ mean(oriCurveBL(orthoOri(:,i)',i)) );
         %     OSI = (oriCurveBL(prefOri) - oriCurveBL(orthoOri) ) ./ ( oriCurveBL(prefOri)+oriCurveBL(orthoOri) )
         OSI(prefOri==1)=nan;
     end
-    
+
     All(ind).out.anal.OSI=OSI;
-    
-    
+
+
     pVisR=[];pVisT=[];
     for i=1:All(ind).out.anal.numCells
         trialsToUse = All(ind).out.vis.visID~=0 &...
             All(ind).out.vis.lowMotionTrials &...
             All(ind).out.vis.lowRunTrials;
         pVisR(i) = anova1(All(ind).out.vis.rdata(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
-        
+
         trialsToUse = All(ind).out.vis.visID~=0 &...
             All(ind).out.vis.visID~=1 &...
             All(ind).out.vis.lowMotionTrials &...
             All(ind).out.vis.lowRunTrials;
         pVisT(i) = anova1(All(ind).out.vis.rdata(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
     end
-    
+
     All(ind).out.anal.pVisR = pVisR;
     All(ind).out.anal.pVisT = pVisT;
-    
+
     visAlpha = 0.05;
-    
+
     All(ind).out.anal.visPercent = sum(pVisR<visAlpha) / numel(pVisR);
     visPercent(ind) =  All(ind).out.anal.visPercent;
-    
+
     meanOSI=[];ensembleOSI=[];ensembleOriCurve =[];ensemblePref=[];
-    
+
     for i=1:numel(All(ind).out.exp.holoTargets)
         ht = All(ind).out.exp.holoTargets{i};
         ht(isnan(ht))=[];
         meanOSI(i)=nanmean(OSI(ht));
-        
+
         ensOriCurve = mean(oriCurve(:,ht),2);
         ensembleOriCurve(i,:)= ensOriCurve;
         [maxOriVal maxOriIndex]= max(ensOriCurve);
         prefOri = maxOriIndex;
-        
+
         orthoOri = prefOri-2;
         orthoOri(orthoOri<2)=orthoOri(orthoOri<2)+8;
         orthoOri2 = orthoOri+4;
         orthoOri2(orthoOri2>9) = orthoOri2(orthoOri2>9)-8;
         orthoOri = cat(1,orthoOri, orthoOri2);
         oriCurveBL = ensOriCurve - min(ensOriCurve);
-        
+
         ensembleOSI(i) = (oriCurveBL(prefOri)- mean(oriCurveBL(orthoOri'))) / (oriCurveBL(prefOri)+ mean(oriCurveBL(orthoOri')));
         ensemblePref(i) = prefOri;
     end
-    
+
     deg = [nan 0:45:315];
     All(ind).out.anal.ensembleOSI=ensembleOSI;
     All(ind).out.anal.meanOSI=meanOSI;
@@ -257,7 +257,7 @@ for ind=1:numExps
     All(ind).out.anal.ensembleOriCurve=ensembleOriCurve;
     All(ind).out.anal.ensemblePrefOri=ensemblePref;
     All(ind).out.anal.ensemblePrefDeg=deg(ensemblePref);
-    
+
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
 
@@ -265,13 +265,13 @@ end
 
 %% Pretty plots of OSI and tunings
 
-clear allOSI ensOSI meanOSI ensNum roiNum
+clear allOSI ensOSI meanOSI ensNum roiNum h allOSI2 ensOSI2 meanOSI2 ensNum2 roiNum2 h
 % OSI across all cells, all experiments
 for i = 1:numel(All)
     allOSI{i} = All(i).out.anal.OSI(:);
     ensOSI{i} = All(i).out.anal.ensembleOSI(:);
     meanOSI{i} = All(i).out.anal.meanOSI(:);
-    
+
     ensNum{i} = cellfun(@(x) sum(~isnan(x)),All(i).out.exp.holoTargets)'; %number of discovered Cells in ensemble
     roiNum{i} = cellfun(@(x) sum(~isnan(x)),All(i).out.exp.rois)'; %number of shot targets in ensemble
 end
@@ -283,7 +283,12 @@ meanOSI = cell2mat(meanOSI(:));
 ensNum = cell2mat(ensNum(:));
 roiNum = cell2mat(roiNum(:));
 
-
+% remove any nans
+allOSI2 = allOSI(~isnan(allOSI));
+ensOSI2 = ensOSI(~isnan(ensOSI));
+meanOSI2 = meanOSI(~isnan(meanOSI));
+ensNum2 = ensNum(~isnan(ensNum));
+roiNum2 = roiNum(~isnan(roiNum));
 
 % plot
 figure(1)
@@ -320,11 +325,7 @@ legend('All Cells', 'Ensemble', 'Ensemble Mean')
 % get plots for the 2 different methods with higher bin count
 f2 = figure(2);
 clf(f2)
-hold on
-h(1) = histogram(meanOSI, 50);
-h(2) = histogram(ensOSI, 50);
-
-
+clear allOSIT ensOSIT meanOSIT allOSIun ensOSIun meanOSIun h
 % try using ensembleOSI > 0.3 for "tuned", this is arbitrary
 OSIthreshold = 0.3;
 for i = 1:numel(All)
@@ -333,30 +334,69 @@ for i = 1:numel(All)
     untunedEnsembles = All(i).out.exp.holoTargets(~istuned);
     tunedEnsembleIdx = find(All(i).out.anal.ensembleOSI >= OSIthreshold);
     untunedEnsembleIdx = find(All(i).out.anal.ensembleOSI < OSIthreshold);
+
     All(i).out.anal.tunedEnsembles = tunedEnsembles;
     All(i).out.anal.untunedEnsembles = untunedEnsembles;
     All(i).out.anal.tunedEnsembleIdx = tunedEnsembleIdx;
     All(i).out.anal.untunedEnsembleIdx = untunedEnsembleIdx;
-end
 
-% plot the OSIs of tuned vs untuned ensembles
-clear allOSIT ensOSIT meanOSIT
-for i = 1:numel(All)
-    allOSIT{i} = All(i).out.anal.OSI(:);
-    ensOSIT{i} = All(i).out.anal.ensembleOSI(:);
-    meanOSIT{i} = All(i).out.anal.meanOSI(:);
+    allOSIT{i} = All(i).out.anal.OSI(All(i).out.anal.OSI>OSIthreshold)';
+    ensOSIT{i} = All(i).out.anal.ensembleOSI(tunedEnsembleIdx)';
+    meanOSIT{i} = All(i).out.anal.meanOSI(tunedEnsembleIdx)';
+    allOSIun{i} = All(i).out.anal.OSI(All(i).out.anal.OSI<=OSIthreshold)';
+    ensOSIun{i} = All(i).out.anal.ensembleOSI(untunedEnsembleIdx)';
+    meanOSIun{i} = All(i).out.anal.meanOSI(untunedEnsembleIdx)';
 end
 
 % unroll
 allOSIT = cell2mat(allOSIT(:));
 ensOSIT = cell2mat(ensOSIT(:));
 meanOSIT = cell2mat(meanOSIT(:));
+allOSIun = cell2mat(allOSIun(:));
+ensOSIun = cell2mat(ensOSIun(:));
+meanOSIun = cell2mat(meanOSIun(:));
+% de-nanify
+allOSIT2 = allOSIT(~isnan(allOSIT));
+ensOSIT2 = ensOSIT(~isnan(ensOSIT));
+meanOSIT2 = meanOSIT(~isnan(meanOSIT));
+allOSIun2 = allOSIun(~isnan(allOSIun));
+ensOSIun2 = ensOSIun(~isnan(ensOSIun));
+meanOSIun2 = meanOSIun(~isnan(meanOSIun));
 
-% f3 = subplots(1,2,1)
 
+subplot(1,3,1)
+histogram(meanOSIT2, 50);
+hold on
+histogram(ensOSIT2, 50);
+title('Tuned Ensemble OSIs')
+
+subplot(1,3,2)
+histogram(meanOSIun2, 50);
+hold on
+histogram(ensOSIun2, 50);
+title('Un-tuned Ensemble OSIs')
+
+
+subplot(1,3,3)
+h(1) = histogram(ensOSIT2, 100);
+hold on
+h(2) = histogram(ensOSIun2, 100);
+for i=1:numel(h)
+    h(i).Normalization = 'pdf';
+    h(i).BinWidth = 0.02;
+    h(i).FaceColor = colors{i};
+    h(i).FaceAlpha = 0.44;
+    kde(i) = fitdist(h(i).Data, 'kernel');
+    p = plot(h(i).BinEdges, pdf(kde(i),h(i).BinEdges));
+    p.LineWidth=2;
+    p.Color= colors{i};
+end
+
+title('Tuned vs Un-tuned ensembles')
+legend('Tuned', 'Un-tuned')
 % and thier preferred oris
 
-legend('Mean OSI', 'Ensemble OSI')
+
 
 %% Get the number of spikes in each stimulus
 
@@ -375,13 +415,13 @@ for ind = 1:numExps
             %             numSpikes(i) = temp(i)*All(ind).out.exp.stimParams.numCells(c);
         end
     end
-    
-    
+
+
     All(ind).out.anal.numSpikesAddedPerCond = numSpikes;
     numSpikesEachStim{ind} = numSpikes;
     numCellsEachEns{ind} = All(ind).out.exp.stimParams.numCells;
     hzEachEns{ind} = All(ind).out.exp.stimParams.Hz;
-    
+
 end
 numSpikesEachStim=cell2mat(numSpikesEachStim(:)');
 numSpikesEachEns = numSpikesEachStim;
@@ -398,18 +438,18 @@ ensIndNumber=[];
 for ind=1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
-    
+
     trialsToUse = All(ind).out.exp.lowMotionTrials &  All(ind).out.exp.lowRunTrials;
-    
+
     clear respMat baseMat %Order stims,vis,cells
     for i=1:numel(unique(All(ind).out.exp.stimID))
         us = unique(All(ind).out.exp.stimID);
         s = us(i);
-        
+
         for k= 1 : numel(unique(All(ind).out.exp.visID))
             vs = unique(All(ind).out.exp.visID);
             v = vs(k);
-            
+
             respMat(i,k,:) = mean(All(ind).out.exp.rdData(:,...
                 trialsToUse & All(ind).out.exp.stimID ==s &...
                 All(ind).out.exp.visID ==v), 2) ;
@@ -418,11 +458,11 @@ for ind=1:numExps
                 All(ind).out.exp.visID ==v), 2) ;
         end
     end
-    
+
     All(ind).out.anal.respMat = respMat;
     All(ind).out.anal.baseMat = baseMat;
-    
-    
+
+
     %%offtargetRisk
     stimCoM = All(ind).out.exp.stimCoM;
     numCells = size(All(ind).out.exp.zdfData,1);
@@ -430,16 +470,16 @@ for ind=1:numExps
     stimDepth = All(ind).out.exp.stimDepth;
     allDepth = All(ind).out.exp.allDepth;
     muPerPx = 800/512;
-    
+
     allLoc = [allCoM*muPerPx (allDepth-1)*30];
     stimLoc = [stimCoM*muPerPx (stimDepth-1)*30];
-    
+
     roisTargets = All(ind).out.exp.rois;
     holoTargets = All(ind).out.exp.holoTargets;
-    
+
     thisPlaneTolerance = 10;10; %in pixels
     onePlaneTolerance = 15;20;
-    
+
     radialDistToStim=zeros([size(stimCoM,1) numCells]);
     axialDistToStim = zeros([size(stimCoM,1) numCells]);
     StimDistance = zeros([size(stimCoM,1) numCells]);
@@ -450,17 +490,17 @@ for ind=1:numExps
             z = stimDepth(i)-allDepth(k);
             axialDistToStim(i,k) = z;
             StimDistance(i,k) = sqrt(sum((stimLoc(i,:)-allLoc(k,:)).^2));
-            
+
         end
     end
-    
+
     offTargetRisk = zeros([numel(roisTargets) numCells]);
     for i=1:numel(roisTargets)
         Tg = roisTargets{i};
         try
             TgCells = holoTargets{i};
         catch;end;
-        
+
         if numel(Tg) == 1
             temp = radialDistToStim(Tg,:)<thisPlaneTolerance & axialDistToStim(Tg,:) ==0;
             temp2 = radialDistToStim(Tg,:)<onePlaneTolerance & abs(axialDistToStim(Tg,:)) ==1;
@@ -471,8 +511,8 @@ for ind=1:numExps
         offTargetRisk(i,:) = temp | temp2;
     end
     All(ind).out.anal.offTargetRisk = offTargetRisk;
-    
-    
+
+
     %%ROIinArtifact
     try
         yoffset = -All(ind).out.info.offsets(2);
@@ -480,14 +520,14 @@ for ind=1:numExps
         disp(['Offset Not Detected ind: ' num2str(ind)])
         yoffset = 0 ;
     end
-    
+
     ArtifactSizeLeft = 100;
     ArtifactSizeRight = 100;
     ROIinArtifact = allCoM(:,2)<ArtifactSizeLeft-yoffset | allCoM(:,2)>511-(ArtifactSizeRight+yoffset);
     All(ind).out.anal.ROIinArtifact = ROIinArtifact;
     pVisR = All(ind).out.anal.pVisR;
     pVisT = All(ind).out.anal.pVisT;
-    
+
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
     clear popResp popRespDist popRespDistNumCells
@@ -496,24 +536,24 @@ for ind=1:numExps
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
             %             try
             %             holo =All(ind).out.exp.stimParams.Seq(i) ;% roi{i}{1};
-            
+
             holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
             %             catch
             %                 holo =All(ind).out.exp.stimParams.roi{i};
             %             end
-            
+
             if i==1;
                 cellsToUse = ~ROIinArtifact' & pVisR<0.05;
             else
                 cellsToUse = ~ROIinArtifact' & pVisR<0.05 & ~offTargetRisk(holo,:);
             end
-            
+
             if baseline
                 popResp(i,v) = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
             else
                 popResp(i,v) = nanmean(squeeze(respMat(i,v,cellsToUse)));
             end
-            
+
             if i~=1
                 Tg=All(ind).out.exp.rois{holo};
                 dists = StimDistance(Tg,:);
@@ -521,14 +561,14 @@ for ind=1:numExps
                 geoDist = geomean(dists,1);
                 meanDist = mean(dists,1);
                 harmDist = harmmean(dists,1);
-                
+
                 minDistbyHolo(i,:) = minDist;
                 geoDistbyHolo(i,:) = geoDist;
                 meanDistbyHolo(i,:) = meanDist;
                 harmDistbyHolo(i,:) = harmDist;
-                
+
                 distToUse = minDist; % CHANGE THIS (when you want to change whats being analyzed)
-                
+
                 distBins = [0:25:500];
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
@@ -540,11 +580,11 @@ for ind=1:numExps
                     popRespDistNumCells(i,v,d) = sum(cellsToUse);
                 end
             end
-            
-            
+
+
         end
     end
-    
+
     VisCondToUse = 1; %1 is no vis
     if VisCondToUse > size(popResp,2)
         popResponse{ind} = single(nan(size(popResp(:,1))));
@@ -557,13 +597,13 @@ for ind=1:numExps
     end
     popResponseAll{ind} = popResp;
     popResponseAllNumCells{ind} = popRespDistNumCells;
-    
+
     ensIndNumber = [ensIndNumber ones(size(popResp(:,1)'))*ind];
     All(ind).out.anal.minDistbyHolo = minDistbyHolo;
     All(ind).out.anal.geoDistbyHolo = geoDistbyHolo;
     All(ind).out.anal.meanDistbyHolo = meanDistbyHolo;
-    
-    
+
+
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
 
@@ -633,14 +673,13 @@ clear f p ens2plt fits
 f5 = figure(5);
 clf(f5)
 numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
-
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & ~isnan(ensOSI'));
     p = polyfit(ensOSI(ens2plot),popResponseEns(ens2plot),1);
     f = polyval(p, ensOSI(ens2plot));
-    
+
     [fs gs] = fit(ensOSI(ens2plot),popResponseEns(ens2plot),'poly1');
     %fits(i,:) = f;
     subplot(1,numEns,i)
@@ -650,7 +689,7 @@ for i=1:numEns
     fline = plot(fs);
     fline.LineWidth = 1;
     legend('Ensemble Mean',['RSquared: ' num2str(gs.rsquare)]);
-    
+
     xlabel('OSI')
     ylabel('Pop Response')
     title(['Ensembles of size ' num2str(uniqueEns(i))])
@@ -708,7 +747,7 @@ r.LineStyle=':';
 r.Color = rgb('grey');
 
 pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off')
-% 
+%
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
@@ -736,18 +775,18 @@ for s=unique(ens_sizes)
     k=k+1;
     hold on
     sp(k) = subplot(1,numel(unique(numCellsEachEns(ensemblesToUse))),k);
-    
+
     expid = ens_ids(ens_sizes==s);
     ens2plt = popResponseClip(ens_sizes==s)'; %indexing error need to subselect first
-    
+
     c=0;
     for i=unique(expid)
-        
+
         c = c+1;
         exp2plt{c} = ens2plt(expid==i);
         names{c}=strrep(All(i).out.info.mouse, '_', '.');
     end
-    
+
     cmap=colormap(viridis(numel(exp2plt)));
     p=plotSpread(exp2plt,'xNames',names,'showMM',4,'distributionColors',cmap);
     ax=p{3};
@@ -759,11 +798,11 @@ for s=unique(ens_sizes)
     uistack(p{2},'bottom')
     xtickangle(45)
     title(['Ensembles of ' num2str(s)])
-    
+
     r = refline(0);
     r.LineStyle=':';
     r.Color = rgb('grey');
-    
+
 end
 
 linkaxes(sp(:), 'y')
@@ -779,31 +818,31 @@ low = 0.2;
 high = 0.8;
 
 for i = 1:numel(All)
-    
+
     lowOSIidx{i} = find(All(i).out.anal.ensembleOSI <= low);
     midOSIidx{i} = find(All(i).out.anal.ensembleOSI > low & All(i).out.anal.ensembleOSI < high);
     highOSIidx{i} = find(All(i).out.anal.ensembleOSI >= high);
-    
+
     ensembleOriCurve = All(i).out.anal.ensembleOriCurve;
     ensemblePref = All(i).out.anal.ensemblePrefOri;
-    
+
     % peak align to the 3rd position
     % should this be normalized somehow?
     for j = 1:size(ensembleOriCurve,1)
-        oriShifted(j,1) = ensembleOriCurve(j,1); %don't cir shift the no stim 
+        oriShifted(j,1) = ensembleOriCurve(j,1); %don't cir shift the no stim
         oriShifted(j,2:9) = circshift(ensembleOriCurve(j,2:9),-ensemblePref(j)+3);
     end
-    
+
     alignedOris{i} = oriShifted;
-    
+
     lowOSIcurve{i} = oriShifted(lowOSIidx{i},:);
     midOSIcurve{i} = oriShifted(midOSIidx{i},:);
     highOSIcurve{i} = oriShifted(highOSIidx{i},:);
-    
+
     All(i).out.anal.lowOSIcurve = oriShifted(lowOSIidx{i},:);
     All(i).out.anal.midOSIcurve = oriShifted(midOSIidx{i},:);
     All(i).out.anal.highOSIcurve = oriShifted(highOSIidx{i},:);
-    
+
 end
 
 % unroll and computer errors
@@ -854,8 +893,8 @@ for i = 1:size(ensSizes,2)
     stdDat = nanstd(dat);
     numpDat = sum(~isnan(dat));
     semDat = stdDat./sqrt(numpDat);
-    
-    
+
+
     hold on
     errorbar(distBins(2:end),meanDat,semDat,'linewidth',2,'color',colorList{i})
 end
@@ -870,24 +909,69 @@ legend('Small', 'Medium', 'Big')
 legend(string(ensSizes))
 
 %% Ensemble stims and vis things
+visExpts = [];
+noVisExpts = [];
+isoTrialsTuned = [];
+isoTrials = [];
 
 for i=1:numExps
     trialsToUse = All(i).out.exp.lowMotionTrials &  All(i).out.exp.lowRunTrials;
+clear s
     % first, use this to index stimID and visCond
-    vis2use = All(i).out.exp.visCond(trialsToUse);
-    stim2use = All(i).out.exp.stimID(trialsToUse);
-    
-    
-    for k = unique(All(i).out.anal.tunedEnsembleIdx)
-        tunedtrials = [];
+    try
+        % oris2use = All(i).out.exp.visCond(2,trialsToUse);
+        oris2use = All(i).out.exp.visCond(2,:);
+        visExpts = [visExpts i];
+    catch
+        disp(['No vis data for expt ' num2str(i) '!'])
+        noVisExpts = [noVisExpts i];
+        continue
     end
+    uniqueStims = All(i).out.exp.stimID;
+    % fix stims
+    stimID = [];
+    for u = 1:numel(uniqueStims)
+        s(u) = find(All(i).out.exp.outputsInfo.OutputStims == uniqueStims(u));
+        %stimID = [stimID s];
+    end
+    All(i).out.exp.outNum = stimID;
+
+    % find tuned-iso matches first
+
+    % this will be a list of trials where the vis cond matches any ensemble
+    % preferred ori
+    isoTrials = [];
+    isoTrialsTuned = [];
+%     for k = unique(All(i).out.anal.ensemblePrefDeg)
+%         isoTrials = trialsToUse .* (All(i).out.exp.visCond(2,:) == k);
+%
+% %         for j = unique(stimID)
+% %             isoTrialsTuned = (All(i).out.anal.tunedEnsembleIdx == j);
+% %         end
+%     end
+
+%     for k = unique(stimID)
+%         % ID ensembles that match
+%         isoTrialsTuned = [isoTrialsTuned find(All(i).out.anal.tunedEnsembleIdx == k)'];
+%     end
+
+
+
+
 end
-
-% just need to do a find here for each tuned ensemble
-
-
-
-
+% % visExpts
+% % noVisExpts
+% %
+% %     for k = unique(All(i).out.anal.tunedEnsembleIdx)
+% %         tunedtrials = [];
+% %     end
+% % end
+%
+% % just need to do a find here for each tuned ensemble
+%
+%
+%
+%
 
 
 %% Correlation Analyisis Determine Correlation Coefficients
@@ -896,7 +980,7 @@ for ind = 1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
     %     us = unique(All(ind).out.vis.stimID);
-    
+
     %Spont Corr - correlation coefficient on time series from no stim
     %period
     trialsToUse = All(ind).out.vis.lowMotionTrials &...
@@ -905,24 +989,24 @@ for ind = 1:numExps
     unrollData = All(ind).out.vis.zdfData(:,:,trialsToUse);
     sz = size(unrollData);
     unrollData = reshape(unrollData,[sz(1) sz(2)*sz(3)]);
-    
+
     [SpontCorr SpCoP] = corr(unrollData');
-    
+
     %AllCorr - the correlation coef on all time series
     trialsToUse = All(ind).out.vis.lowMotionTrials & All(ind).out.vis.lowRunTrials;
     unrollData = All(ind).out.vis.zdfData(:,:,trialsToUse);
     sz = size(unrollData);
     unrollData = reshape(unrollData,[sz(1) sz(2)*sz(3)]);
-    
+
     [AllCorr AlCoP] = corr(unrollData');
-    
+
     %All corr mean - correlation coef of response (not time series)
     trialsToUse = All(ind).out.vis.lowMotionTrials & All(ind).out.vis.lowRunTrials;
     unrollData = All(ind).out.vis.rdata(:,trialsToUse);
     sz = size(unrollData);
-    
+
     [AllMCorr AmCoP] = corr(unrollData');
-    
+
     %noise corr - correlation coef of residual trial response (not time
     %series) i.e. trial response - mean response for that condition
     trialsToUse = All(ind).out.vis.lowMotionTrials & All(ind).out.vis.lowRunTrials;
@@ -933,35 +1017,35 @@ for ind = 1:numExps
     for k = 1:numel(vs)
         v = vs(k);
         trialsToUseThis = trialsToUse & All(ind).out.vis.visID==v;
-        
+
         dataPart = All(ind).out.vis.rdata(:,trialsToUseThis);
         mData = mean(dataPart');
         meanResps(k,:) =  mData;
         dataPart = dataPart-mData';
-        
+
         unrollData = cat(2,unrollData,dataPart);
     end
-    
+
     [NoiseCorr NoCoP] = corr(unrollData');
     [SignalCorr SiCoP] = corr(meanResps);
-    
-    
+
+
     All(ind).out.anal.SpontCorr = SpontCorr;
     All(ind).out.anal.SpCoP = SpCoP;
-    
+
     All(ind).out.anal.AllCorr = AllCorr;
     All(ind).out.anal.AlCoP = AlCoP;
-    
+
     All(ind).out.anal.AllMCorr = AllMCorr;
     All(ind).out.anal.AmCoP =AmCoP;
-    
+
     All(ind).out.anal.SignalCorr = SignalCorr;
     All(ind).out.anal.SiCoP =SiCoP;
-    
+
     All(ind).out.anal.NoiseCorr = NoiseCorr;
     All(ind).out.anal.NoCoP = NoCoP;
-    
-    
+
+
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
 
@@ -977,22 +1061,22 @@ for ind = 1:numExps
         corMat = corrToUse(ht,ht);
         corMat(logical(eye(numel(ht))))=nan;
         ensembleSpCo(i) = nanmean(corMat(:));
-        
+
         corrToUse = All(ind).out.anal.AllCorr;
         corMat = corrToUse(ht,ht);
         corMat(logical(eye(numel(ht))))=nan;
         ensembleAlCo(i) =nanmean(corMat(:));
-        
+
         corrToUse = All(ind).out.anal.AllMCorr;
         corMat = corrToUse(ht,ht);
         corMat(logical(eye(numel(ht))))=nan;
         ensembleAmCo(i) = nanmean(corMat(:));
-        
+
         corrToUse = All(ind).out.anal.SignalCorr;
         corMat = corrToUse(ht,ht);
         corMat(logical(eye(numel(ht))))=nan;
         ensembleSiCo(i) =nanmean(corMat(:));
-        
+
         corrToUse = All(ind).out.anal.NoiseCorr;
         corMat = corrToUse(ht,ht);
         corMat(logical(eye(numel(ht))))=nan;
@@ -1003,7 +1087,7 @@ for ind = 1:numExps
     All(ind).out.anal.ensembleAmCo = ensembleAmCo;
     All(ind).out.anal.ensembleSiCo = ensembleSiCo;
     All(ind).out.anal.ensembleNoCo = ensembleNoCo;
-    
+
     ensSpCo = cat(2,ensSpCo,ensembleSpCo);
     ensAlCo = cat(2,ensAlCo,ensembleAlCo);
     ensAmCo = cat(2,ensAmCo,ensembleAmCo);
@@ -1026,9 +1110,9 @@ for i=1:5
     dataToUse = dat{i};
     scatter(dataToUse,popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
     % scatter(1:sum(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
-    
+
     title([names{i} ' Correlation'])
-    
+
     xlabel(['Correlation of Ensemble'])
     ylabel('Population Mean Response')
     % title('OSIs by Ensemble Size')
@@ -1045,10 +1129,10 @@ end
 
 clear popResponseCorr
 for ind = 1:numExps
-    
+
     corrToUse  = All(ind).out.anal.NoiseCorr; %Change This if you need
-    
-    
+
+
     vs =  unique(All(ind).out.exp.visID);
     if all(All(ind).out.exp.visID==0)
         All(ind).out.exp.visID = ones(size(All(ind).out.exp.visID));
@@ -1057,10 +1141,10 @@ for ind = 1:numExps
     end
     respMat = All(ind).out.anal.respMat;
     baseMat = All(ind).out.anal.baseMat;
-    
+
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
-    
+
     clear popRespCorr popRespCorrSub minDistbyHolo cellsToUse
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
@@ -1071,20 +1155,20 @@ for ind = 1:numExps
                 cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:);
             end
             %             popResp(i,v) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
-            
+
             if i~=1
                 Tg=All(ind).out.exp.holoTargets{holo};
                 Tg(isnan(Tg))=[];
-                
+
                 distCorr = corrToUse(Tg,:);
                 meanCorr = mean(distCorr,1);
                 %                 geoCorr = geomean(distCorr,1);
                 minCorr = min(distCorr,[],1);
                 maxCorr = max(distCorr,[],1);
-                
+
                 corrHolo = meanCorr;
-                
-                
+
+
                 distBins = linspace(-1,1,40);
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
@@ -1092,7 +1176,7 @@ for ind = 1:numExps
                         corrHolo > distBins(d) &...
                         corrHolo <= distBins(d+1) ;
                     popRespCorr(i,v,d) = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
-                    
+
                     noHoloEquivalent = nanmean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse)));
                     popRespCorrSub(i,v,d) =  popRespCorr(i,v,d) - noHoloEquivalent;
                 end
@@ -1101,12 +1185,12 @@ for ind = 1:numExps
     end
     popRespCorr(1,:,:)=[];
     popRespCorrSub(1,:,:)=[];
-    
+
     popResponseCorr{ind} = popRespCorr;
     popResponseCorrSub{ind} = popRespCorrSub;
-    
+
     %  All(ind).out.anal.minDistbyHolo = minDistbyHolo;
-    
+
 end
 
 
@@ -1137,12 +1221,12 @@ hold on
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & highVisPercentInd);
     data = EnsCorR(ens2plot,:);
-    
-    
+
+
     e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
-    
+
     %         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
-    
+
     e.Color = colorList{i};
     e.LineWidth = 2;
     %     hack = num2cell(distBins(1:end-1));
@@ -1188,7 +1272,7 @@ for i = 1:numel(OSIrange)-1
     ens2plot = find( ensemblesToUse & highVisPercentInd &...
         numCellsEachEns==EnsSizeToUse &...
         OSItoUse >= OSIrange(i) &  OSItoUse < OSIrange(i+1)  ); %numCellsEachEns==EnsSizeToUse &...
-    
+
     data = EnsCorR(ens2plot,:);
     numOfEnsUsed(i) = size(data,1);
     try
@@ -1218,36 +1302,36 @@ contrastsToView = [6 3 2 1.5 1.25 1] ;%I know its weird i just wanted to be able
 clear EnsL1 EnsL2
 c=0;
 for ind =1:numExps
-    
+
     for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
         holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
-        
+
         divider =6;
         maxV = max(All(ind).out.exp.visID);
         v = max(round(maxV/divider),1);
-        
+
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
              All(ind).out.exp.lowRunTrials &...
              All(ind).out.exp.visID==v;
         %             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & All(ind).out.anal.offTargetRisk(holo,:);
         cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~any(All(ind).out.anal.offTargetRisk(:,:));
-        
-        
+
+
         us = unique(All(ind).out.exp.stimID);
-        
+
         testData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(h+1));
         ExpectedData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(1));
         [L1 L2 L3] =  calcL1L2(testData,ExpectedData);
         L1= L1/size(testData,1);
         L2 = L2/sqrt(size(testData,1));
         L3 = L3/ ((size(testData,1))^(1/3)) ;
-        
-        
+
+
         c=c+1;
         EnsL1(c) = L1;
         EnsL2(c) = L2;
     end
-    
+
 end
 
 
@@ -1360,42 +1444,42 @@ numEns = numel(uniqueEns);
 clear EnsL1 EnsL2
 c=0;
 for ind =1:numExps
-    
+
     for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
         holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
         divider = 1; %6 is no vis, 1 is max vis
         x = max(All(ind).out.exp.visID);
         v = max(round(x/divider),1);
-        
+
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
              All(ind).out.exp.lowRunTrials &...
              All(ind).out.exp.visID==v;
         cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
-        
+
         us = unique(All(ind).out.exp.stimID);
-        
+
         c=c+1;
-        
+
         distByHoloToUse = All(ind).out.anal.minDistbyHolo;% All(ind).out.anal.geoDistbyHolo;
-        
+
         for d = 1:numel(distBins)-1
             D = distBins(d+1);
             cellsToUseDist = cellsToUse &...
                 distByHoloToUse(h+1,:) <=distBins(d+1) &...
                 distByHoloToUse(h+1,:) >distBins(d) ;
-            
+
             testData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(h+1));
             ExpectedData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(1));
             [L1 L2] =  calcL1L2(testData,ExpectedData);
             L1= L1/size(testData,1);
             L2 = L2/sqrt(size(testData,1));
-            
+
             EnsL1(c,d) = L1;
             EnsL2(c,d) = L2;
-            
+
         end
     end
-    
+
 end
 
 
@@ -1406,11 +1490,11 @@ hold on
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & highVisPercentInd);
     data = EnsL1(ens2plot,:);
-    
-    
+
+
     e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
     %         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
-    
+
     e.Color = colorList{i};
     e.LineWidth = 2;
     %     names{i} = string(uniqueEns(i));
@@ -1428,10 +1512,10 @@ hold on
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & highVisPercentInd);
     data = EnsL2(ens2plot,:);
-    
+
     e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
     %         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
-    
+
     e.Color = colorList{i};
     e.LineWidth = 2;
     %     names{i} = string(uniqueEns(i));
@@ -1449,11 +1533,11 @@ hold on
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & highVisPercentInd);
     data = EnsL2(ens2plot,:)./EnsL1(ens2plot,:);
-    
-    
+
+
     e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
     %         e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data));
-    
+
     e.Color = colorList{i};
     e.LineWidth = 2;
     %     names{i} = string(uniqueEns(i));

@@ -104,7 +104,72 @@ for ind = 1:numExps
     
 end
 disp('Done')
+%%
+
+
+
+%% load will's out files
+
+for ind = [15 16]
+    pTime =tic;
+    fprintf(['Loading Experiment ' num2str(ind) '...']);
+    try
+        out = All(ind).out;
+        pth = fileparts(All(ind).out.info.path);
+        inDat = load(fullfile(pth, 'physfile.mat'), 'ExpStruct');
+        %inDat2 = load(inDat.physfile,'ExpStruct');
+        uniqueStims =unique(All(ind).out.exp.stimID);
+        out.exp.outputsInfo = outputPatternTranslator(inDat.ExpStruct,uniqueStims);
+        save(fullfile(savePath,loadList{ind}),'out')
+    catch
+        disp(['Unable to edit Experiment ' num2str(ind)])
+    end
+        
+    fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+
+end
+    
+
+disp('Done')
 %% add vis stim IDs to out files
+
+%% ID vis stim conditions
+% load in visConds.mat
+clear visCond
+for i=1:numel(All)
+    All(i).out.exp.visKey = vis_out{i};
+    visCond = [];
+    if isempty(All(i).out.exp.visKey)
+        continue
+    end
+
+    for k=1:numel(All(i).out.exp.visID)
+        if isempty(All(i).out.exp.visKey)
+            visCond(:,k)=nan(2,1);
+            continue
+        else
+            visCond(:,k) = vis_out{i}(:,All(i).out.exp.visID(k));
+        end
+    end
+
+    All(i).out.exp.visCond = visCond;
+end
+%%
+% test = All(10).out.exp.visID(i);
+% 
+% arr = [0:0.2:1];
+% for i=1:numel(All(10).out.exp.visID)
+%     vis=All(10).out.exp.visID(i);
+%     idx = find(arr==vis);
+%     tempVis(i) = idx;
+% end
+% All(10).out.exp.visID = tempVis;
+
+
+
+
+
+%%
 ptime=tic;
 clear invar
 for ind = 1:numExps
