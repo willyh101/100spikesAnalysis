@@ -4,7 +4,8 @@ function [L1 L2 L3] =  calcL1L2(testData,ExpectedData)
 meanResp = mean(ExpectedData,2);
 
 Err = meanResp - testData ;
-% Err = testData;
+% Err = testData; %dan says this should be included, so you look at the
+% population sparsity instead of the sparsity of the change
 Err = mean(Err'); 
 
 L1 = sum(abs(Err));
