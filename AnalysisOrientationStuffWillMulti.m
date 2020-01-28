@@ -101,7 +101,7 @@ for ind =1:numExps
     All(ind).out.anal.bwinToUse = bwinToUse;
     All(ind).out.anal.recStartTime = visStart;
     All(ind).out.anal.recStartFrame = round(visStart*All(ind).out.info.FR);
-
+    
     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
     
@@ -124,7 +124,7 @@ for ind =1:numExps
     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz2(2)]) ;
     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
     All(ind).out.anal.visRecWinUsed = winToUse;
-
+    
     
     rdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
     bdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
@@ -169,8 +169,8 @@ for ind =1:numExps
     end
     
     if all(All(ind).out.exp.visID==0)
-         All(ind).out.exp.visID = ones(size(All(ind).out.exp.visID));
-         disp(['Corrected VisID to ones'])
+        All(ind).out.exp.visID = ones(size(All(ind).out.exp.visID));
+        disp(['Corrected VisID to ones'])
     end
     
     if numel(All(ind).out.vis.visID) ~= numel(All(ind).out.vis.lowMotionTrials)
@@ -189,8 +189,50 @@ for ind =1:numExps
         end
     end
     
-    %infer a visStart
-    %      All(7).out.exp.outputsInfo.OutputPatterns{2}
+    % create a trial by trial stimSuccess limit
+    us = unique(All(ind).out.exp.stimID);
+    vs = unique(All(ind).out.exp.stimID);
+    numTrials = size(All(ind).out.exp.zdfData,3);
+    
+    rdata = All(ind).out.exp.rdData;
+    bdata = All(ind).out.exp.bdata;
+    
+    %%%%%Threshol%%%
+    stimsuccessZ = 0.75; %over this number is a succesfull stim
+    stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
+    
+    clear stimSuccessTrial
+    for k=1:numTrials
+        s = All(ind).out.exp.stimID(k);
+        sidx = find(us==s);
+        v = All(ind).out.exp.visID(k);
+        vidx = find(vs==v);
+        
+        h = All(ind).out.exp.stimParams.roi{sidx};
+        if h==0
+            htg=[];
+            stimSuccessTrial(k) = 1;
+        else
+            htg = All(ind).out.exp.holoTargets{h};
+            htg(isnan(htg))=[];
+            
+            vals = rdata(htg,k) - bdata(htg,k);
+            stimScore = vals>stimsuccessZ;
+            stimSuccessTrial(k)= mean(stimScore) > stimEnsSuccess;
+        end
+    end
+    
+    All(ind).out.exp.stimSuccessTrial = stimSuccessTrial;
+    percentSuccessStim(ind)=mean(stimSuccessTrial);
+    
+    clear ensStimScore
+    for k=1:numel(us)
+        s=us(k);
+        ensStimScore(k) = mean(stimSuccessTrial(All(ind).out.exp.stimID==s));
+    end
+    
+    All(ind).out.exp.ensStimScore = ensStimScore;
+    
     
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
     
@@ -485,11 +527,13 @@ for ind=1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
     
-    trialsToUse = All(ind).out.exp.lowMotionTrials &  All(ind).out.exp.lowRunTrials;
+    trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial;
     
-     vs = unique(All(ind).out.exp.visID);
-     vs(vs==0)=[];
-     us = unique(All(ind).out.exp.stimID);
+    vs = unique(All(ind).out.exp.visID);
+    vs(vs==0)=[];
+    us = unique(All(ind).out.exp.stimID);
     
     clear respMat baseMat %Order stims,vis,cells
     for i=1:numel(us)
@@ -639,7 +683,7 @@ for ind=1:numExps
     popResponse{ind} = popResp(:,1);
     popResponseDist{ind} = squeeze(popRespDist(:,1,:));
     popResponseNumCells{ind} = squeeze(popRespDistNumCells(:,1,:));
-
+    
     
     
     popResponseAll{ind} = popResp;
@@ -685,9 +729,9 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     highVisPercentInd &...
     lowRunInds &...
     ~excludeInds &...  %
-      ~willExportInds;%  %& numCellsEachEns>10 ;
+    ~willExportInds;%  %& numCellsEachEns>10 ;
 
-indsSub = ensIndNumber(ensemblesToUse); 
+indsSub = ensIndNumber(ensemblesToUse);
 IndsUsed = unique(ensIndNumber(ensemblesToUse));
 
 sum(ensemblesToUse)
@@ -701,7 +745,8 @@ for ind=1:numExps
     vs = unique(All(ind).out.exp.visID);
     vs(vs==0)=[];
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
-        All(ind).out.exp.lowRunTrials;
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial;
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
     
@@ -883,9 +928,9 @@ x = 1:numEns;
 clear data names
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
-%     data{i} = popResponseEns(ens2plot);
+    %     data{i} = popResponseEns(ens2plot);
     data{i} = othterCalc(ens2plot);
-
+    
     names{i} = string(uniqueEns(i));
     avg(i) = mean(popResponseEns(ens2plot));
     err(i) = sem(popResponseEns(ens2plot));
@@ -936,13 +981,13 @@ pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemble
 % ranksum(noStimPopResp,0)
 
 for i=1:size(data,2)
-%     prs = ranksum(data{i},0);
-        psr = signrank(data{i});
-
+    %     prs = ranksum(data{i},0);
+    psr = signrank(data{i});
+    
     [h p ] = ttest(data{i},0);
     disp(['Signed Rank: ' num2str(psr,3) '. ttest: ' num2str(p,3)])
 end
-    
+
 
 %% look at just the 10s data for each mouse
 
