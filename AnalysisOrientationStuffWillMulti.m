@@ -22,7 +22,9 @@ All(1).out.exp.holoTargetsBackup = All(1).out.exp.holoTargets;
 % Exp 10 has a weird visID convention
 All(10).out.exp.visIDold = All(10).out.exp.visID;
 All(15).out.exp.visIDold = All(15).out.exp.visID;
-%%
+All(13).out.exp.visIDold = All(13).out.exp.visID;
+
+%% fix Exp1 two unused holos
 All(1).out.exp.stimParams.Seq([3 4])=[];
 All(1).out.exp.stimParams.numPulse([3 4])=[];
 All(1).out.exp.stimParams.roi([3 4])=[];
@@ -48,10 +50,21 @@ newVisID = visID;
 newVisID(visID==4)=1;
 All(15).out.exp.visID = newVisID;
 
+%% fix missing offsets
+All(15).out.info.offsets = [1.4667 -88.8667];
+All(16).out.info.offsets = [-0.2 -0.1333];
+
+%% fix Exp13 CMN
+All(13).out.exp.visID = All(13).out.exp.visIDold;
+visID = All(13).out.exp.visID;
+newVisID = visID;
+newVisID(visID~=1)=0;
+
+
 %% Clean Data and stuff i dunno come up with a better title someday
 
 FRDefault=6;
-recWinSec = [0.35 2]; %[0.8 3.1];%[1.25 2.5];
+recWinSec = [0.5 1.5]; %[0.8 3.1];%[1.25 2.5];
 
 for ind =1:numExps
     pTime =tic;
@@ -86,12 +99,14 @@ for ind =1:numExps
     
     All(ind).out.anal.recWinUsed = winToUse;
     All(ind).out.anal.bwinToUse = bwinToUse;
+    All(ind).out.anal.recStartTime = visStart;
+    All(ind).out.anal.recStartFrame = round(visStart*All(ind).out.info.FR);
 
     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
     
-    rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse,:),2));
-    bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse,:),2));
+    rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse(1):winToUse(2),:),2));
+    bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
     
     All(ind).out.exp.rdData=rdata;
     All(ind).out.exp.bdata=bdata;
@@ -109,9 +124,10 @@ for ind =1:numExps
     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz2(2)]) ;
     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
     All(ind).out.anal.visRecWinUsed = winToUse;
+
     
-    rdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse,:),2));
-    bdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse,:),2));
+    rdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
+    bdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
     
     All(ind).out.vis.rdata=rdata;
     All(ind).out.vis.bdata=bdata;
@@ -382,7 +398,7 @@ legend('All Cells', 'Ensemble', 'Ensemble Mean')
 
 
 
-%% now look at tuned ensembles
+%%now look at tuned ensembles
 % get plots for the 2 different methods with higher bin count
 f2 = figure(2);
 clf(f2)
@@ -471,20 +487,24 @@ for ind=1:numExps
     
     trialsToUse = All(ind).out.exp.lowMotionTrials &  All(ind).out.exp.lowRunTrials;
     
+     vs = unique(All(ind).out.exp.visID);
+     vs(vs==0)=[];
+     us = unique(All(ind).out.exp.stimID);
+    
     clear respMat baseMat %Order stims,vis,cells
-    for i=1:numel(unique(All(ind).out.exp.stimID))
-        us = unique(All(ind).out.exp.stimID);
+    for i=1:numel(us)
         s = us(i);
         
-        for k= 1 : numel(unique(All(ind).out.exp.visID))
-            vs = unique(All(ind).out.exp.visID);
+        for k= 1 : numel(vs)
             v = vs(k);
             
             respMat(i,k,:) = mean(All(ind).out.exp.rdData(:,...
-                trialsToUse & All(ind).out.exp.stimID ==s &...
+                trialsToUse &...
+                All(ind).out.exp.stimID ==s &...
                 All(ind).out.exp.visID ==v), 2) ;
             baseMat(i,k,:) = mean(All(ind).out.exp.bdata(:,...
-                trialsToUse & All(ind).out.exp.stimID ==s &...
+                trialsToUse &...
+                All(ind).out.exp.stimID ==s &...
                 All(ind).out.exp.visID ==v), 2) ;
         end
     end
@@ -615,16 +635,13 @@ for ind=1:numExps
         end
     end
     
-    VisCondToUse = 1; %1 is no vis
-    if VisCondToUse > size(popResp,2)
-        popResponse{ind} = single(nan(size(popResp(:,1))));
-        popResponseDist{ind} = single(nan(size(squeeze(popRespDist(:,1,:)))));
-        popResponseNumCells{ind} = single(nan(size(squeeze(popRespDistNumCells(:,1,:)))));
-    else
-        popResponse{ind} = popResp(:,VisCondToUse);
-        popResponseDist{ind} = squeeze(popRespDist(:,VisCondToUse,:));
-        popResponseNumCells{ind} = squeeze(popRespDistNumCells(:,VisCondToUse,:));
-    end
+    
+    popResponse{ind} = popResp(:,1);
+    popResponseDist{ind} = squeeze(popRespDist(:,1,:));
+    popResponseNumCells{ind} = squeeze(popRespDistNumCells(:,1,:));
+
+    
+    
     popResponseAll{ind} = popResp;
     popResponseAllNumCells{ind} = popRespDistNumCells;
     
@@ -636,6 +653,7 @@ for ind=1:numExps
     
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
+
 
 popResponse = cell2mat(popResponse(:));
 popResponseEns=popResponse;
@@ -655,7 +673,9 @@ noStimInd = ensIndNumAll(numSpikesEachStim==0);
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
-excludeInds = ismember(ensIndNumber,[14]);
+excludeInds = ismember(ensIndNumber,[10 13 14]); %10 and 13 didn't look like we evoked, 14 note is s2p fail
+% excludeInds = ismember(ensIndNumber,[10 14 15 16]);
+
 
 willExportInds = ismember(ensIndNumber,[15 16]);
 
@@ -664,13 +684,16 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     numSpikesEachEns <125 &...
     highVisPercentInd &...
     lowRunInds &...
-    ~excludeInds;%  %& numCellsEachEns>10 ;
-%     ~willExportInds;%  %& numCellsEachEns>10 ;
+    ~excludeInds &...  %
+      ~willExportInds;%  %& numCellsEachEns>10 ;
 
-
+indsSub = ensIndNumber(ensemblesToUse); 
 IndsUsed = unique(ensIndNumber(ensemblesToUse));
 
+sum(ensemblesToUse)
+
 %% Create time series plot
+minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
 
 clear allMeanTS allStdTS allnumTS allMeanTSVis allStdTSVis allnumTSVis
 for ind=1:numExps
@@ -682,7 +705,10 @@ for ind=1:numExps
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
     
-
+    strtFrame = All(ind).out.anal.recStartFrame;
+    newStart = strtFrame-minStrtFrame+1;
+    
+    pVisR = All(ind).out.anal.pVisR;
     
     clear mRespTS sRespTS nResp
     for i = 1:numel(us);
@@ -698,7 +724,7 @@ for ind=1:numExps
         cellList = 1:numel(ROIinArtifact);
         
         if i==1
-            cellsToUse = ~ROIinArtifact';
+            cellsToUse = ~ROIinArtifact' ;
         else
             cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(h,:) & ~ismember(cellList,tg) ;
         end
@@ -706,12 +732,12 @@ for ind=1:numExps
         for k=1:numel(vs);
             v=vs(k);
             
-            dat = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse &...
+            dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
                 All(ind).out.exp.stimID==s &...
                 All(ind).out.exp.visID==v );
             
             mDat = mean(dat,3);
-            mmDat = mean(mDat,1);
+            mmDat = mean(mDat,1); %pop Average
             sdDat = std(mDat);
             nDat = size(mDat,1);
             
@@ -742,21 +768,42 @@ baseline=1;
 shortestRec = min(cellfun(@(x) size(x,2),allMeanTS));
 temp = cellfun(@(x) x(2:end,1:shortestRec),allMeanTS,'uniformoutput',0);
 if baseline
-    temp = cellfun(@(x) x-mean(x(:,1:2),2),temp,'uniformoutput',0);
+    temp = cellfun(@(x) x-mean(x(:,1:minStrtFrame),2),temp,'uniformoutput',0);
 end
 meanTSSquare = cat(1,temp{:});
 
+%no Resp
+temp = cellfun(@(x) x(1,1:shortestRec),allMeanTS,'uniformoutput',0);
+if baseline
+    temp = cellfun(@(x) x-mean(x(:,1:minStrtFrame),2),temp,'uniformoutput',0);
+end
+meanTSSquareNR = cat(1,temp{:});
 
 temp = cellfun(@(x) x(2:end,1:shortestRec),allStdTS,'uniformoutput',0);
 stdTSSquare = cat(1,temp{:});
 
 figure(25);clf
+subplot(2,2,2)
 imagesc(meanTSSquare(ensemblesToUse,:))
 % imagesc(meanTSSquare(:,:))
+title('stim')
 
 colormap rdbu
 caxis([-0.2 0.2])
 
+ax(1)=subplot(2,2,4);
+fillPlot(meanTSSquare(ensemblesToUse,:),[],'ci');
+
+subplot(2,2,1)
+imagesc(meanTSSquareNR(IndsUsed,:))
+title('NoStim')
+
+colormap rdbu
+caxis([-0.1 0.1])
+ax(2) = subplot(2,2,3);
+fillPlot(meanTSSquareNR(IndsUsed,:),[],'ci')
+
+linkaxes(ax)
 
 %% Plot
 f3 = figure(3);
@@ -829,18 +876,25 @@ clf(f6)
 numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 
+othterCalc = mean(meanTSSquare(:,:)');
+othterCalcNR = mean(meanTSSquareNR');
+
 x = 1:numEns;
 clear data names
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
-    data{i} = popResponseEns(ens2plot);
+%     data{i} = popResponseEns(ens2plot);
+    data{i} = othterCalc(ens2plot);
+
     names{i} = string(uniqueEns(i));
     avg(i) = mean(popResponseEns(ens2plot));
     err(i) = sem(popResponseEns(ens2plot));
     ns(i) = numel(popResponseEns(ens2plot));
 end
 
-data{end+1} = noStimPopResp(ismember(noStimInd,IndsUsed));
+% data{end+1} = noStimPopResp(ismember(noStimInd,IndsUsed));
+data{end+1} = othterCalcNR(ismember(noStimInd,IndsUsed));
+
 names{end+1} = 'No Stim';
 
 cmap=colormap(viridis(numEns));
@@ -876,11 +930,19 @@ pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemble
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
-ranksum(popResponseEns(ensemblesToUse & numCellsEachEns==5),0)
-ranksum(popResponseEns(ensemblesToUse & numCellsEachEns==10),0)
-ranksum(popResponseEns(ensemblesToUse & numCellsEachEns==20),0)
-ranksum(noStimPopResp,0)
+% ranksum(popResponseEns(ensemblesToUse & numCellsEachEns==5),0)
+% ranksum(popResponseEns(ensemblesToUse & numCellsEachEns==10),0)
+% ranksum(popResponseEns(ensemblesToUse & numCellsEachEns==20),0)
+% ranksum(noStimPopResp,0)
 
+for i=1:size(data,2)
+%     prs = ranksum(data{i},0);
+        psr = signrank(data{i});
+
+    [h p ] = ttest(data{i},0);
+    disp(['Signed Rank: ' num2str(psr,3) '. ttest: ' num2str(p,3)])
+end
+    
 
 %% look at just the 10s data for each mouse
 
@@ -1255,7 +1317,7 @@ end
 clear popResponseCorr
 for ind = 1:numExps
     
-    corrToUse  = All(ind).out.anal.NoiseCorr; %Change This if you need
+    corrToUse  = All(ind).out.anal.SignalCorr; %Change This if you need
     
     
     vs =  unique(All(ind).out.exp.visID);
@@ -1572,7 +1634,7 @@ for ind =1:numExps
     
     for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
         holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
-        divider = 1; %6 is no vis, 1 is max vis
+        divider = 1; %inf is no vis, 1 is max vis
         x = max(All(ind).out.exp.visID);
         v = max(round(x/divider),1);
         
@@ -1613,7 +1675,7 @@ figure(111);clf
 subplot(1,3,1)
 hold on
 for i=1:numEns
-    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & highVisPercentInd);
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
     data = EnsL1(ens2plot,:);
     
     
@@ -1635,7 +1697,7 @@ xlabel('Distance')
 subplot(1,3,2)
 hold on
 for i=1:numEns
-    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & highVisPercentInd);
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse );
     data = EnsL2(ens2plot,:);
     
     e = errorbar(distBins(1:end-1),nanmean(data,1),nanstd(data)./sqrt(sum(~isnan(data))));
