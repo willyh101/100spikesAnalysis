@@ -66,6 +66,7 @@ newVisID(visID~=1)=0;
 FRDefault=6;
 recWinSec = [0.5 1.5]; %[0.8 3.1];%[1.25 2.5];
 
+clear ensStimScore
 for ind =1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
@@ -198,7 +199,7 @@ for ind =1:numExps
     bdata = All(ind).out.exp.bdata;
     
     %%%%%Threshol%%%
-    stimsuccessZ = 0.75; %over this number is a succesfull stim
+    stimsuccessZ = 0.5; %over this number is a succesfull stim
     stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
     
     clear stimSuccessTrial
@@ -225,18 +226,21 @@ for ind =1:numExps
     All(ind).out.exp.stimSuccessTrial = stimSuccessTrial;
     percentSuccessStim(ind)=mean(stimSuccessTrial);
     
-    clear ensStimScore
+    clear ensStimScoreExp
     for k=1:numel(us)
         s=us(k);
-        ensStimScore(k) = mean(stimSuccessTrial(All(ind).out.exp.stimID==s));
+        ensStimScoreExp(k) = mean(stimSuccessTrial(All(ind).out.exp.stimID==s));
     end
     
-    All(ind).out.exp.ensStimScore = ensStimScore;
+    All(ind).out.exp.ensStimScore = ensStimScoreExp;
+    ensStimScore{ind}=ensStimScoreExp;
+    
     
     
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
     
 end
+
 
 %%Get the number of spikes in each stimulus
 
@@ -270,6 +274,9 @@ numSpikesEachEns(numSpikesEachStim==0)=[];
 numCellsEachEns=cell2mat(numCellsEachEns(:)');
 
 hzEachEns = cell2mat(hzEachEns(:)');
+
+ensStimScore=cell2mat(ensStimScore(:)');
+ensStimScore(numSpikesEachStim==0)=[];
 
 %% Determine the OSI from the Vis section of each cell.
 
@@ -728,6 +735,7 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     numSpikesEachEns <125 &...
     highVisPercentInd &...
     lowRunInds &...
+    ensStimScore > 0.75 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     ~excludeInds &...  %
     ~willExportInds;%  %& numCellsEachEns>10 ;
 
@@ -756,7 +764,7 @@ for ind=1:numExps
     pVisR = All(ind).out.anal.pVisR;
     
     clear mRespTS sRespTS nResp
-    for i = 1:numel(us);
+    for i = 1:numel(us)
         s = us(i);
         h = All(ind).out.exp.stimParams.roi{i};
         
@@ -774,7 +782,7 @@ for ind=1:numExps
             cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(h,:) & ~ismember(cellList,tg) ;
         end
         
-        for k=1:numel(vs);
+        for k=1:numel(vs)
             v=vs(k);
             
             dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
@@ -846,9 +854,9 @@ title('NoStim')
 colormap rdbu
 caxis([-0.1 0.1])
 ax(2) = subplot(2,2,3);
-fillPlot(meanTSSquareNR(IndsUsed,:),[],'ci')
+fillPlot(meanTSSquareNR(IndsUsed,:),[],'ci');
 
-linkaxes(ax)
+linkaxes(ax);
 
 %% Plot
 f3 = figure(3);
@@ -928,8 +936,8 @@ x = 1:numEns;
 clear data names
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
-    %     data{i} = popResponseEns(ens2plot);
-    data{i} = othterCalc(ens2plot);
+        data{i} = popResponseEns(ens2plot);
+%     data{i} = othterCalc(ens2plot);
     
     names{i} = string(uniqueEns(i));
     avg(i) = mean(popResponseEns(ens2plot));
@@ -937,8 +945,8 @@ for i=1:numEns
     ns(i) = numel(popResponseEns(ens2plot));
 end
 
-% data{end+1} = noStimPopResp(ismember(noStimInd,IndsUsed));
-data{end+1} = othterCalcNR(ismember(noStimInd,IndsUsed));
+data{end+1} = noStimPopResp(ismember(noStimInd,IndsUsed));
+% data{end+1} = othterCalcNR(ismember(noStimInd,IndsUsed));
 
 names{end+1} = 'No Stim';
 
@@ -1147,7 +1155,9 @@ isoTrialsTuned = [];
 isoTrials = [];
 
 for i=1:numExps
-    trialsToUse = All(i).out.exp.lowMotionTrials &  All(i).out.exp.lowRunTrials;
+    trialsToUse = All(i).out.exp.lowMotionTrials &...
+        All(i).out.exp.lowRunTrials &... 
+        All(i).out.exp.stimSuccessTrial ;
     clear s
     % first, use this to index stimID and visCond
     try
@@ -1362,7 +1372,7 @@ end
 clear popResponseCorr
 for ind = 1:numExps
     
-    corrToUse  = All(ind).out.anal.SignalCorr; %Change This if you need
+    corrToUse  = All(ind).out.anal.AllCorr; %Change This if you need
     
     
     vs =  unique(All(ind).out.exp.visID);
@@ -1538,12 +1548,13 @@ for ind =1:numExps
     for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
         holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
         
-        divider =6;
+        divider =inf;
         maxV = max(All(ind).out.exp.visID);
         v = max(round(maxV/divider),1);
         
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
             All(ind).out.exp.lowRunTrials &...
+            All(ind).out.exp.stimSuccessTrial &...
             All(ind).out.exp.visID==v;
         %             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & All(ind).out.anal.offTargetRisk(holo,:);
         cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~any(All(ind).out.anal.offTargetRisk(:,:));
@@ -1669,22 +1680,24 @@ p{2}(2).LineWidth = 1;
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
 %% L1 L2 by dist
-distBins = [0:25:1000];
+distBins = [0:25:500];
 
 numEns = numel(uniqueEns);
 
 clear EnsL1 EnsL2
 c=0;
+VsUSed=[]
 for ind =1:numExps
     
     for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
         holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
-        divider = 1; %inf is no vis, 1 is max vis
+        divider = inf; %inf is no vis, 1 is max vis
         x = max(All(ind).out.exp.visID);
         v = max(round(x/divider),1);
         
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
             All(ind).out.exp.lowRunTrials &...
+            All(ind).out.exp.stimSuccessTrial &...
             All(ind).out.exp.visID==v;
         cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
         
