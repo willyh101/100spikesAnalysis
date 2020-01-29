@@ -4,6 +4,7 @@
 
 % loadPath = 'Z:\ioldenburg\outputdata1' ; %Ian Server Copy
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1' ; %Ian local
+% loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori' %
 %%
 numExps = numel(loadList);
 
@@ -277,6 +278,76 @@ hzEachEns = cell2mat(hzEachEns(:)');
 
 ensStimScore=cell2mat(ensStimScore(:)');
 ensStimScore(numSpikesEachStim==0)=[];
+
+%% Ensemble stims and vis things
+visExpts = [];
+noVisExpts = [];
+
+
+clear stimCond isoTrials isoTrialsStimCond isoTunedTrials
+for i=1:numExps
+%     trialsToUse = All(i).out.exp.lowMotionTrials &...
+%         All(i).out.exp.lowRunTrials &... 
+%         All(i).out.exp.stimSuccessTrial ;
+    clear s
+    % first, use this to index stimID and visCond
+    try
+        % oris2use = All(i).out.exp.visCond(2,trialsToUse);
+        oris2use = All(i).out.exp.visCond(2,:);
+        visExpts = [visExpts i];
+    catch
+        disp(['No vis data for expt ' num2str(i) '!'])
+        noVisExpts = [noVisExpts i];
+        All(i).out.anal.isoTunedTrialsLogi = zeros(1,length(All(i).out.exp.stimID));
+        All(i).out.anal.isoTunedTrials = [];
+        continue
+    end
+    uniqueStims = unique(All(i).out.exp.stimID);
+    
+    % change stimID to out number so we can match holos
+    
+    for j = 1:numel(All(i).out.exp.stimID)
+        % subtract 1 bc 0 is no holo stim condition
+        stimCond{i}(j) = find(All(i).out.exp.stimID(j)==uniqueStims)-1;
+    end
+    All(i).out.exp.outNums = stimCond{i};
+    
+    isoTrials = [];
+    isoTrialsStimCond = [];
+    isoTunedTrials = [];
+    isoTunedTrialsLogi = [];
+    
+    for k = unique(All(i).out.anal.ensemblePrefDeg)
+        isoTrials = [isoTrials find(All(i).out.exp.visCond(2,:) == k)];
+        isoTrialsStimCond = stimCond{i}(isoTrials);
+    end
+    
+
+    
+    % this will give matches holo tuning and vis stim trials (I think)
+    for w = stimCond{i}
+        isoTunedTrials = find(isoTrialsStimCond == w);
+    end
+    % this is what you want, a list of trials where ensemble tuning and
+    % visual stimulus match
+    
+    clear logi
+    All(i).out.anal.isoTunedTrials = isoTunedTrials;
+    % make it a logical array also
+    logi = zeros(1,length(stimCond{i}));
+    logi(isoTunedTrials) = 1;
+    All(i).out.anal.isoTunedTrialsLogi = logi;
+    
+    All(i).out.anal.isoTrials = isoTrials;
+    All(i).out.anal.isoTrialsStimCond = isoTrialsStimCond;
+    
+    isoVisNum = unique(All(i).out.exp.visID(isoTunedTrials));
+    isoStimNum = unique(All(i).out.exp.outNums(isoTunedTrials));
+    All(i).out.anal.isoVisNum = isoVisNum;
+    All(i).out.anal.isoStimNum = isoStimNum;
+    
+   
+end
 
 %% Determine the OSI from the Vis section of each cell.
 
@@ -755,6 +826,7 @@ for ind=1:numExps
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
         All(ind).out.exp.lowRunTrials &...
         All(ind).out.exp.stimSuccessTrial;
+    
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
     
@@ -1129,7 +1201,7 @@ figure(8);clf
 for i = 1:size(ensSizes,2)
     % subplot(1,size(ensSizes),i)
     dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i) & highVisPercentInd,:);
-    meanDat = nanmean(dat)
+    meanDat = nanmean(dat);
     stdDat = nanstd(dat);
     numpDat = sum(~isnan(dat));
     semDat = stdDat./sqrt(numpDat);
@@ -1148,73 +1220,10 @@ ylabel('Population Response (mean of ensembles'' pop response)')
 legend('Small', 'Medium', 'Big')
 legend(string(ensSizes))
 
-%% Ensemble stims and vis things
-visExpts = [];
-noVisExpts = [];
-isoTrialsTuned = [];
-isoTrials = [];
 
-for i=1:numExps
-    trialsToUse = All(i).out.exp.lowMotionTrials &...
-        All(i).out.exp.lowRunTrials &... 
-        All(i).out.exp.stimSuccessTrial ;
-    clear s
-    % first, use this to index stimID and visCond
-    try
-        % oris2use = All(i).out.exp.visCond(2,trialsToUse);
-        oris2use = All(i).out.exp.visCond(2,:);
-        visExpts = [visExpts i];
-    catch
-        disp(['No vis data for expt ' num2str(i) '!'])
-        noVisExpts = [noVisExpts i];
-        continue
-    end
-    uniqueStims = All(i).out.exp.stimID;
-    % fix stims
-    stimID = [];
-    for u = 1:numel(uniqueStims)
-        s(u) = find(All(i).out.exp.outputsInfo.OutputStims == uniqueStims(u));
-        %stimID = [stimID s];
-    end
-    All(i).out.exp.outNum = stimID;
-    
-    % find tuned-iso matches first
-    
-    % this will be a list of trials where the vis cond matches any ensemble
-    % preferred ori
-    isoTrials = [];
-    isoTrialsTuned = [];
-    %     for k = unique(All(i).out.anal.ensemblePrefDeg)
-    %         isoTrials = trialsToUse .* (All(i).out.exp.visCond(2,:) == k);
-    %
-    % %         for j = unique(stimID)
-    % %             isoTrialsTuned = (All(i).out.anal.tunedEnsembleIdx == j);
-    % %         end
-    %     end
-    
-    %     for k = unique(stimID)
-    %         % ID ensembles that match
-    %         isoTrialsTuned = [isoTrialsTuned find(All(i).out.anal.tunedEnsembleIdx == k)'];
-    %     end
-    
-    
-    
-    
-end
-% % visExpts
-% % noVisExpts
-% %
-% %     for k = unique(All(i).out.anal.tunedEnsembleIdx)
-% %         tunedtrials = [];
-% %     end
-% % end
-%
-% % just need to do a find here for each tuned ensemble
-%
-%
-%
-%
 
+        
+    
 
 %% Correlation Analyisis Determine Correlation Coefficients
 
