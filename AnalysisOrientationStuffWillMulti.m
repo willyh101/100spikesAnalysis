@@ -700,24 +700,20 @@ for ind=1:numExps
     pVisR = All(ind).out.anal.pVisR;
     pVisT = All(ind).out.anal.pVisT;
     
+    visAlpha = 0.05;
+    
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
     clear popResp popRespDist popRespDistNumCells
     clear minDistbyHolo geoDistbyHolo meanDistbyHolo harmDistbyHolo
     for v = 1:numel(vs)
         for i= 1:numel(All(ind).out.exp.stimParams.Seq)
-            %             try
-            %             holo =All(ind).out.exp.stimParams.Seq(i) ;% roi{i}{1};
-            
-            holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
-            %             catch
-            %                 holo =All(ind).out.exp.stimParams.roi{i};
-            %             end
-            
+                          holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
+             
             if i==1;
-                cellsToUse = ~ROIinArtifact' & pVisR<0.05;
+                cellsToUse = ~ROIinArtifact' & pVisR<visAlpha;  %CAUTION Add or remove  & pVisR<visAlpha;  if desired
             else
-                cellsToUse = ~ROIinArtifact' & pVisR<0.05 & ~offTargetRisk(holo,:);
+                cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:)  & pVisR<visAlpha;;%CAUTION Add or remove  & pVisR<visAlpha;  if desired
             end
             
             if baseline
@@ -744,13 +740,21 @@ for ind=1:numExps
                 distBins = [0:25:500];
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
-                        pVisR<10.05 &... %% IS VIS RESPONSIVE?
                         ~offTargetRisk(holo,:) &...
                         distToUse > distBins(d) &...
                         distToUse <= distBins(d+1) ;
                     popRespDist(i,v,d) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                     popRespDistNumCells(i,v,d) = sum(cellsToUse);
-                end
+                    noHoloPopResponse = mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse)));
+                    popRespDistSubtracted(i,v,d) = popRespDist(i,v,d) - noHoloPopResponse;
+                    
+                    cellsToUse = cellsToUse & pVisR<visAlpha;
+                    tempResp = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                    noHoloPopResponse = mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse)));
+                    popRespDistSubVis(i,v,d) = tempResp - noHoloPopResponse;
+                    popRespDistVis(i,v,d) = tempResp;
+                    popRespDistVisNumCells(i,v,d) = sum(cellsToUse);
+          end
             end
             
             
@@ -762,6 +766,9 @@ for ind=1:numExps
     popResponseDist{ind} = squeeze(popRespDist(:,1,:));
     popResponseNumCells{ind} = squeeze(popRespDistNumCells(:,1,:));
     
+    popResponseAllDistSubVis{ind} = popRespDistSubVis; %pop response by holo and distance with no holo subtracted only from Vis Cells
+    popResponseAllDistVis{ind} = popRespDistVis; %Pop response by HOlo and Distance only from Vis Cells
+    popResponseAllDistSubVisNC{ind} = popRespDistVisNumCells; %num cells visR by holo and distance
     
     
     popResponseAll{ind} = popResp;
@@ -786,6 +793,7 @@ ensIndNumber(numSpikesEachStim==0)=[];
 
 noStimPopResp = popResponse(numSpikesEachStim==0);
 noStimInd = ensIndNumAll(numSpikesEachStim==0);
+
 
 
 

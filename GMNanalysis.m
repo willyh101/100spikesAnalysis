@@ -22,7 +22,8 @@ end
 %% Clean Data and stuff i dunno come up with a better title someday
 
 FRDefault=6;
-recWinRange = [1 2];% %from vis Start [1.25 2.5];
+recWinRange = [0.5 1.5];% %from vis Start [1.25 2.5];
+clear ensStimScore
 
  for ind =1:numExps
      pTime =tic;
@@ -37,23 +38,57 @@ recWinRange = [1 2];% %from vis Start [1.25 2.5];
      
      sz = size(All(ind).out.exp.zdfData);
          
-     
-     if ~isfield(All(ind).out.exp,'visStart')
-         All(ind).out.exp.visStart = 0.5;
-         disp(['Added visStart to Exp' num2str(ind)]);
-     end
-     
+      try
+        visStart = find(diff(All(ind).out.exp.outputsInfo.OutputPatterns{1}(:,9)>0),1)/20000;
+    catch
+        fprintf('\nError in detecting VisStart...');
+        visStart = 0.5;
+    end
+    if isempty(visStart);
+        fprintf('\nNo Exp VisStart Detected...');
+        visStart=0.5;
+    end
+     All(ind).out.exp.visStart = visStart;
+%     
+%      if ~isfield(All(ind).out.exp,'visStart')
+%          All(ind).out.exp.visStart = 0.5;
+%          disp(['Added visStart to Exp' num2str(ind)]);
+%      end
+%      
      recWinSec = recWinRange + All(ind).out.exp.visStart; %recording window relative to when vis start
      
+     
      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
-     rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse,:),2));
      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
-     bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse,:),2));
+
+     rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse(1):winToUse(2),:),2));
+     bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
      
      All(ind).out.exp.rdData=rdata;
      All(ind).out.exp.bdata=bdata;
-
+     
+     All(ind).out.anal.recWinUsed = winToUse;
+    All(ind).out.anal.bwinToUse = bwinToUse;
+    All(ind).out.anal.recStartTime = visStart;
+    All(ind).out.anal.recStartFrame = round(visStart*All(ind).out.info.FR);
+  
+     %runProcessing Section
+    runVal = All(ind).out.exp.runVal;
+    rnSz = size(runVal);
+    runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
+    runThreshold = 6 ;
+    lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
+    lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
+    if numel(lowRunTrials)>numel(All(ind).out.exp.stimID)
+        lowRunTrials = lowRunTrials(1:numel(All(ind).out.exp.stimID));
+    end
+    All(ind).out.exp.lowRunTrials = lowRunTrials;
     
+    
+    
+    percentLowRunTrials(ind) = mean(lowRunTrials);
+    
+    %Total Number of Targets Shot per recording
      temp = unique([All(ind).out.exp.holoTargets{:}]);
      temp(isnan(temp))=[];
      All(ind).out.anal.targets = temp;
@@ -64,8 +99,11 @@ recWinRange = [1 2];% %from vis Start [1.25 2.5];
          All(ind).out.exp.visID = ones(size(All(ind).out.exp.stimID));
          disp(['Added visID to Exp ' num2str(ind)]);
      end
+     if all(All(ind).out.exp.visID==0)
+         All(ind).out.exp.visID = ones(size(All(ind).out.exp.visID));
+         disp(['Corrected VisID to ones'])
+     end
      
-    
      
      %ensure stimparam correct and properly formatted
      %Caution may erase stimparams if they are complex
@@ -79,6 +117,52 @@ recWinRange = [1 2];% %from vis Start [1.25 2.5];
          end
      end
      
+      % create a trial by trial stimSuccess limit
+    us = unique(All(ind).out.exp.stimID);
+    vs = unique(All(ind).out.exp.stimID);
+    numTrials = size(All(ind).out.exp.zdfData,3);
+    
+    rdata = All(ind).out.exp.rdData;
+    bdata = All(ind).out.exp.bdata;
+    
+    %%%%%Threshol%%%
+    stimsuccessZ = 0.5; %over this number is a succesfull stim
+    stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
+    
+    clear stimSuccessTrial
+    for k=1:numTrials
+        s = All(ind).out.exp.stimID(k);
+        sidx = find(us==s);
+        v = All(ind).out.exp.visID(k);
+        vidx = find(vs==v);
+        
+        h = All(ind).out.exp.stimParams.roi{sidx};
+        if h==0
+            htg=[];
+            stimSuccessTrial(k) = 1;
+        else
+            htg = All(ind).out.exp.holoTargets{h};
+            htg(isnan(htg))=[];
+            
+            vals = rdata(htg,k) - bdata(htg,k);
+            stimScore = vals>stimsuccessZ;
+            stimSuccessTrial(k)= mean(stimScore) > stimEnsSuccess;
+        end
+    end
+    
+    All(ind).out.exp.stimSuccessTrial = stimSuccessTrial;
+    percentSuccessStim(ind)=mean(stimSuccessTrial);
+    
+    clear ensStimScoreExp
+    for k=1:numel(us)
+        s=us(k);
+        ensStimScoreExp(k) = mean(stimSuccessTrial(All(ind).out.exp.stimID==s));
+    end
+    
+    All(ind).out.exp.ensStimScore = ensStimScoreExp;
+    ensStimScore{ind}=ensStimScoreExp;
+    
+     
      
      fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 
@@ -86,7 +170,7 @@ recWinRange = [1 2];% %from vis Start [1.25 2.5];
  
 
  
- %% Get the number of spikes in each stimulus
+ %%Get the number of spikes in each stimulus
 
 clear numSpikesEachStim numCellsEachEns hzEachEns
 for ind = 1:numExps
@@ -117,6 +201,8 @@ numCellsEachEns=cell2mat(numCellsEachEns(:)');
     
 hzEachEns = cell2mat(hzEachEns(:)');
 
+ensStimScore=cell2mat(ensStimScore(:)');
+ensStimScore(numSpikesEachStim==0)=[];
 
 %% Make all dataPlots into matrixes of mean responses
  %%Determine Vis Responsive and Process Correlation
@@ -128,15 +214,19 @@ for ind=1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
 
-    trialsToUse = All(ind).out.exp.lowMotionTrials;
+    trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial;
+    
+    vs = unique(All(ind).out.exp.visID);
+    vs(vs==0)=[];
+    us = unique(All(ind).out.exp.stimID);
 
     clear respMat baseMat %Order stims,vis,cells
-    for i=1:numel(unique(All(ind).out.exp.stimID))
-        us = unique(All(ind).out.exp.stimID);
+    for i=1:numel(us)
         s = us(i);
 
-        for k= 1 : numel(unique(All(ind).out.exp.visID))
-            vs = unique(All(ind).out.exp.visID);
+        for k= 1 : numel(vs)
             v = vs(k);
             if v~=0
                 respMat(i,v,:) = mean(All(ind).out.exp.rdData(:,...
@@ -341,13 +431,147 @@ noStimPopResp = popResponse(numSpikesEachStim==0);
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 
+%% main Ensembles to Use section
+% ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
+highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
+lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
+
+excludeInds = ismember(ensIndNumber,[]); %
+
+
+
+ensemblesToUse = numSpikesEachEns > 75 &...
+    numSpikesEachEns <125 &...
+    highVisPercentInd &...
+    lowRunInds &...
+    ensStimScore > 0.5 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
+    ~excludeInds ;%&...  %
+     %& numCellsEachEns>10 ;
+
+indsSub = ensIndNumber(ensemblesToUse);
+IndsUsed = unique(ensIndNumber(ensemblesToUse));
+
+sum(ensemblesToUse)
+%% Create time series plot
+minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
+
+clear allMeanTS allStdTS allnumTS allMeanTSVis allStdTSVis allnumTSVis
+for ind=1:numExps
+    us = unique(All(ind).out.exp.stimID);
+    vs = unique(All(ind).out.exp.visID);
+    vs(vs==0)=[];
+    trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial;
+    
+    ROIinArtifact = All(ind).out.anal.ROIinArtifact;
+    offTargetRisk = All(ind).out.anal.offTargetRisk;
+    
+    strtFrame = All(ind).out.anal.recStartFrame;
+    newStart = strtFrame-minStrtFrame+1;
+    
+    pVisR = All(ind).out.anal.pVisR;
+    
+    clear mRespTS sRespTS nResp
+    for i = 1:numel(us)
+        s = us(i);
+        h = All(ind).out.exp.stimParams.roi{i};
+        
+        if h>0
+            tg = All(ind).out.exp.holoTargets{h};
+            tg(isnan(tg))=[];
+        else
+            tg=[];
+        end
+        cellList = 1:numel(ROIinArtifact);
+        
+        if i==1
+            cellsToUse = ~ROIinArtifact' ;
+        else
+            cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(h,:) & ~ismember(cellList,tg) ;
+        end
+        
+        for k=1:numel(vs)
+            v=vs(k);
+            
+            dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
+                All(ind).out.exp.stimID==s &...
+                All(ind).out.exp.visID==v );
+            
+            mDat = mean(dat,3);
+            mmDat = mean(mDat,1); %pop Average
+            sdDat = std(mDat);
+            nDat = size(mDat,1);
+            
+            
+            mRespTS(i,:,k) = mmDat; % mean response time series
+            sRespTS(i,:,k) = sdDat; % std response time series (by cell);
+            nResp(i,k) = nDat;
+        end
+        
+    end
+    All(ind).out.anal.mRespTS= mRespTS;
+    All(ind).out.anal.sRespTS= sRespTS;
+    All(ind).out.anal.nResp = nResp;
+    
+    
+    allMeanTS{ind} = mRespTS(:,:,1);
+    allStdTS{ind} = sRespTS(:,:,1);
+    allnumTS{ind} = nResp(:,1);
+    
+    allMeanTSVis{ind} = mRespTS;
+    allStdTSVis{ind} = sRespTS;
+    allnumTSVis{ind} = nResp;
+    
+end
+
+baseline=1;
+
+shortestRec = min(cellfun(@(x) size(x,2),allMeanTS));
+temp = cellfun(@(x) x(2:end,1:shortestRec),allMeanTS,'uniformoutput',0);
+if baseline
+    temp = cellfun(@(x) x-mean(x(:,1:minStrtFrame),2),temp,'uniformoutput',0);
+end
+meanTSSquare = cat(1,temp{:});
+
+%no Resp
+temp = cellfun(@(x) x(1,1:shortestRec),allMeanTS,'uniformoutput',0);
+if baseline
+    temp = cellfun(@(x) x-mean(x(:,1:minStrtFrame),2),temp,'uniformoutput',0);
+end
+meanTSSquareNR = cat(1,temp{:});
+
+temp = cellfun(@(x) x(2:end,1:shortestRec),allStdTS,'uniformoutput',0);
+stdTSSquare = cat(1,temp{:});
+
+figure(25);clf
+subplot(2,2,2)
+imagesc(meanTSSquare(ensemblesToUse,:))
+% imagesc(meanTSSquare(:,:))
+title('stim')
+
+colormap rdbu
+caxis([-0.2 0.2])
+
+ax(1)=subplot(2,2,4);
+fillPlot(meanTSSquare(ensemblesToUse,:),[],'ci');
+
+subplot(2,2,1)
+imagesc(meanTSSquareNR(IndsUsed,:))
+title('NoStim')
+
+colormap rdbu
+caxis([-0.1 0.1])
+ax(2) = subplot(2,2,3);
+fillPlot(meanTSSquareNR(IndsUsed,:),[],'ci');
+
+linkaxes(ax);
 
 %% Plot
 f3 = figure(3);
 clf(3)
 
 
-ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <110;% & ensIndNumber==15; %& numCellsEachEns>10 ;
 %scatter(meanOSI(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
 scatter(1:sum(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
 
@@ -426,11 +650,18 @@ p{2}(2).LineWidth = 1;
     r.Color = rgb('grey');
 
 pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off')
+% 
+% ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
+% ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
+% ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
 
-ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
-ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
-ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
-
+for i=1:size(data,2)
+    %     prs = ranksum(data{i},0);
+    psr = signrank(data{i});
+    
+    [h p ] = ttest(data{i},0);
+    disp(['Signed Rank: ' num2str(psr,3) '. ttest: ' num2str(p,3)])
+end
 
 %% look at just the 10s data for each mouse
 
@@ -595,9 +826,9 @@ contrastsToView = [6 3 2 1.5 1.25 1] ;%I know its weird i just wanted to be able
 for c=1:numel(contrastsToView)
 ax(c) = subplot(1,numel(contrastsToView),c);
 divider = contrastsToView(c);
-% popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSub,'uniformoutput',0)');
-popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDist,'uniformoutput',0)');
-popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSubVis,'uniformoutput',0)');
+popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSub,'uniformoutput',0)');
+% popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDist,'uniformoutput',0)');
+% popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSubVis,'uniformoutput',0)');
 % popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistVis,'uniformoutput',0)');
 
 for i = 1:size(ensSizes,2)
@@ -779,7 +1010,10 @@ for ind =1:numExps
 %             x = max(All(ind).out.exp.visID);
 %             v = max(round(size(x,2)/divider),1);
             
-            trialsToUse = All(ind).out.exp.lowMotionTrials & All(ind).out.exp.visID==6;
+            trialsToUse = All(ind).out.exp.lowMotionTrials &...
+                All(ind).out.exp.lowRunTrials &...
+                All(ind).out.exp.stimSuccessTrial &...
+                All(ind).out.exp.visID==1;
             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
             
             us = unique(All(ind).out.exp.stimID); 
@@ -885,6 +1119,8 @@ for ind = 1:numExps
     %Spont Corr - correlation coefficient on time series from no stim
     %period
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial &...
         All(ind).out.exp.stimID == us(1) &...
         All(ind).out.exp.visID == 1;
     unrollData = All(ind).out.exp.zdfData(:,:,trialsToUse);
@@ -895,6 +1131,8 @@ for ind = 1:numExps
     
     %AllCorr - the correlation coef on all time series
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial &...
         All(ind).out.exp.stimID == us(1) ;
     unrollData = All(ind).out.exp.zdfData(:,:,trialsToUse);
     sz = size(unrollData);
@@ -904,6 +1142,8 @@ for ind = 1:numExps
     
     %All corr mean - correlation coef of response (not time series)
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial &...
         All(ind).out.exp.stimID == us(1) ;
     unrollData = All(ind).out.exp.rdData(:,trialsToUse);
     sz = size(unrollData);
@@ -912,8 +1152,10 @@ for ind = 1:numExps
     
     %noise corr - correlation coef of residual trial response (not time
     %series) i.e. trial response - mean response for that condition
-     trialsToUse = All(ind).out.exp.lowMotionTrials &...
-         All(ind).out.exp.stimID == us(1) ;
+    trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial &...
+        All(ind).out.exp.stimID == us(1) ;
     vs = unique(All(ind).out.exp.visID);
     unrollData = [];
     meanResps = [];
@@ -1004,7 +1246,7 @@ fancyPlotSpread(dat,names);
 title('Ensemble Mean Correlations by type')
 ylabel('Correlation (Rho)')
 
-%% plot Pop Response by Correlation
+%%plot Pop Response by Correlation
 f3 = figure(3);
 clf(3)
 
@@ -1031,7 +1273,7 @@ end
 clear popResponseCorr
 for ind = 1:numExps
 
-    corrToUse  = All(ind).out.anal.SignalCorr;
+    corrToUse  = All(ind).out.anal.AllCorr;
 
     
     vs =  unique(All(ind).out.exp.visID);
