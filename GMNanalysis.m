@@ -868,7 +868,7 @@ for ind =1:numExps
   for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
             holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
     
-            divider =1;
+            divider =inf; %1 is max vis inf is 0
             maxV = max(All(ind).out.exp.visID);
             v = max(round(maxV/divider),1);
             
@@ -881,11 +881,11 @@ for ind =1:numExps
             
             testData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(h+1));
             ExpectedData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(1));
-            [L1 L2 L3] =  calcL1L2(testData,ExpectedData);
+            [L1 L2 L3] =  calcL1L2(testData,ExpectedData,2);
             L1= L1/size(testData,1);
             L2 = L2/sqrt(size(testData,1));
             L3 = L3/ ((size(testData,1))^(1/3)) ;
-
+            
             
             c=c+1;
             EnsL1(c) = L1;
@@ -967,10 +967,11 @@ p{2}(2).LineWidth = 1;
 
 subplot(1,3,3)
 x = 1:numEns;
-clear data names
+clear data names group
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
     data{i} = EnsL1(ens2plot)./EnsL2(ens2plot);
+    group{i} = ones([1 numel(ens2plot)])*uniqueEns(i);
     names{i} = string(uniqueEns(i));
     avg(i) = mean(popResponseEns(ens2plot));
     err(i) = sem(popResponseEns(ens2plot));
@@ -991,11 +992,18 @@ p{2}(2).Color = rgb('darkgrey');
 p{2}(1).LineWidth = 1;
 p{2}(2).LineWidth = 1;
 
-% pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off')
-% 
+pValEnselbeSize = anova1([data{:}]',[group{:}]','off')
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
+
+% for i=1:size(data,2)
+%     %     prs = ranksum(data{i},0);
+%     psr = signrank(data{i});
+%     
+%     [h p ] = ttest(data{i},0);
+%     disp(['Signed Rank: ' num2str(psr,3) '. ttest: ' num2str(p,3)])
+% end
 %% L1 L2 by dist
 All(ind).out.anal.minDistbyHolo;
                 distBins = [0:25:500];
@@ -1009,31 +1017,36 @@ for ind =1:numExps
 %             divider = 1; %6 is no vis, 1 is max vis
 %             x = max(All(ind).out.exp.visID);
 %             v = max(round(size(x,2)/divider),1);
-            
+            numTrials = numel(All(ind).out.exp.stimID);
+            trialList = 1:numTrials;
+
             trialsToUse = All(ind).out.exp.lowMotionTrials &...
                 All(ind).out.exp.lowRunTrials &...
                 All(ind).out.exp.stimSuccessTrial &...
-                All(ind).out.exp.visID==1;
+                All(ind).out.exp.visID==1 &...
+                isEven(trialList);
             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
             
             us = unique(All(ind).out.exp.stimID); 
             
             c=c+1;
-
+            
             for d = 1:numel(distBins)-1
                 D = distBins(d+1);
                 cellsToUseDist = cellsToUse &...
                     All(ind).out.anal.minDistbyHolo(h+1,:) <=distBins(d+1) &...
                     All(ind).out.anal.minDistbyHolo(h+1,:) >distBins(d) ;
-            
-            testData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(h+1));
-            ExpectedData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(1));
-            [L1 L2] =  calcL1L2(testData,ExpectedData);
-            L1= L1/size(testData,1);
-            L2 = L2/sqrt(size(testData,1));
-            
-            EnsL1(c,d) = L1;
-            EnsL2(c,d) = L2;   
+                
+                thisTrialsToUse = trialsToUse & All(ind).out.exp.stimID == us(h+1);
+                tttu(c)=sum(thisTrialsToUse);
+                testData = All(ind).out.exp.rdData(cellsToUseDist,thisTrialsToUse);
+                ExpectedData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(1));
+                [L1 L2] =  calcL1L2(testData,ExpectedData,2);
+                L1= L1/size(testData,1);
+                L2 = L2/sqrt(size(testData,1));
+                
+                EnsL1(c,d) = L1;
+                EnsL2(c,d) = L2;
             
             end
   end
