@@ -19,10 +19,27 @@ else
     disp('Did you press this by accident?')
 end
 
+%% Hardcode error fix
+All(1).out.exp.visIDBackup=All(1).out.exp.visID;
+
+%% and do it
+visID = All(1).out.exp.visIDBackup;
+visID(visID==2)=6;
+All(1).out.exp.visID=visID;
+
 %% Clean Data and stuff i dunno come up with a better title someday
 
 FRDefault=6;
 recWinRange = [0.5 1.5];% %from vis Start [1.25 2.5];
+
+
+%Stim Success Thresholds
+stimsuccessZ = 0.5; %over this number is a succesfull stim
+stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
+
+%run Threshold
+runThreshold = 6 ; %trials with runspeed below this will be excluded
+
 clear ensStimScore
 
  for ind =1:numExps
@@ -76,7 +93,7 @@ clear ensStimScore
     runVal = All(ind).out.exp.runVal;
     rnSz = size(runVal);
     runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
-    runThreshold = 6 ;
+   
     lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
     lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
     if numel(lowRunTrials)>numel(All(ind).out.exp.stimID)
@@ -125,9 +142,6 @@ clear ensStimScore
     rdata = All(ind).out.exp.rdData;
     bdata = All(ind).out.exp.bdata;
     
-    %%%%%Threshol%%%
-    stimsuccessZ = 0.5; %over this number is a succesfull stim
-    stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
     
     clear stimSuccessTrial
     for k=1:numTrials
@@ -311,7 +325,10 @@ for ind=1:numExps
     %ID tuned Cells, should comparing no contrast to with contrast
     pVisR=[];%pVisT=[];
     for i=1:All(ind).out.anal.numCells
-        trialsToUse = All(ind).out.exp.visID~=0 & All(ind).out.exp.lowMotionTrials & All(ind).out.exp.stimID==min(All(ind).out.exp.stimID);
+        trialsToUse = All(ind).out.exp.visID~=0 &...
+            All(ind).out.exp.lowMotionTrials &...
+            All(ind).out.exp.lowRunTrials &...
+            All(ind).out.exp.stimID==min(All(ind).out.exp.stimID);
  %(All(ind).out.exp.visID==1 | All(ind).out.exp.visID==max(All(ind).out.exp.visID) ) & All(ind).out.exp.lowMotionTrials;
         pVisR(i) = anova1(All(ind).out.exp.rdData(i,trialsToUse),All(ind).out.exp.visID(trialsToUse),'off');
 %          pVisR(i) = ranksum(All(ind).out.exp.rdData(i,trialsToUse & All(ind).out.exp.visID==1),...
@@ -441,7 +458,7 @@ excludeInds = ismember(ensIndNumber,[]); %
 
 
 ensemblesToUse = numSpikesEachEns > 75 &...
-    numSpikesEachEns <125 &...
+    numSpikesEachEns <110 &...
     highVisPercentInd &...
     lowRunInds &...
     ensStimScore > 0.5 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
@@ -486,9 +503,11 @@ for ind=1:numExps
         cellList = 1:numel(ROIinArtifact);
         
         if i==1
-            cellsToUse = ~ROIinArtifact' ;
+            cellsToUse = ~ROIinArtifact';% & pVisR<0.05 ;
         else
-            cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(h,:) & ~ismember(cellList,tg) ;
+            cellsToUse = ~ROIinArtifact' &...
+                ~offTargetRisk(h,:) &...
+                ~ismember(cellList,tg);% & pVisR<0.05;
         end
         
         for k=1:numel(vs)
@@ -553,6 +572,7 @@ title('stim')
 colormap rdbu
 caxis([-0.2 0.2])
 
+clear ax
 ax(1)=subplot(2,2,4);
 fillPlot(meanTSSquare(ensemblesToUse,:),[],'ci');
 
@@ -610,7 +630,7 @@ uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 x = 1:numEns;
 clear data names
 for i=1:numEns
-    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & highVisPercentInd);
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse);
     data{i} = popResponseEns(ens2plot);
     names{i} = string(uniqueEns(i));
     avg(i) = mean(popResponseEns(ens2plot));
@@ -753,6 +773,9 @@ ylabel('Population Response (mean of ensembles'' pop response)')
 % xlim([0 400])
 legend('Small', 'Medium', 'Big')
 
+% pValEnselbeSize = anovan(popDist(ensemblesToUse,1:20),numCellsEachEns(ensemblesToUse)','display','off')
+
+
 %% as above but for full and no vis Conditions
 
 figure(11);clf
@@ -781,7 +804,7 @@ colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
 subplot(1,2,1)
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)
-dat = popDatNoVis(ensemblesToUse & numCellsEachEns==ensSizes(i) & highVisPercentInd ,:);
+dat = popDatNoVis(ensemblesToUse & numCellsEachEns==ensSizes(i) ,:);
 meanDat = nanmean(dat);
 stdDat = nanstd(dat);
 numpDat = sum(~isnan(dat));
@@ -803,6 +826,8 @@ subplot(1,2,2)
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)
 dat = popDatMaxVisSubtracted(ensemblesToUse & numCellsEachEns==ensSizes(i) & highVisPercentInd ,:);
+% dat = popDatMaxVis(ensemblesToUse & numCellsEachEns==ensSizes(i) & highVisPercentInd ,:);
+
 meanDat = nanmean(dat);
 stdDat = nanstd(dat);
 numpDat = sum(~isnan(dat));
@@ -856,6 +881,111 @@ title(['Contrast ' num2str(c) ] );
 end
 
 linkaxes([ax(:)])
+
+%% Contrast response functions
+
+visAlphaCRF = 0.05;
+counter = 0;
+clear CRF CRFNS;
+for ind = 1:numExps
+    ROIinArtifact = All(ind).out.anal.ROIinArtifact;
+    pVisR = All(ind).out.anal.pVisR;
+    offTargetRisk = All(ind).out.anal.offTargetRisk;
+    us = unique(All(ind).out.exp.stimID);
+    vs = unique(All(ind).out.exp.visID);
+    vs(vs==0)=[];
+    
+    respMat = All(ind).out.anal.respMat;
+    baseMat = All(ind).out.anal.baseMat;
+    
+    for i=1:numel(us)
+        s = us(i);
+        h = All(ind).out.exp.stimParams.roi{i};
+        
+        if h==0
+            continue
+        end
+        cellsToUse = ~ROIinArtifact' & pVisR<visAlphaCRF &...
+            ~any(offTargetRisk);%~offTargetRisk(h,:); %~any(offTargetRisk);% (h,:); 
+  
+        
+        counter=counter+1;
+        CRF(counter,:) = nanmean(respMat(i,:,cellsToUse) - baseMat(i,:,cellsToUse),3);
+        CRFNS(counter,:) = nanmean(respMat(1,:,cellsToUse) - baseMat(1,:,cellsToUse),3);
+        
+        
+        
+        
+    end
+end
+
+%catch missing data
+shouldBeNAN = CRF==0 & CRFNS ==0;
+CRF(shouldBeNAN) = nan;
+CRFNS(shouldBeNAN) = nan;       
+
+CRFDiff = CRF-CRFNS;
+
+highVisPercentIndMoreStringent = ~ismember(ensIndNumber,find(visPercent<0.1)); %remove low vis responsive experiments
+
+ensemblesToUseThis = ensemblesToUse & highVisPercentIndMoreStringent ;%& ensIndNumber==8;% highVisPercentIndMoreStringent ;
+
+figure(13);clf
+subplot(1,2,1)
+for i = 1:size(ensSizes,2)
+% subplot(1,size(ensSizes),i)
+dat1 = CRF(ensemblesToUseThis & numCellsEachEns==ensSizes(i),:);
+meanDat = nanmean(dat1);
+stdDat = nanstd(dat1);
+numpDat = sum(~isnan(dat1));
+semDat = stdDat./sqrt(numpDat);
+
+data1{i}=dat1;
+
+hold on
+errorbar(meanDat,semDat,'linewidth',2,'color',colorList{i})
+
+% dat2 = CRFNS(ensemblesToUseThis & numCellsEachEns==ensSizes(i),:);
+
+dat2 = CRFNS(ensemblesToUseThis ,:);
+indsOrigin{i} = ensIndNumber(ensemblesToUseThis & numCellsEachEns==ensSizes(i));
+data2{i}=dat2;
+meanDat = nanmean(dat2);
+stdDat = nanstd(dat2);
+numpDat = sum(~isnan(dat2));
+semDat = stdDat./sqrt(numpDat);
+errorbar(meanDat,semDat,'linewidth',2,'color',rgb('grey'),'linestyle',':')
+
+end
+
+ylabel('Z-score dF')
+xticks(1:6);
+xticklabels({'0%' '1%' '4%' '10%' '40%' '100%'})
+xlabel('Contrast')
+
+subplot(1,2,2)
+
+for i = 1:size(ensSizes,2)
+% subplot(1,size(ensSizes),i)
+dat1 = CRFDiff(ensemblesToUseThis & numCellsEachEns==ensSizes(i),:);
+meanDat = nanmean(dat1);
+stdDat = nanstd(dat1);
+numpDat = sum(~isnan(dat1));
+semDat = stdDat./sqrt(numpDat);
+
+data1{i}=dat1;
+
+hold on
+errorbar(meanDat,semDat,'linewidth',2,'color',colorList{i})
+end
+r = refline(0);
+r.LineWidth = 2;
+r.LineStyle =':';
+r.Color = rgb('grey');
+
+ylabel('\Delta Z-Scored dF')
+xlabel('Contrast')
+xticklabels({'0%' '1%' '4%' '10%' '40%' '100%'})
 
 
 %% Calculate L1 and L2 
@@ -1023,8 +1153,8 @@ for ind =1:numExps
             trialsToUse = All(ind).out.exp.lowMotionTrials &...
                 All(ind).out.exp.lowRunTrials &...
                 All(ind).out.exp.stimSuccessTrial &...
-                All(ind).out.exp.visID==1 &...
-                isEven(trialList);
+                All(ind).out.exp.visID==5 ;%&...
+%                 isEven(trialList);
             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
             
             us = unique(All(ind).out.exp.stimID); 
@@ -1038,7 +1168,10 @@ for ind =1:numExps
                     All(ind).out.anal.minDistbyHolo(h+1,:) >distBins(d) ;
                 
                 thisTrialsToUse = trialsToUse & All(ind).out.exp.stimID == us(h+1);
-                tttu(c)=sum(thisTrialsToUse);
+                if sum(thisTrialsToUse)<3
+                    thisTrialsToUse = logical(zeros(size(thisTrialsToUse)));
+                end
+                tttu(c)=sum(thisTrialsToUse); %it stats for This Trials To Use. its not totaly arbitrary, also i'm sorry. 
                 testData = All(ind).out.exp.rdData(cellsToUseDist,thisTrialsToUse);
                 ExpectedData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(1));
                 [L1 L2] =  calcL1L2(testData,ExpectedData,2);
