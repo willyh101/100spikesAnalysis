@@ -25,7 +25,7 @@ All(10).out.exp.visIDold = All(10).out.exp.visID;
 All(15).out.exp.visIDold = All(15).out.exp.visID;
 All(13).out.exp.visIDold = All(13).out.exp.visID;
 
-%% fix Exp1 two unused holos
+%%fix Exp1 two unused holos
 All(1).out.exp.stimParams.Seq([3 4])=[];
 All(1).out.exp.stimParams.numPulse([3 4])=[];
 All(1).out.exp.stimParams.roi([3 4])=[];
@@ -34,7 +34,7 @@ All(1).out.exp.stimParams.numCells([2 3])=[];
 All(1).out.exp.holoTargets([2 3])=[];
 
 
-%% fix Exp10; ignoring intermediate contrasts
+%%fix Exp10; ignoring intermediate contrasts
 All(10).out.exp.visID = All(10).out.exp.visIDold;
 visID = All(10).out.exp.visID;
 newVisID = visID;
@@ -43,7 +43,7 @@ newVisID(visID==1)=2;
 newVisID(visID~=0 & visID~=1)=0;
 All(10).out.exp.visID = newVisID;
 
-%% fix Exp15; merge two blank visIDs
+%%fix Exp15; merge two blank visIDs
 
 All(15).out.exp.visID = All(15).out.exp.visIDold;
 visID = All(15).out.exp.visID;
@@ -51,15 +51,24 @@ newVisID = visID;
 newVisID(visID==4)=1;
 All(15).out.exp.visID = newVisID;
 
-%% fix missing offsets
+
+%%Eliminate low contrast Exp 16
+All(16).out.exp.visID(All(ind).out.exp.visCond(1,:)~=1)=0;
+
+%%fix missing offsets
 All(15).out.info.offsets = [1.4667 -88.8667];
 All(16).out.info.offsets = [-0.2 -0.1333];
 
-%% fix Exp13 CMN
+%%fix Exp13 CMN
 All(13).out.exp.visID = All(13).out.exp.visIDold;
 visID = All(13).out.exp.visID;
 newVisID = visID;
 newVisID(visID~=1)=0;
+
+%%fix Exp 9 visID 
+
+All(9).out.exp.visID = [ones([1 425]) ones([1 400])*2];
+All(9).out.exp.visCond = cat(2,repmat ([1;nan],[1 425]),All(9).out.exp.visCond);
 
 
 %% Clean Data and stuff i dunno come up with a better title someday
@@ -351,6 +360,9 @@ end
 
 %% Determine the OSI from the Vis section of each cell.
 
+
+  visAlpha = 0.05;
+  
 for ind=1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
@@ -419,7 +431,7 @@ for ind=1:numExps
     All(ind).out.anal.pVisR = pVisR;
     All(ind).out.anal.pVisT = pVisT;
     
-    visAlpha = 0.05;
+  
     
     All(ind).out.anal.visPercent = sum(pVisR<visAlpha) / numel(pVisR);
     visPercent(ind) =  All(ind).out.anal.visPercent;
@@ -594,10 +606,45 @@ legend('Tuned', 'Un-tuned')
 % and thier preferred oris
 
 
+%% Ian Iso Tuned Trials
 
+for ind=1:numExps
+    EnsPref = All(ind).out.anal.ensemblePrefDeg;    
+    us = unique(All(ind).out.exp.stimID);
+    stimID = All(ind).out.exp.stimID;
+    try
+        visDeg = All(ind).out.exp.visCond(2,:);
+    catch
+        visDeg = nan(size(stimID));
+    end
+    
+    clear isoTunedTrial
+    for i=1:numel(stimID)
+        s=stimID(i);
+        sidx = find(us==s);
+        holo = All(ind).out.exp.stimParams.roi{sidx};
+        
+        thisVisDeg = visDeg(i);
+        if holo>0
+            thisStimDeg = EnsPref(holo);
+        else
+            thisStimDeg=nan;
+        end
+         
+        isoTunedTrial(i) = thisVisDeg==thisStimDeg;
+    end
+    All(ind).out.anal.isoTunedTrial = isoTunedTrial;
+end
+        
 
 %% Make all dataPlots into matrixes of mean responses
 baseline=1;
+
+    visAlpha = 0.05;
+
+    %offTargetRisk
+    thisPlaneTolerance = 11.25; 15;10; %in pixels
+    onePlaneTolerance = 22.5; 20;20;
 
 clear popResponse pVisR pVisT
 ensIndNumber=[];
@@ -648,9 +695,7 @@ for ind=1:numExps
     
     roisTargets = All(ind).out.exp.rois;
     holoTargets = All(ind).out.exp.holoTargets;
-    
-    thisPlaneTolerance = 15;10; %in pixels
-    onePlaneTolerance = 20;20;
+
     
     radialDistToStim=zeros([size(stimCoM,1) numCells]);
     axialDistToStim = zeros([size(stimCoM,1) numCells]);
@@ -700,7 +745,6 @@ for ind=1:numExps
     pVisR = All(ind).out.anal.pVisR;
     pVisT = All(ind).out.anal.pVisT;
     
-    visAlpha = 0.05;
     
     %%Get Pop Responses
     %         v=1; %best bet for no vis stim.
@@ -764,6 +808,8 @@ for ind=1:numExps
     
     popResponse{ind} = popResp(:,1);
     popResponseDist{ind} = squeeze(popRespDist(:,1,:));
+    popResponseDistVis{ind} = squeeze(popRespDistVis(:,1,:));
+
     popResponseNumCells{ind} = squeeze(popRespDistNumCells(:,1,:));
     
     popResponseAllDistSubVis{ind} = popRespDistSubVis; %pop response by holo and distance with no holo subtracted only from Vis Cells
@@ -815,8 +861,8 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     highVisPercentInd &...
     lowRunInds &...
     ensStimScore > 0.75 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
-    ~excludeInds &...  %
-    ~willExportInds;%  %& numCellsEachEns>10 ;
+    ~excludeInds ;%&...  %
+%     ~willExportInds;%  %& numCellsEachEns>10 ;
 
 indsSub = ensIndNumber(ensemblesToUse);
 IndsUsed = unique(ensIndNumber(ensemblesToUse));
@@ -937,6 +983,7 @@ ax(2) = subplot(2,2,3);
 fillPlot(meanTSSquareNR(IndsUsed,:),[],'ci');
 
 linkaxes(ax);
+
 
 %% Create time series plot for co-tuned ensembles
 minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
@@ -1087,7 +1134,7 @@ numCellsEachEnsBackup = numCellsEachEns;
 numCellsEachEns(numCellsEachEns <=5) = 5;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
-unique(numCellsEachEns)
+unique(numCellsEachEns(ensemblesToUse))
 
 %% fit ensembles of different sizes
 clear f p ens2plt fits
@@ -1308,6 +1355,8 @@ set(gcf(),'Name','Mean OSI Curves')
 
 %% Plot Pop Response by Distance
 popDistAll = cell2mat(popResponseDist');
+% popDistAll = cell2mat(popResponseDistVis');
+
 popDist = popDistAll(numSpikesEachStim~=0,:);
 
 popNumCells = cell2mat(popResponseNumCells');
@@ -1316,12 +1365,12 @@ popNCells = popNumCells(numSpikesEachStim~=0,:);
 
 ensSizes = unique(numCellsEachEns(ensemblesToUse))   ;
 
+figure(8);clf
 
 % colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
 colorList = colormap(viridis(numel(ensSizes)));
 colorList = num2cell(colorList,2);
 
-figure(8);clf
 for i = 1:size(ensSizes,2)
     % subplot(1,size(ensSizes),i)
     dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i) & highVisPercentInd,:);
@@ -1477,8 +1526,8 @@ title('Ensemble Mean Correlations by type')
 ylabel('Correlation (Rho)')
 
 %% plot Pop Response by Correlation
-f3 = figure(3);
-clf(3)
+f3 = figure(13);
+clf(13)
 
 for i=1:5
     subplot(5,1,i)
@@ -1505,7 +1554,7 @@ end
 clear popResponseCorr
 for ind = 1:numExps
     
-    corrToUse  = All(ind).out.anal.AllCorr; %Change This if you need
+    corrToUse  = All(ind).out.anal.NoiseCorr; %Change This if you need
     
     
     vs =  unique(All(ind).out.exp.visID);
@@ -1544,7 +1593,7 @@ for ind = 1:numExps
                 corrHolo = meanCorr;
                 
                 
-                distBins = linspace(-1,1,40);
+                distBins = linspace(-0.5,0.5,40);
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
                         ~offTargetRisk(holo,:) &...
