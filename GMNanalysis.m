@@ -28,6 +28,9 @@ visID = All(1).out.exp.visIDBackup;
 visID(visID==2)=6;
 All(1).out.exp.visID=visID;
 
+% experiment 11 has all 0 (grey screen)
+All(11).out.exp.visID = ones(1,length(All(11).out.exp.visID));
+
 %% Clean Data and stuff i dunno come up with a better title someday
 
 FRDefault=6;
@@ -85,6 +88,15 @@ clear ensStimScore
      All(ind).out.exp.rdData=rdata;
      All(ind).out.exp.bdata=bdata;
      
+     % hacky fix for exp11 with no vis stim
+     if ind==11
+         vrdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
+         vbdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
+         All(ind).out.vis.rdData=vrdata;
+         All(ind).out.vis.bdata=vbdata;
+     end
+         
+     
      All(ind).out.anal.recWinUsed = winToUse;
     All(ind).out.anal.bwinToUse = bwinToUse;
     All(ind).out.anal.recStartTime = visStart;
@@ -101,6 +113,15 @@ clear ensStimScore
         lowRunTrials = lowRunTrials(1:numel(All(ind).out.exp.stimID));
     end
     All(ind).out.exp.lowRunTrials = lowRunTrials;
+    
+    if ind==11
+        runVal = All(ind).out.vis.runVal;
+        rnSz = size(runVal);
+        runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
+        lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
+        lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
+        All(ind).out.vis.lowRunTrials = lowRunTrials;
+    end
     
     
     
@@ -143,6 +164,7 @@ clear ensStimScore
     rdata = All(ind).out.exp.rdData;
     bdata = All(ind).out.exp.bdata;
     
+
     
     clear stimSuccessTrial
     for k=1:numTrials
@@ -226,6 +248,8 @@ ensStimScore(numSpikesEachStim==0)=[];
  %oftarget risk params
  thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
  onePlaneTolerance = 22.5;%15;%2FWHM %20;
+ 
+
 
 
 clear popResponse pVisR pVisT
@@ -324,6 +348,7 @@ for ind=1:numExps
     All(ind).out.anal.ROIinArtifact = ROIinArtifact;
 %     pVisR = All(ind).out.anal.pVisR;
 %     pVisT = All(ind).out.anal.pVisT;
+    
 
 
     %ID tuned Cells, should comparing no contrast to with contrast
@@ -334,6 +359,9 @@ for ind=1:numExps
             All(ind).out.exp.lowRunTrials &...
             All(ind).out.exp.stimID==min(All(ind).out.exp.stimID);
  %(All(ind).out.exp.visID==1 | All(ind).out.exp.visID==max(All(ind).out.exp.visID) ) & All(ind).out.exp.lowMotionTrials;
+
+
+
         pVisR(i) = anova1(All(ind).out.exp.rdData(i,trialsToUse),All(ind).out.exp.visID(trialsToUse),'off');
 %          pVisR(i) = ranksum(All(ind).out.exp.rdData(i,trialsToUse & All(ind).out.exp.visID==1),...
 %              All(ind).out.exp.rdData(i,trialsToUse & All(ind).out.exp.visID== max(All(ind).out.exp.visID)) );
@@ -341,7 +369,20 @@ for ind=1:numExps
 %         trialsToUse = All(ind).out.vis.visID~=0 & All(ind).out.vis.visID~=1 & All(ind).out.vis.lowMotionTrials;
 %         pVisT(i) = anova1(All(ind).out.vis.rdata(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
     end
-     All(ind).out.anal.pVisR = pVisR;
+    % All(ind).out.anal.pVisR = pVisR;
+    
+     % hack for expt 11
+    % use the vis stim expt
+    if ind==11
+        pVisR=[];
+        for i=1:All(ind).out.anal.numCells     
+            trialsToUse = All(ind).out.vis.visID~=0 &...
+                All(ind).out.vis.lowMotionTrials &...
+                All(ind).out.vis.lowRunTrials;
+            pVisR(i) = anova1(All(ind).out.vis.rdData(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
+        end
+    end
+    All(ind).out.anal.pVisR = pVisR;
      
     
     All(ind).out.anal.visPercent = sum(pVisR<visAlpha) / numel(pVisR);
@@ -504,7 +545,7 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     lowRunInds &...
     ensStimScore > 0.25 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     ~excludeInds &...
-    numTrialsPerEns > 20;%&...  %
+    numTrialsPerEns > 20;%&...  
      %& numCellsEachEns>10 ;
 
 indsSub = ensIndNumber(ensemblesToUse);
