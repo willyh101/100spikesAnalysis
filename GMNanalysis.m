@@ -5,7 +5,7 @@
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
-
+% loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-all'
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -20,7 +20,7 @@ else
     disp('Did you press this by accident?')
 end
 
-%% Hardcode error fix
+%% Hardcode error fixes
  All(1).out.exp.visIDBackup=All(1).out.exp.visID;
 
 %%and do it
@@ -30,6 +30,8 @@ All(1).out.exp.visID=visID;
 
 % experiment 11 has all 0 (grey screen)
 All(11).out.exp.visID = ones(1,length(All(11).out.exp.visID));
+% experiment 12 somehow has a 30 and 3 in the begining of stimParams
+All(12).out.exp.stimID(All(12).out.exp.stimID==16)=0;
 
 %% Clean Data and stuff i dunno come up with a better title someday
 
@@ -214,7 +216,7 @@ for ind = 1:numExps
     temp = All(ind).out.exp.stimParams.numPulse;
     numSpikes=[];
     c=0;
-    for i=1:numel(temp); %overly complicated way of aligning 0s to be safe if we have 0s that aren't in the begining
+    for i=1:numel(temp) %overly complicated way of aligning 0s to be safe if we have 0s that aren't in the begining
         if temp(i)==0
             numSpikes(i)=0;
         else
