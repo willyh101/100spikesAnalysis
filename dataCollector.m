@@ -86,7 +86,7 @@ end
 
 save([basePath info.date '_' info.mouse '_outfile'], 'out')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
-save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+%save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
 
 disp('All data saved!')
 
