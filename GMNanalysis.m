@@ -10,6 +10,12 @@
 numExps = numel(loadList);
 if numExps ~= 0
 clear All
+if ~iscell(loadList)
+    numExps=1;
+    temp = loadList;
+    clear loadList;
+    loadList{1} = temp;
+end
 for ind = 1:numExps
     pTime =tic;
     fprintf(['Loading Experiment ' num2str(ind) '...']);
@@ -1545,7 +1551,7 @@ end
 clear popResponseCorr
 for ind = 1:numExps
 
-    corrToUse  = All(ind).out.anal.SpontCorr;
+    corrToUse  = All(ind).out.anal.AllCorr;
 
     
     vs =  unique(All(ind).out.exp.visID);
@@ -1657,7 +1663,7 @@ xlabel('Responder to Ensemble Correlation')
 figure(16);clf
 hold on
 
-corrToUse = ensAmCo;%meanOSI';
+corrToUse = ensAlCo;%meanOSI';
 
 lowCor = 0.025;
 highCor = 0.07;

@@ -1,17 +1,18 @@
-tempResp = rand([10000 8]);
+tempResp = rand([10140 9]);
 
 
 for i=1:size(tempResp,1)
-        vector = tempResp(i,1:8);
+        vector = tempResp(i,:);
         vector = vector-min(vector);
         vector = vector./max(vector);
+        vector = vector(1:8);
         EN = sqrt(sum((vector.^2)));
         
-        EN = 1 - ((EN-1)./(sqrt(8)-1));
+        EN = 1 - (abs(EN-1)./(sqrt(8)-1));
         
-        EucNormAll(i) = EN;
+        EucNormNull(i) = EN;
 end
     
 figure(26);clf
-histogram(EucNormAll,100)
-xlim([0 1])
+histogram(EucNormNull,100)
+% xlim([0 1])

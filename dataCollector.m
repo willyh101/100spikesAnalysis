@@ -44,13 +44,16 @@ exp.stimCoM = stimCoM;
 exp.stimDepth = stimDepth;
 exp.targetedCells = targettedCells;
 exp.outputsInfo = outputPatternTranslator(ExpStruct,uniqueStims);
+
+tempOutputOrder = exp.outputsInfo.OutputOrder;
+tempOutputOrder(tempOutputOrder==0)=[];
 % exp.output_names = ExpStruct.output_names;
 
 exp.stimParams = stimParam;
 try
-exp.stimParams.Hz = holoRequests.holoStimParams.hzList;
-exp.stimParams.numCells = holoRequests.holoStimParams.cellsPerHolo;
-exp.stimParams.powers = holoRequests.holoStimParams.powerList;
+exp.stimParams.Hz = holoRequests.holoStimParams.hzList(tempOutputOrder);
+exp.stimParams.numCells = holoRequests.holoStimParams.cellsPerHolo(tempOutputOrder);
+exp.stimParams.powers = holoRequests.holoStimParams.powerList(tempOutputOrder);
 catch
     disp('no holoStimParams')
 end
