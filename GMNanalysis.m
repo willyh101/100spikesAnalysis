@@ -36,8 +36,25 @@ All(1).out.exp.visID=visID;
 
 % experiment 11 has all 0 (grey screen)
 All(11).out.exp.visID = ones(1,length(All(11).out.exp.visID));
-% experiment 12 somehow has a 30 and 3 in the begining of stimParams
-All(12).out.exp.stimID(All(12).out.exp.stimID==16)=0;
+%% experiment 12 somehow has a 30 and 3 in the begining of stimParams
+badID = All(12).out.exp.stimID==16;
+All(12).out.exp.stimID(badID)=[];
+All(12).out.exp.zdfData(:,:,badID)=[];
+All(12).out.exp.allData(:,:,badID)=[];
+All(12).out.exp.runVal(badID,:)=[];
+All(12).out.exp.lowMotionTrials(badID)=[];
+All(12).out.exp.visID(badID)=[];
+All(12).out.exp.outputsInfo.OutputStims(2)=[];
+All(12).out.exp.outputsInfo.OutputNames(2)=[];
+All(12).out.exp.outputsInfo.OutputOrder(2)=[];
+All(12).out.exp.outputsInfo.OutputPatterns(2)=[];
+All(12).out.exp.stimParams.Seq(2)=[];
+All(12).out.exp.stimParams.numPulse(2)=[];
+All(12).out.exp.stimParams.roi(2)=[];
+
+
+
+
 
 %% Clean Data and stuff i dunno come up with a better title someday
 
@@ -549,11 +566,11 @@ excludeInds = ismember(ensIndNumber,[2]); %Its possible that the visStimIDs got 
 
 ensemblesToUse = numSpikesEachEns > 75 &...
     numSpikesEachEns <110 &...
-    highVisPercentInd &...
+    ...highVisPercentInd &...
     lowRunInds &...
     ensStimScore > 0.25 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     ~excludeInds &...
-    numTrialsPerEns > 20;%&...  
+    numTrialsPerEns > 10;%&...  
      %& numCellsEachEns>10 ;
 
 indsSub = ensIndNumber(ensemblesToUse);
@@ -674,8 +691,13 @@ title('NoStim')
 colormap rdbu
 caxis([-0.1 0.1])
 ax(2) = subplot(2,2,3);
+if numel(IndsUsed)>1
 fillPlot(meanTSSquareNR(IndsUsed,:),[],'ci');
-
+else
+    p= plot(meanTSSquareNR(IndsUsed,:));
+    p.Color = 'k';
+    p.LineWidth = 2;
+end
 linkaxes(ax);
 
 %% Plot
@@ -847,7 +869,7 @@ colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
 figure(9);clf
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)
-dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i) & highVisPercentInd,:);
+dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
 meanDat = nanmean(dat);
 stdDat = nanstd(dat);
 numpDat = sum(~isnan(dat));
@@ -1282,9 +1304,11 @@ pValEnselbeSize = anova1([data{:}]',[group{:}]','off')
 % end
 %% L1 L2 by dist
 All(ind).out.anal.minDistbyHolo;
-                distBins = [0:25:500];
-                
-                clear EnsL1 EnsL2
+distBins = [0:25:500];
+
+calcMethod=2;
+
+clear EnsL1 EnsL2
 c=0;
 for ind =1:numExps
     
@@ -1299,7 +1323,7 @@ for ind =1:numExps
             trialsToUse = All(ind).out.exp.lowMotionTrials &...
                 All(ind).out.exp.lowRunTrials &...
                 All(ind).out.exp.stimSuccessTrial &...
-                All(ind).out.exp.visID==5 ;%&...
+                All(ind).out.exp.visID==1 ;%&...
 %                 isEven(trialList);
             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~All(ind).out.anal.offTargetRisk(holo,:);
             
@@ -1320,14 +1344,14 @@ for ind =1:numExps
                 tttu(c)=sum(thisTrialsToUse); %it stats for This Trials To Use. its not totaly arbitrary, also i'm sorry. 
                 testData = All(ind).out.exp.rdData(cellsToUseDist,thisTrialsToUse);
                 ExpectedData = All(ind).out.exp.rdData(cellsToUseDist,trialsToUse & All(ind).out.exp.stimID == us(1));
-                [L1 L2] =  calcL1L2(testData,ExpectedData,1);
+                [L1 L2] =  calcL1L2(testData,ExpectedData,calcMethod);
                 L1= L1/size(testData,1);
                 L2 = L2/sqrt(size(testData,1));
                 
                 EnsL1(c,d) = L1;
                 EnsL2(c,d) = L2;
             
-                [L1 L2] =  calcL1L2(ExpectedData,ExpectedData,2);
+                [L1 L2] =  calcL1L2(ExpectedData,ExpectedData,calcMethod);
                 L1= L1/size(ExpectedData,1);
                 L2 = L2/sqrt(size(ExpectedData,1));
                 
