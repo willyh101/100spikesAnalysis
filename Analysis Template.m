@@ -18,8 +18,8 @@ load(physfile)
 
 %% Experiment
 
-s2pEpoch = 8 ;
-DAQepoch = 10 ;
+s2pEpoch = 6 ;
+DAQepoch = 8 ;
 
 
 %% Scary Loading Part
@@ -238,10 +238,21 @@ numConstant = 1; %Several stim types are shot many times, whereas others are onl
 [a b] = sort(uStimCount);
 constIDs = uniqueStims(b(end-numConstant+1:end));
 
+try
+    bigList =holoRequests.bigListofSequences;
+catch
+    disp('No bigListofSequences, initializing to no rois')
+    bigList=[];
+end
+
 uniqueROIs=[];
-for i=1:numel(holoRequests.bigListofSequences);
-    test = holoRequests.bigListofSequences{i}; %changed from Exp Struct to holoRequests.biglist b/c a future epoch overwrites this
-    
+for i=1:numel(bigList);
+    try
+    test = bigList{i}; %changed from Exp Struct to holoRequests.biglist b/c a future epoch overwrites this
+    catch
+        disp('No bigListofSequences, initializing to no rois')
+        test=[];
+    end
     uniqueROIs{i} = unique(test);
     
 end
