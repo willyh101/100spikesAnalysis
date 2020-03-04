@@ -990,8 +990,10 @@ minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
 
 clear allMeanTS allStdTS allnumTS allMeanTSVis allStdTSVis allnumTSVis
 for ind=1:numExps
+
     us = All(ind).out.anal.isoStimNum;
     vs = All(ind).out.anal.isoVisNum;
+
     vs(vs==0)=[];
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
         All(ind).out.exp.lowRunTrials &...
@@ -1774,6 +1776,7 @@ for i=1:numEns
     data{i} = EnsL1(ens2plot);
     names{i} = string(uniqueEns(i));
     avg(i) = mean(popResponseEns(ens2plot));
+    vari(i) = var(popResponseEns(ens2plot));
     err(i) = sem(popResponseEns(ens2plot));
     ns(i) = numel(popResponseEns(ens2plot));
 end
@@ -1976,3 +1979,65 @@ end
 legend('small', 'medium', 'large')
 title('L2/L1 Ratio')
 xlabel('Distance')
+
+%% First pass attempt at Fano factor
+% just going to use mean resps
+% do oasis later
+vis = 1; % only want no vis stim trial pop response
+
+clear fanofactor trialwiseDat
+c = 0;
+baseline_subtract = 1;
+
+for ind = 1:numExps
+    for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
+        c=c+1;
+        holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
+        
+%         divider =inf;
+%         maxV = max(All(ind).out.exp.visID);
+%         v = max(round(maxV/divider),1);
+        
+        trialsToUse = All(ind).out.exp.lowMotionTrials &...
+            All(ind).out.exp.lowRunTrials &...
+            All(ind).out.exp.stimSuccessTrial &...
+            All(ind).out.exp.visID==vis;
+        %             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & All(ind).out.anal.offTargetRisk(holo,:);
+        cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~any(All(ind).out.anal.offTargetRisk(:,:));
+        
+        us = unique(All(ind).out.exp.stimID);
+        fdat = All(ind).out.exp.rdData(cellsToUse, trialsToUse & All(ind).out.exp.stimID == us(h+1));
+        %fdat = All(ind).out.exp.rdData(cellsToUse, trialsToUse);
+        bdat = All(ind).out.exp.bdata(cellsToUse, trialsToUse & All(ind).out.exp.stimID == us(h+1));
+        if baseline_subtract
+            fdat = fdat - bdat;
+        end
+
+        trialwiseDat{c} = fdat;
+        
+        % compute fanofactor
+%         meanTr
+%         fano = 
+        
+        
+        
+%         
+%         testData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(h+1));
+%         ExpectedData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(1));
+%         [L1 L2 L3] =  calcL1L2(testData,ExpectedData);
+%         L1= L1/size(testData,1);
+%         L2 = L2/sqrt(size(testData,1));
+%         L3 = L3/ ((size(testData,1))^(1/3)) ;
+        
+        
+        
+%         EnsL1(c) = L1;
+%         EnsL2(c) = L2;
+    end
+end
+
+
+
+
+
+
