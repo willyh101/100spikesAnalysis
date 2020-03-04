@@ -1,7 +1,7 @@
 clear;
-date = '200302'; 
+date = '200303'; 
 mouse = 'W14_1';%'I138_1';%'I136_1';
-epochs = '2_3_4_5_7_8_9_10';
+epochs = '1_2_3_5_8';
 
 % basePath = 'C:\Users\ian\Documents\DATA\F\I103b.2\171110\';
 basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];%I1148a.2\180504\';
@@ -18,14 +18,14 @@ load(physfile)
 
 %% Experiment
 
-s2pEpoch = 6 ;
-DAQepoch = 8 ;
+s2pEpoch = 1 ;
+DAQepoch = 1 ;
 
 
 %% Scary Loading Part
 %The Slow File reading Part
 
-BaseLinePeriod = 1000;
+BaseLinePeriod = 500;
 
 if ~exist('ExpStruct')
     disp('Reloading ExpStruct')

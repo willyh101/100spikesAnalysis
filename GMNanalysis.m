@@ -209,6 +209,7 @@ clear ensStimScore
             vals = rdata(htg,k) - bdata(htg,k);
             stimScore = vals>stimsuccessZ;
             stimSuccessTrial(k)= mean(stimScore) > stimEnsSuccess;
+            tempStimScore(k) = mean(stimScore); 
         end
     end
     

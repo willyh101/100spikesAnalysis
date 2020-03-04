@@ -57,6 +57,10 @@ exp.stimParams.powers = holoRequests.holoStimParams.powerList(tempOutputOrder);
 catch
     disp('no holoStimParams')
 end
+
+exp.holoRequest = ExpStruct.Holo.holoRequests{...
+    ExpStruct.Holo.Sweeps_holoRequestNumber(ExpStruct.EpochEnterSweep{DAQepoch})};
+
 disp('got exp')
 
 %% orientation/vis epoch
