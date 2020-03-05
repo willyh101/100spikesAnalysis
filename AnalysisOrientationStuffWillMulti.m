@@ -1989,7 +1989,13 @@ clear fanofactor trialwiseDat
 c = 0;
 baseline_subtract = 1;
 
-for ind = 1:numExps
+for ind = 1:numExps-1
+        disp(['Expt number: ' num2str(ind)])
+        disp(['Low motion trials: ' num2str(sum(All(ind).out.exp.lowMotionTrials))])
+        disp(['Low run trials: ' num2str(sum(All(ind).out.exp.lowRunTrials))])
+        disp(['Stim success trials: ' num2str(sum(All(ind).out.exp.stimSuccessTrial))])
+        disp(['No vis stim trials: ' num2str(sum(All(ind).out.exp.visID==vis))])
+        disp(['Cells to use: ' num2str(sum(All(ind).out.exp.visID==vis))])
     for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
         c=c+1;
         holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
@@ -2005,6 +2011,8 @@ for ind = 1:numExps
         %             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & All(ind).out.anal.offTargetRisk(holo,:);
         cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~any(All(ind).out.anal.offTargetRisk(:,:));
         
+
+        
         us = unique(All(ind).out.exp.stimID);
         fdat = All(ind).out.exp.rdData(cellsToUse, trialsToUse & All(ind).out.exp.stimID == us(h+1));
         %fdat = All(ind).out.exp.rdData(cellsToUse, trialsToUse);
@@ -2012,12 +2020,12 @@ for ind = 1:numExps
         if baseline_subtract
             fdat = fdat - bdat;
         end
-
-        trialwiseDat{c} = fdat;
+        % save trialwise for later for fun
+        trialwiseDat{c} = fdat; % per holo, then cells by trials
         
         % compute fanofactor
-%         meanTr
-%         fano = 
+        fano = var(fdat,[], 2) ./ mean(fdat,2);
+        
         
         
         
