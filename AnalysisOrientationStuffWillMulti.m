@@ -288,75 +288,6 @@ hzEachEns = cell2mat(hzEachEns(:)');
 ensStimScore=cell2mat(ensStimScore(:)');
 ensStimScore(numSpikesEachStim==0)=[];
 
-%% Ensemble stims and vis things
-visExpts = [];
-noVisExpts = [];
-
-
-clear stimCond isoTrials isoTrialsStimCond isoTunedTrials
-for i=1:numExps
-%     trialsToUse = All(i).out.exp.lowMotionTrials &...
-%         All(i).out.exp.lowRunTrials &... 
-%         All(i).out.exp.stimSuccessTrial ;
-    clear s
-    % first, use this to index stimID and visCond
-    try
-        % oris2use = All(i).out.exp.visCond(2,trialsToUse);
-        oris2use = All(i).out.exp.visCond(2,:);
-        visExpts = [visExpts i];
-    catch
-        disp(['No vis data for expt ' num2str(i) '!'])
-        noVisExpts = [noVisExpts i];
-        All(i).out.anal.isoTunedTrialsLogi = zeros(1,length(All(i).out.exp.stimID));
-        All(i).out.anal.isoTunedTrials = [];
-        continue
-    end
-    uniqueStims = unique(All(i).out.exp.stimID);
-    
-    % change stimID to out number so we can match holos
-    
-    for j = 1:numel(All(i).out.exp.stimID)
-        % subtract 1 bc 0 is no holo stim condition
-        stimCond{i}(j) = find(All(i).out.exp.stimID(j)==uniqueStims)-1;
-    end
-    All(i).out.exp.outNums = stimCond{i};
-    
-    isoTrials = [];
-    isoTrialsStimCond = [];
-    isoTunedTrials = [];
-    isoTunedTrialsLogi = [];
-    
-    for k = unique(All(i).out.anal.ensemblePrefDeg)
-        isoTrials = [isoTrials find(All(i).out.exp.visCond(2,:) == k)];
-        isoTrialsStimCond = stimCond{i}(isoTrials);
-    end
-    
-
-    
-    % this will give matches holo tuning and vis stim trials (I think)
-    for w = stimCond{i}
-        isoTunedTrials = find(isoTrialsStimCond == w);
-    end
-    % this is what you want, a list of trials where ensemble tuning and
-    % visual stimulus match
-    
-    clear logi
-    All(i).out.anal.isoTunedTrials = isoTunedTrials;
-    % make it a logical array also
-    logi = zeros(1,length(stimCond{i}));
-    logi(isoTunedTrials) = 1;
-    All(i).out.anal.isoTunedTrialsLogi = logi;
-    
-    All(i).out.anal.isoTrials = isoTrials;
-    All(i).out.anal.isoTrialsStimCond = isoTrialsStimCond;
-    
-    isoVisNum = unique(All(i).out.exp.visID(isoTunedTrials));
-    isoStimNum = unique(All(i).out.exp.outNums(isoTunedTrials));
-    All(i).out.anal.isoVisNum = isoVisNum;
-    All(i).out.anal.isoStimNum = isoStimNum;
-    
-   
-end
 
 %% Determine the OSI from the Vis section of each cell.
 
@@ -604,6 +535,75 @@ end
 title('Tuned vs Un-tuned ensembles')
 legend('Tuned', 'Un-tuned')
 % and thier preferred oris
+%% Ensemble stims and vis things
+visExpts = [];
+noVisExpts = [];
+
+
+clear stimCond isoTrials isoTrialsStimCond isoTunedTrials
+for i=1:numExps
+%     trialsToUse = All(i).out.exp.lowMotionTrials &...
+%         All(i).out.exp.lowRunTrials &... 
+%         All(i).out.exp.stimSuccessTrial ;
+    clear s
+    % first, use this to index stimID and visCond
+    try
+        % oris2use = All(i).out.exp.visCond(2,trialsToUse);
+        oris2use = All(i).out.exp.visCond(2,:);
+        visExpts = [visExpts i];
+    catch
+        disp(['No vis data for expt ' num2str(i) '!'])
+        noVisExpts = [noVisExpts i];
+        All(i).out.anal.isoTunedTrialsLogi = zeros(1,length(All(i).out.exp.stimID));
+        All(i).out.anal.isoTunedTrials = [];
+        continue
+    end
+    uniqueStims = unique(All(i).out.exp.stimID);
+    
+    % change stimID to out number so we can match holos
+    
+    for j = 1:numel(All(i).out.exp.stimID)
+        % subtract 1 bc 0 is no holo stim condition
+        stimCond{i}(j) = find(All(i).out.exp.stimID(j)==uniqueStims)-1;
+    end
+    All(i).out.exp.outNums = stimCond{i};
+    
+    isoTrials = [];
+    isoTrialsStimCond = [];
+    isoTunedTrials = [];
+    isoTunedTrialsLogi = [];
+    
+    for k = unique(All(i).out.anal.ensemblePrefDeg)
+        isoTrials = [isoTrials find(All(i).out.exp.visCond(2,:) == k)];
+        isoTrialsStimCond = stimCond{i}(isoTrials);
+    end
+    
+
+    
+    % this will give matches holo tuning and vis stim trials (I think)
+    for w = stimCond{i}
+        isoTunedTrials = find(isoTrialsStimCond == w);
+    end
+    % this is what you want, a list of trials where ensemble tuning and
+    % visual stimulus match
+    
+    clear logi
+    All(i).out.anal.isoTunedTrials = isoTunedTrials;
+    % make it a logical array also
+    logi = zeros(1,length(stimCond{i}));
+    logi(isoTunedTrials) = 1;
+    All(i).out.anal.isoTunedTrialsLogi = logi;
+    
+    All(i).out.anal.isoTrials = isoTrials;
+    All(i).out.anal.isoTrialsStimCond = isoTrialsStimCond;
+    
+    isoVisNum = unique(All(i).out.exp.visID(isoTunedTrials));
+    isoStimNum = unique(All(i).out.exp.outNums(isoTunedTrials));
+    All(i).out.anal.isoVisNum = isoVisNum;
+    All(i).out.anal.isoStimNum = isoStimNum;
+    
+   
+end
 
 
 %% Ian Iso Tuned Trials
@@ -844,25 +844,67 @@ noStimInd = ensIndNumAll(numSpikesEachStim==0);
 
 
 
+% %% main Ensembles to Use section
+% % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
+% highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
+% lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
+% 
+% % excludeInds = ismember(ensIndNumber,[10 14 15 16]);
+% 
+% 
+% willExportInds = ismember(ensIndNumber,[15 16]);
+% 
+% 
+% ensemblesToUse = numSpikesEachEns > 75 &...
+%     numSpikesEachEns <125 &...
+%     highVisPercentInd &...
+%     lowRunInds &...
+%     ensStimScore > 0.75 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
+%     ~excludeInds ;%&...  %
+% %     ~willExportInds;%  %& numCellsEachEns>10 ;
+% 
+% indsSub = ensIndNumber(ensemblesToUse);
+% IndsUsed = unique(ensIndNumber(ensemblesToUse));
+% 
+% sum(ensemblesToUse)
+
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
+
+numTrialsPerEns =[];
+for ind=1:numExps
+    us=unique(All(ind).out.exp.stimID);
+    
+    for i=1:numel(us)
+         trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial &...
+        All(ind).out.exp.stimID == us(i) ;
+    
+    numTrialsPerEns(end+1)=sum(trialsToUse);
+    end
+    
+end
+numTrialsPerEns(numSpikesEachStim==0)=[];
+
+
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
 excludeInds = ismember(ensIndNumber,[10 13 14]); %10 and 13 didn't look like we evoked, 14 note is s2p fail
-% excludeInds = ismember(ensIndNumber,[10 14 15 16]);
-
-
 willExportInds = ismember(ensIndNumber,[15 16]);
 
 
+
+
 ensemblesToUse = numSpikesEachEns > 75 &...
-    numSpikesEachEns <125 &...
-    highVisPercentInd &...
+    numSpikesEachEns <110 &...
+    ...highVisPercentInd &...
     lowRunInds &...
-    ensStimScore > 0.75 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
-    ~excludeInds ;%&...  %
-%     ~willExportInds;%  %& numCellsEachEns>10 ;
+    ensStimScore > 0.50 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
+    ~excludeInds &...
+    numTrialsPerEns > 10;%&...  
+     %& numCellsEachEns>10 ;
 
 indsSub = ensIndNumber(ensemblesToUse);
 IndsUsed = unique(ensIndNumber(ensemblesToUse));

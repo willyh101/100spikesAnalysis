@@ -1,7 +1,7 @@
 clear;
-date = '200303'; 
+date = '200304'; 
 mouse = 'W14_1';%'I138_1';%'I136_1';
-epochs = '1_2_3_5_8';
+epochs = '2_3_4_5';
 
 % basePath = 'C:\Users\ian\Documents\DATA\F\I103b.2\171110\';
 basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];%I1148a.2\180504\';
