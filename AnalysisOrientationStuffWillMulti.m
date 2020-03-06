@@ -1985,17 +1985,17 @@ xlabel('Distance')
 % do oasis later
 vis = 1; % only want no vis stim trial pop response
 
-clear fanofactor trialwiseDat
+clear fanofactor trialwiseDat fano
 c = 0;
 baseline_subtract = 1;
 
-for ind = 1:numExps-1
-        disp(['Expt number: ' num2str(ind)])
-        disp(['Low motion trials: ' num2str(sum(All(ind).out.exp.lowMotionTrials))])
-        disp(['Low run trials: ' num2str(sum(All(ind).out.exp.lowRunTrials))])
-        disp(['Stim success trials: ' num2str(sum(All(ind).out.exp.stimSuccessTrial))])
-        disp(['No vis stim trials: ' num2str(sum(All(ind).out.exp.visID==vis))])
-        disp(['Cells to use: ' num2str(sum(All(ind).out.exp.visID==vis))])
+for ind = 1:numExps
+%         disp(['Expt number: ' num2str(ind)])
+%         disp(['Low motion trials: ' num2str(sum(All(ind).out.exp.lowMotionTrials))])
+%         disp(['Low run trials: ' num2str(sum(All(ind).out.exp.lowRunTrials))])
+%         disp(['Stim success trials: ' num2str(sum(All(ind).out.exp.stimSuccessTrial))])
+%         disp(['No vis stim trials: ' num2str(sum(All(ind).out.exp.visID==vis))])
+%         disp(['Cells to use: ' num2str(sum(All(ind).out.exp.visID==vis))])
     for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
         c=c+1;
         holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
@@ -2008,41 +2008,31 @@ for ind = 1:numExps-1
             All(ind).out.exp.lowRunTrials &...
             All(ind).out.exp.stimSuccessTrial &...
             All(ind).out.exp.visID==vis;
-        %             cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & All(ind).out.anal.offTargetRisk(holo,:);
         cellsToUse =  ~All(ind).out.anal.ROIinArtifact' & ~any(All(ind).out.anal.offTargetRisk(:,:));
         
 
         
         us = unique(All(ind).out.exp.stimID);
         fdat = All(ind).out.exp.rdData(cellsToUse, trialsToUse & All(ind).out.exp.stimID == us(h+1));
-        %fdat = All(ind).out.exp.rdData(cellsToUse, trialsToUse);
         bdat = All(ind).out.exp.bdata(cellsToUse, trialsToUse & All(ind).out.exp.stimID == us(h+1));
+        
         if baseline_subtract
             fdat = fdat - bdat;
         end
+        
         % save trialwise for later for fun
         trialwiseDat{c} = fdat; % per holo, then cells by trials
         
-        % compute fanofactor
-        fano = var(fdat,[], 2) ./ mean(fdat,2);
-        
-        
-        
-        
-%         
-%         testData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(h+1));
-%         ExpectedData = All(ind).out.exp.rdData(cellsToUse,trialsToUse & All(ind).out.exp.stimID == us(1));
-%         [L1 L2 L3] =  calcL1L2(testData,ExpectedData);
-%         L1= L1/size(testData,1);
-%         L2 = L2/sqrt(size(testData,1));
-%         L3 = L3/ ((size(testData,1))^(1/3)) ;
-        
-        
-        
-%         EnsL1(c) = L1;
-%         EnsL2(c) = L2;
+        % compute fanofactor on Ca2+ responses
+        % will give a fano for all cells
+        fano{c} = var(fdat,[], 2) ./ mean(fdat,2);
     end
 end
+figure
+hold on
+p = cellfun(@plot, fano);
+hold off
+%% match to trial types
 
 
 
