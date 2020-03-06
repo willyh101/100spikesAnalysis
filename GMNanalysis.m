@@ -209,6 +209,7 @@ clear ensStimScore
             vals = rdata(htg,k) - bdata(htg,k);
             stimScore = vals>stimsuccessZ;
             stimSuccessTrial(k)= mean(stimScore) > stimEnsSuccess;
+            tempStimScore(k) = mean(stimScore); 
         end
     end
     
@@ -1732,8 +1733,8 @@ hold on
 
 corrToUse = ensAlCo;%meanOSI';
 
-lowCor = 0.025;
-highCor = 0.07;
+lowCor = 0.01;
+highCor = 0.04;
 
 EnsSizeToUse = 10;
 
@@ -1742,12 +1743,12 @@ temp = cellfun(@(x) reshape(x(:,1,:),size(x(:,1,:),1),size(x(:,1,:),3)),popRespo
 
 EnsCorR = cat(1,temp{:});
 
-CorRange = [0 lowCor highCor 1];
+CorRange = [-1 lowCor highCor 1];
 numOfEnsUsed=[];
 for i = 1:numel(CorRange)-1
     ens2plot =  ensemblesToUse &...
         numCellsEachEns==EnsSizeToUse &...
-        corrToUse >= CorRange(i) &  corrToUse < CorRange(i+1)  ; %numCellsEachEns==EnsSizeToUse &...
+        corrToUse(1:numel(numCellsEachEns)) >= CorRange(i) &  corrToUse(1:numel(numCellsEachEns)) < CorRange(i+1)  ; %numCellsEachEns==EnsSizeToUse &...
     
     data = EnsCorR(ens2plot,:);
     numOfEnsUsed(i) = size(data,1);
