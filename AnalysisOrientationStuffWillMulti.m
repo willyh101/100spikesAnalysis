@@ -2032,19 +2032,9 @@ c = 0;
 baseline_subtract = 1;
 
 for ind = 1:numExps
-%         disp(['Expt number: ' num2str(ind)])
-%         disp(['Low motion trials: ' num2str(sum(All(ind).out.exp.lowMotionTrials))])
-%         disp(['Low run trials: ' num2str(sum(All(ind).out.exp.lowRunTrials))])
-%         disp(['Stim success trials: ' num2str(sum(All(ind).out.exp.stimSuccessTrial))])
-%         disp(['No vis stim trials: ' num2str(sum(All(ind).out.exp.visID==vis))])
-%         disp(['Cells to use: ' num2str(sum(All(ind).out.exp.visID==vis))])
     for h= 1:numel(All(ind).out.exp.stimParams.Seq)-1
         c=c+1;
         holo = All(ind).out.exp.stimParams.roi{h+1}; % only cycle through holos
-        
-%         divider =inf;
-%         maxV = max(All(ind).out.exp.visID);
-%         v = max(round(maxV/divider),1);
         
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
             All(ind).out.exp.lowRunTrials &...
@@ -2070,14 +2060,57 @@ for ind = 1:numExps
         fano{c} = var(fdat,[], 2) ./ mean(fdat,2);
     end
 end
-figure
-hold on
-p = cellfun(@plot, fano);
-hold off
+
 %% match to trial types
+% by ensemble size
+ensMeanFano = cellfun(@mean, fano);
+figure(88)
+clf
+hold on
+
+for i=1:numEns
+    ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse );
+    ens{i} = num2str(uniqueEns(i));
+    fdata{i} = ensMeanFano(ens2plot);
+end
+
+spr = fancyPlotSpread(fdata, ens);
+% ylim([-100 100])
+title('Fano by ensemble size')
+xlabel('Ensemble Size')
+ylabel('Fano factor')
 
 
+% by OSI
+f89 = figure(89);
+clf
 
+scatter(ensOSI(ensemblesToUse),ensMeanFano(ensemblesToUse)',[],numCellsEachEns(ensemblesToUse),'filled')
 
+xlabel('Ensemble OSI')
+ylabel('Fano Factor')
+title('OSIs by Ensemble Size')
+set(gcf(),'Name','FF by Ensemble Size')
+cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
+cb.Label.String = 'Number of Cells in Ensemble';
+r = refline(0);
+r.LineStyle =':';
+
+% plot spread by OSI
+f90 = figure(90);
+clf
+
+lowOSIens = ensMeanFano(ensOSI<0.4);
+highOSIens = ensMeanFano(ensOSI>0.6);
+midOSIens = ensMeanFano(~lowOSIidxs & ~highOSIidxs);
+
+osiEns = {lowOSIens, midOSIens, highOSIens};
+names = {'lowOSI', 'midOSI', 'highOSI'};
+spr = fancyPlotSpread(osiEns, names);
+title('Fano by OSI')
+xlabel('OSI')
+ylabel('Fano factor')
+
+% probably should get like delta FF or something....
 
 
