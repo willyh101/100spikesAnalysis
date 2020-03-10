@@ -1,6 +1,8 @@
 %% Load Experiments
 
-[loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
+% [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
+
+% oriLoadList
 
 % loadPath = 'Z:\ioldenburg\outputdata1' ; %Ian Server Copy
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1' ; %Ian local
@@ -53,7 +55,7 @@ All(15).out.exp.visID = newVisID;
 
 
 %%Eliminate low contrast Exp 16
-All(16).out.exp.visID(All(ind).out.exp.visCond(1,:)~=1)=0;
+All(16).out.exp.visID(All(ind).out.exp.visID(1,:)~=1)=0;
 
 %%fix missing offsets
 All(15).out.info.offsets = [1.4667 -88.8667];
