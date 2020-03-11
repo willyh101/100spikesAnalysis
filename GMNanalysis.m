@@ -63,7 +63,7 @@ recWinRange = [0.5 1.5];% %from vis Start [1.25 2.5];
 
 
 %Stim Success Thresholds
-stimsuccessZ = 0.5; %over this number is a succesfull stim
+stimsuccessZ = 0.25; %over this number is a succesfull stim
 stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
 
 %run Threshold
@@ -105,7 +105,7 @@ clear ensStimScore
      
      
      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
-     bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
+     bwinToUse = max(round([0 All(ind).out.exp.visStart]*All(ind).out.info.FR),[1 1]);
 
      rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse(1):winToUse(2),:),2));
      bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
@@ -139,18 +139,22 @@ clear ensStimScore
     end
     All(ind).out.exp.lowRunTrials = lowRunTrials;
     
-    if ind==11
+    percentLowRunTrials(ind) = mean(lowRunTrials);
+
+    
+    if ~isfield(All(ind).out.vis,'lowRunTrials')
+        try
         runVal = All(ind).out.vis.runVal;
         rnSz = size(runVal);
         runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
         lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
         lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
         All(ind).out.vis.lowRunTrials = lowRunTrials;
+        catch
+            disp('Vis Run Trial Problem')
+        end
     end
-    
-    
-    
-    percentLowRunTrials(ind) = mean(lowRunTrials);
+       
     
     %Total Number of Targets Shot per recording
      temp = unique([All(ind).out.exp.holoTargets{:}]);
@@ -571,7 +575,7 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     lowRunInds &...
     ensStimScore > 0.25 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     ~excludeInds &...
-    numTrialsPerEns > 10;%&...  
+    numTrialsPerEns > 3;%10;%&...  
      %& numCellsEachEns>10 ;
 
 indsSub = ensIndNumber(ensemblesToUse);
@@ -1733,10 +1737,10 @@ hold on
 
 corrToUse = ensAlCo;%meanOSI';
 
-lowCor = 0.01;
-highCor = 0.04;
+lowCor = 0.02;
+highCor = 0.03;
 
-EnsSizeToUse = 10;
+EnsSizeToUse = 20;
 
 temp = cellfun(@(x) reshape(x(:,1,:),size(x(:,1,:),1),size(x(:,1,:),3)),popResponseCorr,'uniformoutput',0) ;
 % temp = cellfun(@(x) reshape(x(:,end,:),size(x(:,end,:),1),size(x(:,end,:),3)),popResponseCorr,'uniformoutput',0) ;

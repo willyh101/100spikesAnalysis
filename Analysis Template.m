@@ -18,14 +18,14 @@ load(physfile)
 
 %% Experiment
 
-s2pEpoch = 1 ;
-DAQepoch = 1 ;
+s2pEpoch = 2 ;
+DAQepoch = 3 ;
 
 
 %% Scary Loading Part
 %The Slow File reading Part
 
-BaseLinePeriod = 500;
+BaseLinePeriod = 1000;
 
 if ~exist('ExpStruct')
     disp('Reloading ExpStruct')
@@ -61,7 +61,7 @@ holoRequests = ExpStruct.Holo.holoRequests{hr};
 % backupRunVector = runVector;
 %%Experiment Design
 
-strt = 1000; %start Time;
+strt = BaseLinePeriod; %start Time;
 try
 numStimuli = holoRequests.holoStimParams.nHolos(1); %number of stimululations per trial. (c
 freqOfStim = holoRequests.holoStimParams.hzList(1)/holoRequests.holoStimParams.pulseList(1); %repetition rate of stimuli in Hz.
