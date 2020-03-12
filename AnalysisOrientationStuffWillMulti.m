@@ -2,7 +2,7 @@
 
 % [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
-% oriLoadList
+oriLoadList
 
 % loadPath = 'Z:\ioldenburg\outputdata1' ; %Ian Server Copy
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1' ; %Ian local
@@ -71,6 +71,7 @@ newVisID(visID~=1)=0;
 
 All(9).out.exp.visID = [ones([1 425]) ones([1 400])*2];
 All(9).out.exp.visCond = cat(2,repmat ([1;nan],[1 425]),All(9).out.exp.visCond);
+
 
 
 %% Clean Data and stuff i dunno come up with a better title someday
@@ -227,6 +228,14 @@ for ind =1:numExps
             stimSuccessTrial(k) = 1;
         else
             htg = All(ind).out.exp.holoTargets{h};
+            
+            if size(htg) > 10
+                htg(isnan(htg))=[];
+                vals = rdata(htg,k) - bdata(htg,k);
+                stimScore = vals>stimsuccessZ/2;
+                stimSuccessTrial(k)= mean(stimScore) > stimEnsSuccess;
+            end
+            
             htg(isnan(htg))=[];
             
             vals = rdata(htg,k) - bdata(htg,k);
@@ -289,6 +298,10 @@ hzEachEns = cell2mat(hzEachEns(:)');
 
 ensStimScore=cell2mat(ensStimScore(:)');
 ensStimScore(numSpikesEachStim==0)=[];
+%%
+%fix expt 18 stuff, temporary maybe
+All(18).out.exp.lowRunTrials = All(18).out.exp.lowRunTrials(12:end);
+% All(18).out.exp.lowRunTrials = All(18).out.exp.lowRunTrials(2:end);
 
 
 %% Determine the OSI from the Vis section of each cell.
@@ -2113,5 +2126,9 @@ xlabel('OSI')
 ylabel('Fano factor')
 
 % probably should get like delta FF or something....
+
+%% distances and shapes
+
+
 
 
