@@ -871,7 +871,6 @@ noStimInd = ensIndNumAll(numSpikesEachStim==0);
 % sum(ensemblesToUse)
 
 %% main Ensembles to Use section
-% ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 
 numTrialsPerEns =[];
 for ind=1:numExps
