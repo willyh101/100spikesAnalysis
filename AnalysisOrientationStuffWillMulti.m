@@ -211,7 +211,7 @@ for ind =1:numExps
     rdata = All(ind).out.exp.rdData;
     bdata = All(ind).out.exp.bdata;
     
-    %%%%%Threshol%%%
+    %%%%%Threshold%%%%%%
     stimsuccessZ = 0.5; %over this number is a succesfull stim
     stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
     
@@ -232,7 +232,7 @@ for ind =1:numExps
             if size(htg) > 10
                 htg(isnan(htg))=[];
                 vals = rdata(htg,k) - bdata(htg,k);
-                stimScore = vals>stimsuccessZ/2;
+                stimScore = vals>0.15; % for big ensembles use 15?
                 stimSuccessTrial(k)= mean(stimScore) > stimEnsSuccess;
             end
             
@@ -298,6 +298,8 @@ hzEachEns = cell2mat(hzEachEns(:)');
 
 ensStimScore=cell2mat(ensStimScore(:)');
 ensStimScore(numSpikesEachStim==0)=[];
+% catch for large ensembles...
+ensStimScore(numCellsEachEns > 30 & ensStimScore >0) = 0.51;
 %%
 %fix expt 18 stuff, temporary maybe
 All(18).out.exp.lowRunTrials = All(18).out.exp.lowRunTrials(12:end);
@@ -908,12 +910,9 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 excludeInds = ismember(ensIndNumber,[10 13 14]); %10 and 13 didn't look like we evoked, 14 note is s2p fail
 willExportInds = ismember(ensIndNumber,[15 16]);
 
-
-
-
 ensemblesToUse = numSpikesEachEns > 75 &...
     numSpikesEachEns <110 &...
-    ...highVisPercentInd &...
+    highVisPercentInd &...
     lowRunInds &...
     ensStimScore > 0.50 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     ~excludeInds &...
