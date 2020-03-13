@@ -1464,7 +1464,7 @@ for ind = 1:numExps
     
     %Spont Corr - correlation coefficient on time series from no stim
     %period
-    trialsToUse = All(ind).out.vis.lowMotionTrials &...
+    trialsToUse = ...All(ind).out.vis.lowMotionTrials &...
         All(ind).out.vis.lowRunTrials &...
         All(ind).out.vis.visID == 1;
     unrollData = All(ind).out.vis.zdfData(:,:,trialsToUse);
@@ -2108,6 +2108,7 @@ cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
 cb.Label.String = 'Number of Cells in Ensemble';
 r = refline(0);
 r.LineStyle =':';
+ylim([-100 100])
 
 % plot spread by OSI
 f90 = figure(90);
@@ -2115,7 +2116,7 @@ clf
 
 lowOSIens = ensMeanFano(ensOSI<0.4);
 highOSIens = ensMeanFano(ensOSI>0.6);
-midOSIens = ensMeanFano(~lowOSIidxs & ~highOSIidxs);
+midOSIens = ensMeanFano(ensOSI >= 0.4 & ensOSI <= 0.6);
 
 osiEns = {lowOSIens, midOSIens, highOSIens};
 names = {'lowOSI', 'midOSI', 'highOSI'};
@@ -2123,6 +2124,8 @@ spr = fancyPlotSpread(osiEns, names);
 title('Fano by OSI')
 xlabel('OSI')
 ylabel('Fano factor')
+ylim([-100 100])
+
 
 % probably should get like delta FF or something....
 
