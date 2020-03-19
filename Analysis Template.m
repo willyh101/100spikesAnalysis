@@ -1,7 +1,5 @@
 clear;
-date = '200312'; 
 mouse = 'i139_2';%'I138_1';%'I136_1';
-epochs = '1_2_3';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['C:\Users\Will\Local Data\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -168,6 +166,7 @@ for s = 1:numStims
     d = stimDepth(s);
     Mapping(s,1) = d;
     
+
     a = allCoM;
     a(allDepth~=d,:) = nan;
     
@@ -175,7 +174,6 @@ for s = 1:numStims
     [Mapping(s,3), Mapping(s,2)] = min ( sqrt(sum((a-b).^2,2)) );
 end
 
-targetDistanceThreshold = 10; %has been 15 
 targettedCells = Mapping(:,2); targettedCells(Mapping(:,3)>targetDistanceThreshold)=nan;
 targettedCells(ismember(targettedCells,CellstToExclude))=nan;
 
@@ -218,6 +216,7 @@ try
     end
     
     
+
     TargetRois = unique(cat(2,roisTargets{:}));
     allRoiWeights = holoRequests.roiWeights;
     TargetRoiWeights = allRoiWeights(TargetRois);
@@ -227,6 +226,7 @@ try
     cellList = 1:numCells;
     notTargetCells = ~ismember(cellList,TargetCells);
     
+
     TargetCellsWithNan = [HoloTargets{:}];
     
     disp([num2str(numel(TargetCells)) ' Detected Targeted Cells out of ' num2str(numel(TargetRois)) ' ROIs. ' num2str(numel(TargetCells)/numel(TargetRois)*100) '%']);
