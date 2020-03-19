@@ -1,13 +1,11 @@
 clear;
-date = '20200316'; 
+date = '20200316';
 mouse = 'i139_2';%'I138_1';%'I136_1';
 epochs = '1_2_4_5';
 
-addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
-basePath = ['C:\Users\Will\Local Data\Contrast Modulated Ensembles\' mouse '\' date '\'];
-% basePath = 'C:\Users\ian\Documents\DATA\F\I103b.2\171110\';
-% basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];%I1148a.2\180504\';
-% basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];%I1148a.2\180504\';
+% addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
+% basePath = ['C:\Users\Will\Local Data\Contrast Modulated Ensembles\' mouse '\' date '\'];
+basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
 
 path = fullfile(basePath,epochs);
 
@@ -15,8 +13,8 @@ baseName = [mouse '_' date];%'I118a.2_180504';
 loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc'] };
 
 nDepthsTotal = 3;%Normally 3;
-% physfile = fullfile(basePath,[date '_A' '.mat']);
-physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
+physfile = fullfile(basePath,[date '_A' '.mat']);
+% physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 
 load(physfile)
 
@@ -113,7 +111,7 @@ tTest = cellfun(@(x) x-median(x),Tused,'uniformoutput',0);
 Tarray = cellfun(@(x) reshape(x,numFrames,numFiles,2),tTest,'uniformoutput',0);
 runVal=[];
 for i = 1:numStimuli
-    
+
     idx = max(round((strt/1000+(i-1)/freqOfStim)*FR),1):min(round((strt/1000+(i-1)/freqOfStim)*FR)+stimulusLength/1000*FR,size(runVector,2));
     for k = 1:numFiles
         m = cellfun(@(x) squeeze(mean(x(idx,k,:),1)), Tarray,'uniformoutput',0);
@@ -166,18 +164,18 @@ end
 
 Mapping =zeros([numStims 3]);
 for s = 1:numStims
-    
+
     d = stimDepth(s);
     Mapping(s,1) = d;
-    
+
     a = allCoM;
     a(allDepth~=d,:) = nan;
-    
+
     b = stimCoM(s,:);
     [Mapping(s,3), Mapping(s,2)] = min ( sqrt(sum((a-b).^2,2)) );
 end
 
-targetDistanceThreshold = 10; %has been 15 
+targetDistanceThreshold = 10; %has been 15
 targettedCells = Mapping(:,2); targettedCells(Mapping(:,3)>targetDistanceThreshold)=nan;
 targettedCells(ismember(targettedCells,CellstToExclude))=nan;
 
@@ -210,27 +208,27 @@ ROIinArtifact = allCoM(:,2)<ArtifactSizeLeft-yoffset | allCoM(:,2)>511-(Artifact
 %%Determine holograms shot
 try
     roisTargets = holoRequests.rois;
-    
+
     HoloTargets=[];
-    
+
     numHolos = numel(roisTargets);
-    
+
     for i = 1:numHolos
         HoloTargets{i} = targettedCells(roisTargets{i})';
     end
-    
-    
+
+
     TargetRois = unique(cat(2,roisTargets{:}));
     allRoiWeights = holoRequests.roiWeights;
     TargetRoiWeights = allRoiWeights(TargetRois);
-    
+
     TargetCells = unique([HoloTargets{:}]);
     TargetCells(isnan(TargetCells))=[];
     cellList = 1:numCells;
     notTargetCells = ~ismember(cellList,TargetCells);
-    
+
     TargetCellsWithNan = [HoloTargets{:}];
-    
+
     disp([num2str(numel(TargetCells)) ' Detected Targeted Cells out of ' num2str(numel(TargetRois)) ' ROIs. ' num2str(numel(TargetCells)/numel(TargetRois)*100) '%']);
 catch
     disp('problem with rois, maybe no holo epoch? line 232')
@@ -258,7 +256,7 @@ for i=1:numel(bigList);
         test=[];
     end
     uniqueROIs{i} = unique(test);
-    
+
 end
 
 stimParam=[];
@@ -318,7 +316,6 @@ uniqueVisStim = unique(visID);
 
 clear mov1 mov2 mov3 sweeps DIGITSWEEP
 savePath = basePath;
-saveName =['Analysis_e' num2str(DAQepoch) '.mat']; 
+saveName =['Analysis_e' num2str(DAQepoch) '.mat'];
 save(fullfile(savePath,saveName),'-regexp', '^(?!(ExpStruct)$).','-v7.3');
 disp('Saved')
-
