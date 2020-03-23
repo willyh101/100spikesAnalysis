@@ -48,6 +48,9 @@ numSpikesEachStim   = outVars.numSpikesEachStim;
 percentLowRunTrials = outVars.percentLowRunTrials;
 numSpikesEachEns    = outVars.numSpikesEachEns; 
 
+outVars.numCellsEachEnsBackup = outVars.numCellsEachEns;
+
+
 
 %% Make all dataPlots into matrixes of mean responses
  %%Determine Vis Responsive and Process Correlation
@@ -87,7 +90,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
-excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
+excludeInds = ismember(ensIndNumber,[3]); %Its possible that the visStimIDs got messed up
 
 
 
@@ -96,7 +99,7 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     numSpikesEachEns <110 &...
     ...highVisPercentInd &...
     lowRunInds &...
-    ensStimScore > 0.25 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
+    ensStimScore > 0.5 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     ~excludeInds &...
     numTrialsPerEns > 3;%10;%&...  
      %& numCellsEachEns>10 ;
@@ -117,7 +120,18 @@ outVar.lowRunInds           = lowRunInds;
 
 [All, outVars] = createTSPlot(All,outVars);
 
-%%
+%% Optional group ensembles into small medium and large
+numCellsEachEns = outVars.numCellsEachEnsBackup;
+% numCellsEachEns(numCellsEachEns <=5) = 5;
+% numCellsEachEns(numCellsEachEns > 10) = 20;
 
+outVars.numCellsEachEns= numCellsEachEns;
 
-%%
+%% Basic Response Plots
+plotAllEnsResponse(outVars)
+plotResponseBySize(outVars)
+plotPopResponseBySession(All,outVars)
+%% Distance Response Plots
+opts.distBins =  [0:25:1000];
+ plotResponseByDistance(outVars,opts);
+ 

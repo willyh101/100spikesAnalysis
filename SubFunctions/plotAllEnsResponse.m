@@ -18,8 +18,8 @@ scatter(1:sum(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(
 % hold off
 xlabel('Order of being done')
 ylabel('Population Mean Response')
-title('OSIs by Ensemble Size')
-set(gcf(),'Name','OSIs by Ensemble Size')
+title('Mean Response by Ensemble Size')
+set(gcf(),'Name','Mean Response by Ensemble Size')
 cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
 cb.Label.String = 'Number of Cells in Ensemble';
 r = refline(0);
