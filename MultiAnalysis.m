@@ -66,7 +66,11 @@ outVars.numCellsEachEnsBackup = outVars.numCellsEachEns;
  visPercent = outVars.visPercent;
  ensIndNumber =outVars.ensIndNumber;
  
- %%
+ %% Optional: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
+ [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
+ visPercent = outVars.visPercent;
+
+ 
  %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 
@@ -133,5 +137,12 @@ plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
 %% Distance Response Plots
 opts.distBins =  [0:25:1000];
- plotResponseByDistance(outVars,opts);
+plotResponseByDistance(outVars,opts);
+plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
+%% Contrast Response Functions
+
+ %eh I'll do it later
+ 
+ %% Red Cell Analysis
+ 
  

@@ -128,20 +128,20 @@ for ind=1:numExps
 %         trialsToUse = All(ind).out.vis.visID~=0 & All(ind).out.vis.visID~=1 & All(ind).out.vis.lowMotionTrials;
 %         pVisT(i) = anova1(All(ind).out.vis.rdata(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
     end
-    % All(ind).out.anal.pVisR = pVisR;
+    All(ind).out.anal.pVisR = pVisR;
     
      % hack for expt 11
     % use the vis stim expt
-    if ind==11
-        pVisR=[];
-        for i=1:All(ind).out.anal.numCells     
-            trialsToUse = All(ind).out.vis.visID~=0 &...
-                All(ind).out.vis.lowMotionTrials &...
-                All(ind).out.vis.lowRunTrials;
-            pVisR(i) = anova1(All(ind).out.vis.rdData(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
-        end
-    end
-    All(ind).out.anal.pVisR = pVisR;
+%     if ind==11
+%         pVisR=[];
+%         for i=1:All(ind).out.anal.numCells     
+%             trialsToUse = All(ind).out.vis.visID~=0 &...
+%                 All(ind).out.vis.lowMotionTrials &...
+%                 All(ind).out.vis.lowRunTrials;
+%             pVisR(i) = anova1(All(ind).out.vis.rdData(i,trialsToUse),All(ind).out.vis.visID(trialsToUse),'off');
+%         end
+%     end
+%     All(ind).out.anal.pVisR = pVisR;
      
     
     All(ind).out.anal.visPercent = sum(pVisR<visAlpha) / numel(pVisR);
