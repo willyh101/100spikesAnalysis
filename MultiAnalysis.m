@@ -106,4 +106,18 @@ IndsUsed = unique(ensIndNumber(ensemblesToUse));
 
 sum(ensemblesToUse)
 
+outVars.ensemblesToUse      = ensemblesToUse;
+outVars.IndsUsed            = IndsUsed;
+outVars.indsSub             = indsSub;
+outVars.numTrialsPerEns     = numTrialsPerEns;
+outVar.highVisPercentInd    = highVisPercentInd;
+outVar.lowRunInds           = lowRunInds;
+
+%% Create time series plot
+
+[All, outVars] = createTSPlot(All,outVars);
+
+%%
+
+
 %%
