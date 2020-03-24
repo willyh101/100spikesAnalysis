@@ -1,6 +1,6 @@
 %% table demo
 
-dataIn = All(20).out;
+dataIn = All(1).out;
 visTable = makeVisTable(dataIn);
 head(visTable) % show the top of table
 

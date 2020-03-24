@@ -58,18 +58,33 @@ clear ensStimScore
      All(ind).out.exp.rdData=rdata;
      All(ind).out.exp.bdata=bdata;
      
-     % Get vis rdData and Base Data also
-         vrdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
-         vbdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
-         All(ind).out.vis.rdData=vrdata;
-         All(ind).out.vis.bdata=vbdata;
-     
-         
-     
      All(ind).out.anal.recWinUsed = winToUse;
-    All(ind).out.anal.bwinToUse = bwinToUse;
-    All(ind).out.anal.recStartTime = visStart;
-    All(ind).out.anal.recStartFrame = round(visStart*All(ind).out.info.FR);
+     All(ind).out.anal.bwinToUse = bwinToUse;
+     All(ind).out.anal.recStartTime = visStart;
+     All(ind).out.anal.recStartFrame = round(visStart*All(ind).out.info.FR);
+     
+     %Vis Section
+     sz2 = size(All(ind).out.vis.zdfData);
+     try
+         visStart = All(ind).out.vis.visStart;
+     catch
+         visStart = 0.92; %seemed typical
+         fprintf('\nError vis.visStart not detected...')
+     end
+     winToUse = min(round((visStart+recWinRange).*All(ind).out.info.FR),[inf sz2(2)]) ;
+     bwinToUse = max(round([0 visStart]*All(ind).out.info.FR),[1 1]);
+     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz2(2)]) ;
+     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
+     All(ind).out.anal.visRecWinUsed = winToUse;
+     
+     
+     rdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
+     bdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
+     
+     All(ind).out.vis.rdata=rdata;
+     All(ind).out.vis.bdata=bdata;
+          
+     
   
      %runProcessing Section
     runVal = All(ind).out.exp.runVal;
