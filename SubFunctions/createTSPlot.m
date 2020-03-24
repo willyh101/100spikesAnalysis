@@ -13,9 +13,7 @@ for ind=1:numExps
     us = unique(All(ind).out.exp.stimID);
     vs = unique(All(ind).out.exp.visID);
     vs(vs==0)=[];
-    trialsToUse = All(ind).out.exp.lowMotionTrials &...
-        All(ind).out.exp.lowRunTrials &...
-        All(ind).out.exp.stimSuccessTrial;
+
     
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
