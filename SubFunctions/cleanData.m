@@ -58,13 +58,12 @@ clear ensStimScore
      All(ind).out.exp.rdData=rdata;
      All(ind).out.exp.bdata=bdata;
      
-     % hacky fix for exp11 with no vis stim
-     if ind==11
+     % Get vis rdData and Base Data also
          vrdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
          vbdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
          All(ind).out.vis.rdData=vrdata;
          All(ind).out.vis.bdata=vbdata;
-     end
+     
          
      
      All(ind).out.anal.recWinUsed = winToUse;
