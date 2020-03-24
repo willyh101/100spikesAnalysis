@@ -147,8 +147,9 @@ plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even
 
 %eh I'll do it later
 
-%% Orientation Tuning
+%% Orientation Tuning and OSI
 [All, outVars] = getTuningCurve(All, opts, outVars);
+[All, outVars] = calcOSI(All, outVars);
 
 
 

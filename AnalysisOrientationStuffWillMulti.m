@@ -309,7 +309,7 @@ All(18).out.exp.lowRunTrials = All(18).out.exp.lowRunTrials(12:end);
 %% Determine the OSI from the Vis section of each cell.
 
 
-  visAlpha = 0.05;
+visAlpha = 0.05;
   
 for ind=1:numExps
     pTime =tic;
