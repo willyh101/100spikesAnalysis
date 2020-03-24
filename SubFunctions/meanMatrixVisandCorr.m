@@ -176,14 +176,18 @@ for ind=1:numExps
             else
                 cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:);
             end
-            popResp(i,v) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+            popResp(i,v) = mean(squeeze(respMat(i,v ,cellsToUse) - baseMat(i,v,cellsToUse)));
             
             if i~=1
                 Tg=All(ind).out.exp.rois{holo};
                 dists = StimDistance(Tg,:);
                 
                 minDist = min(dists,[],1);
-                geoDist = geomean(dists,1); 
+                try
+                    geoDist = geo_mean(dists,1);
+                catch
+                    geoDist = geomean(dists,1);
+                end
                 meanDist = mean(dists,1);
                 harmDist = harmmean(dists,1);
                 
