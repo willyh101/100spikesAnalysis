@@ -37,6 +37,7 @@ for ind=1:numExps
     orthoOri = cat(1,orthoOri, orthoOri2);
     
     % save the datas
+    tuningCurves{ind} = oriCurve;
     prefOris{ind} = prefOri;
     orthoOris{ind} = orthoOri;
     All(ind).out.anal.prefOri = prefOri;
@@ -46,4 +47,5 @@ end
 
 outVars.prefOris = prefOris;
 outVars.orthoOris = orthoOris;
+outVars.tuningCurves = tuningCurves;
     
