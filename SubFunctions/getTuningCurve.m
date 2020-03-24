@@ -4,10 +4,7 @@ function [All, outVars] = getTuningCurve(All, opts, outVars)
 visAlpha = opts.visAlpha;
 numExps = numel(All);
 
-for ind=1:numExps
-    pTime =tic;
-    fprintf(['Processing Experiment ' num2str(ind) '...']);
-    
+for ind=1:numExps  
     uVisID = unique(All(ind).out.vis.visID);
     uVisID(uVisID==0)=[];
     

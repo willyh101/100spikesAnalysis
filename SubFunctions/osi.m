@@ -10,7 +10,7 @@ orthoOri2(orthoOri2>9) = orthoOri2(orthoOri2>9)-8;
 
 orthoOri = cat(1,orthoOri, orthoOri2);
 
-oriCurveBL = oriCurve - min(oriCurve);
+oriCurveBL = tuning_curve - min(tuning_curve);
 
 OSI=[];
 for i=1:numel(prefOri)
