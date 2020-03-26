@@ -152,6 +152,8 @@ plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even
 %eh I'll do it later
 
 %% Orientation Tuning and OSI
+% leaving this a mess here for now to compare the different prefOri
+% calculations.... will tidy up later
 [All, outVars] = getTuningCurve(All, opts, outVars);
 [All, outVars] = calcOSI(All, outVars);
 [All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
