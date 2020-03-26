@@ -67,6 +67,7 @@ opts.visAlpha = 0.05;
 %oftarget risk params
 opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
+opts.distBins =  [0:25:1000];
 
 [All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
 
@@ -144,7 +145,6 @@ plotAllEnsResponse(outVars)
 plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
 %% Distance Response Plots
-opts.distBins =  [0:25:1000];
 plotResponseByDistance(outVars,opts);
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
 %% Contrast Response Functions
