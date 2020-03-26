@@ -154,9 +154,51 @@ plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even
 %% Orientation Tuning and OSI
 [All, outVars] = getTuningCurve(All, opts, outVars);
 [All, outVars] = calcOSI(All, outVars);
+[All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
+
+% compare max vs circular mean for determining PO
+po = outVars.prefOris{1};
+oris = 0:45:315;
+
+osi = outVars.osi{1};
+osi(po==1)=[];
+po(po==1)=[];
+
+podeg = oris(po-1);
+
+figure(1)
+clf
+subplot(1,2,1)
+scatter(podeg, outVars.circTuning{1}, [], osi, 'filled')
+ylabel('Circular PO')
+xlabel('Max PO')
+c = colorbar;
+c.Label.String = 'OSI';
+subplot(1,2,2)
+scatter(podeg, outVars.circTuning{1}, [], outVars.circVar{1}, 'filled')
+ylabel('Circular PO')
+xlabel('Max PO')
+c = colorbar;
+c.Label.String = 'Circ. Var (deg)';
+
+% do OSI on new fancy tuning method
+prefOri = outVars.circTuning{1};
+ortho1 = mod(prefOri - 90, 315);
+ortho2 = mod(prefOri + 90, 315);
+orthoOri = cat(1,ortho1, ortho2);
+% but have to cast back to 0:45:315
+prefOriBinned = interp1(oris, oris, prefOri, 'nearest', 'extrap');
+orthoOriBinned = interp1(oris, oris, orthoOri, 'nearest', 'extrap');
+% then go back to visID to get idxs
 
 
 
-
+curves = outVars.tuningCurves{1};
+oriCurveBL = curves - min(curves);
+OSI=[];
+for i=1:numel(prefOri)
+    OSI(i) = (oriCurveBL(prefOriBinned(i),i) - mean(oriCurveBL(orthoOri(:,i)',i)) )...
+        / (oriCurveBL(prefOri(i),i)+ mean(oriCurveBL(orthoOri(:,i)',i)) );
+end
 %% Red Cell Analysis
 
