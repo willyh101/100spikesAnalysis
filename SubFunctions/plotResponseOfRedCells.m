@@ -5,7 +5,7 @@ minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
 
 
     clear popRespRed popRespNotRed popRespRedSEM popRespNotRedSEM
-    clear popTSRed popTSNotRed
+    clear popTSRed popTSNotRed nRedNotRed
 c=0;
 for ind = 1:numExps;
     
@@ -60,6 +60,8 @@ for ind = 1:numExps;
                 All(ind).out.exp.stimID==s &...
                 All(ind).out.exp.visID==v );
             popTSNotRed(c,:) = mean(mean(dat,3),1);
+            nRedNotRed(c,1) = sum(cellsToUse & isRed);
+            nRedNotRed(c,2) = sum(cellsToUse & ~isRed);
  end
  
 

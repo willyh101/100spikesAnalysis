@@ -154,7 +154,7 @@ for ind=1:numExps
     clear minDistbyHolo geoDistbyHolo meanDistbyHolo harmDistbyHolo
     
     
-    distBins = [0:25:1000];
+    distBins = opts.distBins; %[0:25:1000];
     numDist =numel(distBins)-1;
     numStims = numel(All(ind).out.exp.stimParams.Seq);
     numVis = numel(vs);
