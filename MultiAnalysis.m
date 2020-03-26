@@ -1,5 +1,9 @@
-%% Load Experiments
+%% Load Experiments/Setup
+clear all
+close all
 addpath('SubFunctions')
+addpath('circStats')
+
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
