@@ -17,7 +17,7 @@
 
 
 %% part 1: load and plot data
-clear
+% clear
 load neurodata
 
 % orientation of bins -> convert two directions
