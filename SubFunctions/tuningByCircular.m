@@ -1,4 +1,4 @@
-function [PO, CV] = tuningByCircular(oris, data)
+function [PO, CV, curves] = tuningByCircular(data)
 
 % remove the cell if its max is the catch
 % I think that keeping it in messes things up... (ie. not a circle)
@@ -7,17 +7,20 @@ data = data'; % needs to be cells x oris
 data(p==1,:)=[]; % remove cellsif match is grey screen
 data(:,1)=[]; % remove the data from array
 data = data - min(data); % remove negative values
+data_temp(:,:,1) = data(:,1:4);
+data_temp(:,:,2) = data(:,5:8);
+data180 = mean(data_temp,3);
 
 % convert to rads
-ori = circ_axial(circ_ang2rad(oris), 2);
+ori = circ_axial(circ_ang2rad(0:45:135), 2);
 
 % calculate bin spacing in rads
 dori = diff(ori(1:2));
 
 % calculations
-ncells = size(data,1);
+ncells = size(data180,1);
 for c = 1:ncells
-    d = data(c,:);
+    d = data180(c,:);
     % get mean and circular variance
     m(c) = circ_mean(ori, d, 2);
     v(c) = circ_var(ori, d, dori, 2);
@@ -26,5 +29,15 @@ for c = 1:ncells
 %     ot(c) = circ_otest(ori, [], d); % needs integers
 end
 
-PO = circ_rad2ang(circ_axial(m));
-CV = circ_rad2ang(circ_axial(v));
+% PO = m;
+PO = circ_rad2ang(m);
+% PO = circ_rad2ang(circ_axial(m));
+
+CV = v;
+% CV = circ_rad2ang(v);
+% CV = circ_rad2ang(circ_axial(v));
+
+
+curves = data180;
+
+
