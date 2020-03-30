@@ -146,7 +146,7 @@ clear ensStimScore
      
       % create a trial by trial stimSuccess limit
     us = unique(All(ind).out.exp.stimID);
-    vs = unique(All(ind).out.exp.stimID);
+    vs = unique(All(ind).out.exp.visID);
     numTrials = size(All(ind).out.exp.zdfData,3);
     
     rdata = All(ind).out.exp.rdData;

@@ -80,7 +80,9 @@ ensIndNumber =outVars.ensIndNumber;
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
 
-
+%% if there is a red section
+[outVars] = detectShotRedCells(All,outVars)
+ensHasRed = outVars.ensHasRed;
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 
@@ -115,7 +117,8 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     lowRunInds &...
     ensStimScore > 0.5 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     ~excludeInds &...
-    numTrialsPerEns > 10;%10;%&...
+    numTrialsPerEns > 10 &...;%10;%&...
+    ~ensHasRed ;
 %& numCellsEachEns>10 ;
 
 indsSub = ensIndNumber(ensemblesToUse);
@@ -230,4 +233,4 @@ xlabel('Max PO')
 c = colorbar;
 c.Label.String = 'OSI by circ tuning';
 %% Red Cell Analysis
-[outVars] = plotResponseOfRedCells(All,outVars,opts)
+[outVars] = plotResponseOfRedCells(All,outVars,opts);

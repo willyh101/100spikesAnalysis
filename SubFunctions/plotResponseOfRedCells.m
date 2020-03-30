@@ -96,9 +96,11 @@ popRespNotRed(isControl)=[];
  sp = scatter(outVars.numCellsEachEns(ensToPlot),popRespRed(ensToPlot),'o');
  sp.MarkerEdgeColor = 'r';
  hold on
- sp=scatter(outVars.numCellsEachEns(ensToPlot)+0.5,popRespNotRed(ensToPlot),'o');
+ sp=scatter(outVars.numCellsEachEns(ensToPlot)+0.75,popRespNotRed(ensToPlot),'o');
   sp.MarkerEdgeColor = 'k';
 
+  
+  
  r = refline(0);
  r.LineStyle=':';
  r.Color=rgb('grey');
@@ -109,12 +111,25 @@ popRespNotRed(isControl)=[];
 
  %now determine statistical signifigance
  ensCat = unique(outVars.numCellsEachEns(ensToPlot));
+ clear redPVal redGrandMean redGrandSEM notRedGrandMean notRedGrandSEM
  for i =1:numel(ensCat);
- redPVal(i) = signrank(popRespRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)),...
-     popRespNotRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)) );
- disp(['Singed Rank for size : ' num2str(ensCat(i)) ' : ' num2str(redPVal(i))])
+     redPVal(i) = signrank(popRespRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)),...
+         popRespNotRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)) );
+     redGrandMean(i) = nanmean(popRespRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)));
+     redGrandSEM(i) = sem(popRespRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)));
+     
+     notRedGrandMean(i) = nanmean(popRespNotRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)));
+     notRedGrandSEM(i) = sem(popRespNotRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)));
+     
+     disp(['Size ' num2str(ensCat(i)) ' Red mean: ' num2str(redGrandMean(i)) '. Not Red: ' num2str(notRedGrandMean(i)) ]);
+     disp(['Singed Rank: ' num2str(redPVal(i))])
  end
- 
+ e = errorbar(ensCat+0.25,redGrandMean,redGrandSEM);
+ e.LineWidth = 2;
+ e.Color ='r';
+ e = errorbar(ensCat+0.5,notRedGrandMean,notRedGrandSEM);
+ e.LineWidth = 2;
+ e.Color ='k';
  
  %TS Section
  popTSRed(isControl,:)=[];
