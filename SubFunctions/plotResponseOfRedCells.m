@@ -140,21 +140,44 @@ popRespNotRed(isControl)=[];
      popTSRed = popTSRed - mean(popTSRed(:,1:minStrtFrame),2);
      popTSNotRed = popTSNotRed - mean(popTSNotRed(:,1:minStrtFrame),2);
  end
+ 
+ colorLim = [-0.15 0.15];
  figure(22);clf
- subplot(1,2,1)
+ ax1(1) = subplot(2,2,1);
  imagesc(popTSRed(ensToPlot,:))
  colormap rdbu
- caxis([-0.25 0.25])
+ caxis(colorLim)
  title('Red Cells')
  ylabel('Ensemble')
  xlabel('Frame')
  
- subplot(1,2,2)
+ ax(1) = subplot(2,2,3);
+ fillPlot(popTSRed(ensToPlot,:),[],'ci');
+ 
+ ax1(2) = subplot(2,2,2);
   imagesc(popTSNotRed(ensToPlot,:))
  colormap rdbu
- caxis([-0.25 0.25])
+ caxis(colorLim)
  title('Not Red Cells')
  xlabel('Frame')
  
+ ax(2) = subplot(2,2,4);
+  fillPlot(popTSNotRed(ensToPlot,:),[],'ci');
+linkaxes(ax);
+
+figure(24);
+clf;
+hold on
+lineCol = rgb('FireBrick');
+edgeCol = 'none';
+faceCol = rgb('FireBrick');
+faceAlpha = 0.5;
+fp1 =  fillPlot(popTSRed(ensToPlot,:),[],'ci',lineCol,edgeCol,faceCol,faceAlpha);
+lineCol = rgb('Black');
+edgeCol = 'none';
+faceCol = rgb('DimGray');
+faceAlpha = 0.5;
+ fp2 = fillPlot(popTSNotRed(ensToPlot,:),[],'ci',lineCol,edgeCol,faceCol,faceAlpha);
+ legend([fp1(1) fp2(1)],'Red Cells','Not Red Cells')
  
  

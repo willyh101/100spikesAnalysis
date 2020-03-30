@@ -111,14 +111,15 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 
 
 
-ensemblesToUse = numSpikesEachEns > 75 &...
-    numSpikesEachEns <110 &...
-    ...highVisPercentInd &...
-    lowRunInds &...
-    ensStimScore > 0.5 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
-    ~excludeInds &...
-    numTrialsPerEns > 10 &...;%10;%&...
-    ~ensHasRed ;
+ensemblesToUse = numSpikesEachEns > 75 ...
+    & numSpikesEachEns <110 ...
+    ... & highVisPercentInd ...
+    & lowRunInds ...
+    & ensStimScore > 0.5 ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
+    & ~excludeInds ...
+    & numTrialsPerEns > 10 ... ;%10;%&...
+    & ~ensHasRed ...
+    ;
 %& numCellsEachEns>10 ;
 
 indsSub = ensIndNumber(ensemblesToUse);
@@ -234,3 +235,28 @@ c = colorbar;
 c.Label.String = 'OSI by circ tuning';
 %% Red Cell Analysis
 [outVars] = plotResponseOfRedCells(All,outVars,opts);
+
+
+%% Red Distance section
+for ind = 1:numExps;
+    if isfield(All(ind).out.red,'isRed')
+        All(ind).out.red.notRed = ~All(ind).out.red.isRed;
+    end
+end
+
+opts.distType = 'min';
+
+CellToUseVar = 'red.isRed';
+[popRespDistEnsRed] = popDistMaker(opts,All,CellToUseVar,0);
+CellToUseVar = 'red.notRed';
+[popRespDistEnsNotRed] = popDistMaker(opts,All,CellToUseVar,0);
+
+figure(9);clf
+ax =subplot(1,2,1);
+plotDistRespGeneric(popRespDistEnsRed,outVars,opts,ax);
+title('Red Cells')
+ax2 = subplot(1,2,2);
+plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
+title('Not Red Cells')
+linkaxes([ax ax2])
+

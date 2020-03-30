@@ -1,4 +1,4 @@
-function [popRespDistEns] = popDistMaker(opts,All,CellToUseVar)
+function [popRespDistEns] = popDistMaker(opts,All,CellToUseVar,plotFlag)
 %% make distance plots 
 distType = opts.distType;
 distBins = opts.distBins; %[0:25:1000];
@@ -14,9 +14,9 @@ for ind = 1:numExps
     if isempty(CellToUseVar)
         cellToUseLimit = ones([1 size(All(ind).out.anal.respMat,3)]);
     else
-        if isfield(All(1).out.red,CellToUseVar)
-            cellToUseLimit = eval(['All(ind).out.red.' CellToUseVar]);
-        else
+       try
+            cellToUseLimit = eval(['All(ind).out.' CellToUseVar]);
+       catch
             disp('ERROR variable not found')
             break
         end
@@ -103,7 +103,9 @@ for ind = 1:numExps
     
 %     popRespDistEns{ind}=popRespDist;
 end
- figure(4);clf
- imagesc(popRespDistEns)
-colormap rdbu
+if plotFlag
+    figure(4);clf
+    imagesc(popRespDistEns)
+    colormap rdbu
+end
 caxis([-0.3 +0.3])
