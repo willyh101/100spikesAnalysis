@@ -107,6 +107,14 @@ popRespNotRed(isControl)=[];
  xlabel('Ensemble Size')
  legend({'Red Cells'; 'Not Red Cells'})
 
+ %now determine statistical signifigance
+ ensCat = unique(outVars.numCellsEachEns(ensToPlot));
+ for i =1:numel(ensCat);
+ redPVal(i) = signrank(popRespRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)),...
+     popRespNotRed(ensToPlot & outVars.numCellsEachEns==ensCat(i)) );
+ disp(['Singed Rank for size : ' num2str(ensCat(i)) ' : ' num2str(redPVal(i))])
+ end
+ 
  
  %TS Section
  popTSRed(isControl,:)=[];

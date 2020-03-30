@@ -23,6 +23,8 @@ for ind=1:numExps
     
     pVisR = All(ind).out.anal.pVisR;
     
+    trialsToUse = All(ind).out.anal.defaultTrialsToUse; 
+    
     clear mRespTS sRespTS nResp
     for i = 1:numel(us)
         s = us(i);

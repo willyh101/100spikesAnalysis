@@ -7,6 +7,7 @@ addpath('circStats')
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
+%%
 oriLoadList
 loadList = loadList(15);
 % loadPath = 'U:\ioldenburg\outputdata1'
@@ -35,7 +36,7 @@ end
 %% clean Data
 
 opts.FRDefault=6;
-opts.recWinRange = [0.5 1.5];% %from vis Start [1.25 2.5];
+opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
 
 
 %Stim Success Thresholds
@@ -103,7 +104,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
-excludeInds = ismember(ensIndNumber,[3]); %Its possible that the visStimIDs got messed up
+excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 
 
@@ -114,7 +115,7 @@ ensemblesToUse = numSpikesEachEns > 75 &...
     lowRunInds &...
     ensStimScore > 0.5 &... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     ~excludeInds &...
-    numTrialsPerEns > 3;%10;%&...
+    numTrialsPerEns > 10;%10;%&...
 %& numCellsEachEns>10 ;
 
 indsSub = ensIndNumber(ensemblesToUse);
@@ -129,15 +130,26 @@ outVars.numTrialsPerEns     = numTrialsPerEns;
 outVar.highVisPercentInd    = highVisPercentInd;
 outVar.lowRunInds           = lowRunInds;
 
+%% Set Default Trials to Use
+for ind=1:numExps
+    trialsToUse = All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimSuccessTrial;
+    All(ind).out.anal.defaultTrialsToUse = trialsToUse;
+end
 %% Create time series plot
 
 [All, outVars] = createTSPlot(All,outVars);
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
-% numCellsEachEns(numCellsEachEns <=5) = 5;
-% numCellsEachEns(numCellsEachEns > 10) = 20;
+numCellsEachEns(numCellsEachEns <=5) = 5;
+numCellsEachEns(numCellsEachEns > 10) = 20;
 
+outVars.numCellsEachEns= numCellsEachEns;
+
+%% Optional Reset ensemble grouping to default
+numCellsEachEns = outVars.numCellsEachEnsBackup;
 outVars.numCellsEachEns= numCellsEachEns;
 
 %% Basic Response Plots
@@ -203,4 +215,4 @@ for i=1:numel(prefOri)
         / (oriCurveBL(prefOri(i),i)+ mean(oriCurveBL(orthoOri(:,i)',i)) );
 end
 %% Red Cell Analysis
-
+[outVars] = plotResponseOfRedCells(All,outVars,opts)
