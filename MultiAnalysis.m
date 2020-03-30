@@ -3,6 +3,7 @@ clear all
 close all
 addpath('SubFunctions')
 addpath('circStats')
+addpath('LoadLists')
 
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');

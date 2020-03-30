@@ -96,8 +96,8 @@ popRespNotRed(isControl)=[];
  sp = scatter(outVars.numCellsEachEns(ensToPlot),popRespRed(ensToPlot),'o');
  sp.MarkerEdgeColor = 'r';
  hold on
- sp=scatter(outVars.numCellsEachEns(ensToPlot)+0.75,popRespNotRed(ensToPlot),'o');
-  sp.MarkerEdgeColor = 'k';
+ sp2=scatter(outVars.numCellsEachEns(ensToPlot)+0.75,popRespNotRed(ensToPlot),'o');
+  sp2.MarkerEdgeColor = 'k';
 
   
   
@@ -107,7 +107,6 @@ popRespNotRed(isControl)=[];
  r.LineWidth=2;
  ylabel('Population Response')
  xlabel('Ensemble Size')
- legend({'Red Cells'; 'Not Red Cells'})
 
  %now determine statistical signifigance
  ensCat = unique(outVars.numCellsEachEns(ensToPlot));
@@ -131,6 +130,8 @@ popRespNotRed(isControl)=[];
  e.LineWidth = 2;
  e.Color ='k';
  
+ legend([sp(1) sp2(1)],'Red Cells', 'Not Red Cells')
+
  %TS Section
  popTSRed(isControl,:)=[];
  popTSNotRed(isControl,:)=[];
