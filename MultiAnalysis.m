@@ -1,7 +1,7 @@
 %% Load Experiments/Setup
 clear all
 close all
-addpath('SubFunctions')
+addpath('SubFunctions') %will, does this work for you?
 addpath('circStats')
 addpath('LoadLists')
 

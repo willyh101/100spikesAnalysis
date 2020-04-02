@@ -1,5 +1,33 @@
 %% Load one Out
+SSTLoadList
 
+loadList = loadList(2);
+% loadPath = 'U:\ioldenburg\outputdata1'
+% loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
+% loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
+% loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
+%%
+numExps = numel(loadList);
+if numExps ~= 0
+    clear All
+    if ~iscell(loadList)
+        numExps=1;
+        temp = loadList;
+        clear loadList;
+        loadList{1} = temp;
+    end
+    for ind = 1:numExps
+        pTime =tic;
+        fprintf(['Loading Experiment ' num2str(ind) '...']);
+        All(ind) = load(fullfile(loadPath,loadList{ind}),'out');
+        fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+    end
+else
+    disp('Did you press this by accident?')
+end
+
+out = All.out;
+out.info
 %% Identify Red Cells from another image
 [redImageFN redImagePath] = uigetfile;
 % rawRedImg = bigread3([redImagePath redImageFN]);
@@ -8,7 +36,70 @@ rawRedImg=rawRedImg(:,:,2:2:end);
 
 % exampleGreenImage = ScanImageTiffReader(localFiles{1}).data;
 % exampleGreenImage = exampleGreenImage(:,:,1:2:end);
-%% Manually click Red Cells
+%% Get 1020 image too
+[red1020FN redImagePath] = uigetfile(redImagePath);
+% rawRedImg = bigread3([redImagePath redImageFN]);
+rawRed1020Img = ScanImageTiffReader([redImagePath red1020FN]).data;
+rawRed1020Img=rawRed1020Img(:,:,2:2:end);
+%% Motion Correct and check each
+% i=1;
+
+for i = 1:nDepthsTotal
+alignIt =1;
+
+gfilt = 1;
+
+figure(7);clf
+subplot(1,2,1)
+imToUse = rawRedImg(:,:,i:nDepthsTotal:end);
+[imToUse, dxs, dys] = simpleAlignTimeSeries (imToUse);
+
+
+imToUse =mean(imToUse,3);
+
+imToUse = imgaussfilt(imToUse,1);
+
+mn = prctile(imToUse(:),0.5);%min(imToUse(:));% prctile(imToUse(:),0.5);
+mx = prctile(imToUse(:),99.75);%max(imToUse(:))-100;%prctile(imToUse(:),99.5);
+
+imToUse = (imToUse-mn)./(mx-mn);
+
+imagesc(imToUse);
+subplot(1,2,2)
+imToUse2 = rawRed1020Img(:,:,i:nDepthsTotal:end);
+[imToUse2, dxs, dys] = simpleAlignTimeSeries (imToUse2);
+imToUse2 = mean(imToUse2,3);
+
+imToUse2 = imgaussfilt(imToUse2,gfilt);
+mn = prctile(imToUse2(:),0.5);%min(imToUse2(:));% prctile(imToUse(:),0.5);
+mx = prctile(imToUse2(:),99.5);%max(imToUse2(:));%prctile(imToUse(:),99.5);
+imToUse2 = (imToUse2-mn)./(mx-mn);
+
+if alignIt==1
+    [dx,dy] = fftalign(imToUse2,imToUse);
+    imToUse2 = circshift(imToUse2,[dx, dy]);
+end
+
+imagesc(imToUse2);
+
+IMG = zeros([512 512 3]);
+IMG(:,:,1) = imToUse2;
+IMG(:,:,2) = imToUse;
+
+figure(8);clf
+image(IMG)
+
+IMTOUSE1{i} =  imToUse;
+IMTOUSE2{i} =  imToUse2;
+
+title(['Depth ' num2str(i) ' click on command line to continue'])
+drawnow
+disp('Press Enter...')
+pause
+end
+
+
+%% Manually click Red Cells One Image Only
 nDepthsTotal = max(out.exp.allDepth);
 
     RedCellLocations=[];
@@ -37,6 +128,57 @@ imToUse =mean(rawRedImg(:,:,i:nDepthsTotal:end),3);
     ylim([0 512])
 end
 clf
+
+%% Manually Click Red Cells Using merge
+nDepthsTotal = max(out.exp.allDepth);
+
+    RedCellLocations=[];
+
+for i = 1:nDepthsTotal
+%     subplot(1,3,i)
+figure(7);clf
+
+% imToUse = mean(rawRedImg(:,:,i:nDepthsTotal:end),3);
+% imToUse = imgaussfilt(imToUse,1);
+% mn = prctile(imToUse(:),0.5);%min(imToUse(:));% prctile(imToUse(:),0.5);
+% mx = prctile(imToUse(:),99.75);%max(imToUse(:))-100;%prctile(imToUse(:),99.5);
+% imToUse = (imToUse-mn)./(mx-mn);
+% 
+% imToUse2 =mean(rawRed1020Img(:,:,i:nDepthsTotal:end),3);
+% imToUse2 = imgaussfilt(imToUse2,gfilt);
+% mn = prctile(imToUse2(:),0.5);%min(imToUse2(:));% prctile(imToUse(:),0.5);
+% mx = prctile(imToUse2(:),99.5);%max(imToUse2(:));%prctile(imToUse(:),99.5);
+% imToUse2 = (imToUse2-mn)./(mx-mn);
+
+imToUse = IMTOUSE1{i};
+imToUse2 = IMTOUSE2{i};
+
+IMG = zeros([512 512 3]);
+IMG(:,:,1) = imToUse2;
+IMG(:,:,2) = imToUse;
+image(IMG);
+
+    title(['Plane ' num2str(i) '. Click on every ''Red'' Cell. click outside the block to moveon']);
+    
+%     caxis([prctile(imToUse(:),0.5) prctile(imToUse(:), 99.5)]);
+    hold on
+
+    thisLocation =[0 0];
+    while all(thisLocation>=0) && all(thisLocation<=512)
+        thisLocation = ginput(1);
+        plot(thisLocation(1),thisLocation(2),'o','color',rgb('red'))
+        RedCellLocations = cat(1,RedCellLocations,[thisLocation i]);
+    end
+        
+    
+%     plot(allCoM(allDepth==i,1)-offsets(1),allCoM(allDepth==i,2)-offsets(2),'o','color',rgb('red'))
+%     plot(stimCoM(stimDepth==i,1),stimCoM(stimDepth==i,2),'.')
+    xlim([0 512])
+    ylim([0 512])
+end
+clf
+
+
 %% retrieve saved varialbes
 offsets = out.info.offsets;
 allDepth = out.exp.allDepth;
@@ -50,9 +192,9 @@ additionalOffsets = zeros([nDepthsTotal 2]);
 %offset is just a single average number, but sometimes you can tell that
 %one plane is more offset then the rest ad that now
 
-additionalOffsets(1,:)=[1 2];
-additionalOffsets(2,:)=[0 1];
-additionalOffsets(3,:)=[1 1];
+additionalOffsets(1,:)=[-1 1];
+additionalOffsets(2,:)=[0 0];
+additionalOffsets(3,:)=[-2 2];
 
 %% match red cell locations
 figure(7);clf
@@ -115,10 +257,14 @@ red.isRed = isRed;
 % red.redVal = redVal; 
 red.RedCells = RedCells;
 
+try 
+    red.redIMs = {IMTOUSE1 IMTOUSE2};
+end
+
 out.red=red;
 
 info = out.info;
 
-save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfileNew'], 'out')
 disp('saved')
 
