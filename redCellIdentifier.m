@@ -41,16 +41,21 @@ rawRedImg=rawRedImg(:,:,2:2:end);
 % rawRedImg = bigread3([redImagePath redImageFN]);
 rawRed1020Img = ScanImageTiffReader([redImagePath red1020FN]).data;
 rawRed1020Img=rawRed1020Img(:,:,2:2:end);
-%% Plot Two Images together to set offsets
-i=1;
+%% Motion Correct and check each
+% i=1;
 
+for i = 1:nDepthsTotal
 alignIt =1;
 
 gfilt = 1;
 
 figure(7);clf
 subplot(1,2,1)
-imToUse =mean(rawRedImg(:,:,i:nDepthsTotal:end),3);
+imToUse = rawRedImg(:,:,i:nDepthsTotal:end);
+[imToUse, dxs, dys] = simpleAlignTimeSeries (imToUse);
+
+
+imToUse =mean(imToUse,3);
 
 imToUse = imgaussfilt(imToUse,1);
 
@@ -62,7 +67,7 @@ imToUse = (imToUse-mn)./(mx-mn);
 imagesc(imToUse);
 subplot(1,2,2)
 imToUse2 = rawRed1020Img(:,:,i:nDepthsTotal:end);
-[Ar, dxs, dys] = simpleAlignTimeSeries (imToUse2);
+[imToUse2, dxs, dys] = simpleAlignTimeSeries (imToUse2);
 imToUse2 = mean(imToUse2,3);
 
 imToUse2 = imgaussfilt(imToUse2,gfilt);
@@ -84,9 +89,17 @@ IMG(:,:,2) = imToUse;
 figure(8);clf
 image(IMG)
 
+IMTOUSE1{i} =  imToUse;
+IMTOUSE2{i} =  imToUse2;
+
+title(['Depth ' num2str(i) ' click on command line to continue'])
+drawnow
+disp('Press Enter...')
+pause
+end
 
 
-%% Manually click Red Cells
+%% Manually click Red Cells One Image Only
 nDepthsTotal = max(out.exp.allDepth);
 
     RedCellLocations=[];
@@ -125,17 +138,20 @@ for i = 1:nDepthsTotal
 %     subplot(1,3,i)
 figure(7);clf
 
-imToUse =mean(rawRedImg(:,:,i:nDepthsTotal:end),3);
-imToUse = imgaussfilt(imToUse,1);
-mn = prctile(imToUse(:),0.5);%min(imToUse(:));% prctile(imToUse(:),0.5);
-mx = prctile(imToUse(:),99.75);%max(imToUse(:))-100;%prctile(imToUse(:),99.5);
-imToUse = (imToUse-mn)./(mx-mn);
+% imToUse = mean(rawRedImg(:,:,i:nDepthsTotal:end),3);
+% imToUse = imgaussfilt(imToUse,1);
+% mn = prctile(imToUse(:),0.5);%min(imToUse(:));% prctile(imToUse(:),0.5);
+% mx = prctile(imToUse(:),99.75);%max(imToUse(:))-100;%prctile(imToUse(:),99.5);
+% imToUse = (imToUse-mn)./(mx-mn);
+% 
+% imToUse2 =mean(rawRed1020Img(:,:,i:nDepthsTotal:end),3);
+% imToUse2 = imgaussfilt(imToUse2,gfilt);
+% mn = prctile(imToUse2(:),0.5);%min(imToUse2(:));% prctile(imToUse(:),0.5);
+% mx = prctile(imToUse2(:),99.5);%max(imToUse2(:));%prctile(imToUse(:),99.5);
+% imToUse2 = (imToUse2-mn)./(mx-mn);
 
-imToUse2 =mean(rawRed1020Img(:,:,i:nDepthsTotal:end),3);
-imToUse2 = imgaussfilt(imToUse2,gfilt);
-mn = prctile(imToUse2(:),0.5);%min(imToUse2(:));% prctile(imToUse(:),0.5);
-mx = prctile(imToUse2(:),99.5);%max(imToUse2(:));%prctile(imToUse(:),99.5);
-imToUse2 = (imToUse2-mn)./(mx-mn);
+imToUse = IMTOUSE1{i};
+imToUse2 = IMTOUSE2{i};
 
 IMG = zeros([512 512 3]);
 IMG(:,:,1) = imToUse2;
@@ -176,9 +192,9 @@ additionalOffsets = zeros([nDepthsTotal 2]);
 %offset is just a single average number, but sometimes you can tell that
 %one plane is more offset then the rest ad that now
 
-additionalOffsets(1,:)=[0 1];
-additionalOffsets(2,:)=[5 1];
-additionalOffsets(3,:)=[0 0];
+additionalOffsets(1,:)=[-1 1];
+additionalOffsets(2,:)=[0 0];
+additionalOffsets(3,:)=[-2 2];
 
 %% match red cell locations
 figure(7);clf
@@ -241,10 +257,14 @@ red.isRed = isRed;
 % red.redVal = redVal; 
 red.RedCells = RedCells;
 
+try 
+    red.redIMs = {IMTOUSE1 IMTOUSE2};
+end
+
 out.red=red;
 
 info = out.info;
 
-save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfileNew'], 'out')
 disp('saved')
 
