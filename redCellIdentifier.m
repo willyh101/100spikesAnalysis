@@ -1,8 +1,9 @@
 %% Load one Out
+clear
 SSTLoadList
 
-loadList = loadList(2);
-% loadPath = 'U:\ioldenburg\outputdata1'
+loadList = loadList(5);
+ loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 % loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
@@ -28,8 +29,9 @@ end
 
 out = All.out;
 out.info
+nDepthsTotal=3;
 %% Identify Red Cells from another image
-[redImageFN redImagePath] = uigetfile;
+[redImageFN redImagePath] = uigetfile('*.tif');
 % rawRedImg = bigread3([redImagePath redImageFN]);
 rawRedImg = ScanImageTiffReader([redImagePath redImageFN]).data;
 rawRedImg=rawRedImg(:,:,2:2:end);
@@ -37,27 +39,46 @@ rawRedImg=rawRedImg(:,:,2:2:end);
 % exampleGreenImage = ScanImageTiffReader(localFiles{1}).data;
 % exampleGreenImage = exampleGreenImage(:,:,1:2:end);
 %% Get 1020 image too
-[red1020FN redImagePath] = uigetfile(redImagePath);
+[red1020FN redImagePath] = uigetfile([redImagePath '*.tif']);
 % rawRedImg = bigread3([redImagePath redImageFN]);
 rawRed1020Img = ScanImageTiffReader([redImagePath red1020FN]).data;
 rawRed1020Img=rawRed1020Img(:,:,2:2:end);
 %% Motion Correct and check each
 % i=1;
+alignIt =1; %register the two images together
+gfilt = 0.75; %Gaussian filter. 0 is no filter
+
+alignMov = 1;
+
+pregfilt = 2.5; %sometimes gaussian filtering before motion correcting is important to remove noise. Currently only opperates on the green channel
 
 for i = 1:nDepthsTotal
-alignIt =1;
 
-gfilt = 1;
 
 figure(7);clf
 subplot(1,2,1)
 imToUse = rawRedImg(:,:,i:nDepthsTotal:end);
-[imToUse, dxs, dys] = simpleAlignTimeSeries (imToUse);
 
+if pregfilt>0
+    imToUseBackup =imToUse;
+    imToUse = imgaussfilt(imToUse,pregfilt);
+end
+
+if alignMov
+[imToUse, dxs, dys] = simpleAlignTimeSeries (imToUse); %align to account for any motion
+end
+
+if pregfilt>0
+    for k =1:size(imToUse,3);
+        imToUse(:,:,k) = circshift(imToUseBackup(:,:,k), [dxs(k) dys(k)]);
+    end
+end
 
 imToUse =mean(imToUse,3);
 
-imToUse = imgaussfilt(imToUse,1);
+if gfilt>0
+imToUse = imgaussfilt(imToUse,gfilt);
+end
 
 mn = prctile(imToUse(:),0.5);%min(imToUse(:));% prctile(imToUse(:),0.5);
 mx = prctile(imToUse(:),99.75);%max(imToUse(:))-100;%prctile(imToUse(:),99.5);
@@ -67,14 +88,19 @@ imToUse = (imToUse-mn)./(mx-mn);
 imagesc(imToUse);
 subplot(1,2,2)
 imToUse2 = rawRed1020Img(:,:,i:nDepthsTotal:end);
-[imToUse2, dxs, dys] = simpleAlignTimeSeries (imToUse2);
+if alignMov
+[imToUse2, dxs, dys] = simpleAlignTimeSeries (imToUse2); %align to account for any motion
+end
 imToUse2 = mean(imToUse2,3);
 
+if gfilt>0
 imToUse2 = imgaussfilt(imToUse2,gfilt);
+end
 mn = prctile(imToUse2(:),0.5);%min(imToUse2(:));% prctile(imToUse(:),0.5);
 mx = prctile(imToUse2(:),99.5);%max(imToUse2(:));%prctile(imToUse(:),99.5);
 imToUse2 = (imToUse2-mn)./(mx-mn);
 
+%register images together
 if alignIt==1
     [dx,dy] = fftalign(imToUse2,imToUse);
     imToUse2 = circshift(imToUse2,[dx, dy]);
@@ -94,8 +120,11 @@ IMTOUSE2{i} =  imToUse2;
 
 title(['Depth ' num2str(i) ' click on command line to continue'])
 drawnow
-disp('Press Enter...')
-pause
+
+if i<nDepthsTotal %don't wait on the last plane
+    disp('Press Enter...')
+    pause
+end
 end
 
 
@@ -191,10 +220,13 @@ additionalOffsets = zeros([nDepthsTotal 2]);
 %% optional additional offsets.
 %offset is just a single average number, but sometimes you can tell that
 %one plane is more offset then the rest ad that now
-
-additionalOffsets(1,:)=[-1 1];
-additionalOffsets(2,:)=[0 0];
-additionalOffsets(3,:)=[-2 2];
+% 
+% additionalOffsets(1,:)=[0 0];
+% additionalOffsets(2,:)=[0 0];
+% additionalOffsets(3,:)=[0 0];
+additionalOffsets(1,:)=[0 1];
+additionalOffsets(2,:)=[0 1];
+additionalOffsets(3,:)=[0 0];
 
 %% match red cell locations
 figure(7);clf
@@ -265,6 +297,6 @@ out.red=red;
 
 info = out.info;
 
-save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfileNew'], 'out')
+save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
 disp('saved')
 
