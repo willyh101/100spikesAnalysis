@@ -63,29 +63,7 @@ clear ensStimScore
      All(ind).out.anal.recStartTime = visStart;
      All(ind).out.anal.recStartFrame = round(visStart*All(ind).out.info.FR);
      
-     %Vis Section
-     sz2 = size(All(ind).out.vis.zdfData);
-     try
-         visStart = All(ind).out.vis.visStart;
-     catch
-         visStart = 0.92; %seemed typical
-         fprintf('\nError vis.visStart not detected...')
-     end
-     winToUse = min(round((visStart+recWinRange).*All(ind).out.info.FR),[inf sz2(2)]) ;
-     bwinToUse = max(round([0 visStart]*All(ind).out.info.FR),[1 1]);
-     %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz2(2)]) ;
-     %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
-     All(ind).out.anal.visRecWinUsed = winToUse;
      
-     
-     rdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
-     bdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
-     
-     All(ind).out.vis.rdata=rdata;
-     All(ind).out.vis.bdata=bdata;
-          
-     
-  
      %runProcessing Section
     runVal = All(ind).out.exp.runVal;
     rnSz = size(runVal);
@@ -99,21 +77,49 @@ clear ensStimScore
     All(ind).out.exp.lowRunTrials = lowRunTrials;
     
     percentLowRunTrials(ind) = mean(lowRunTrials);
-
     
-    if ~isfield(All(ind).out.vis,'lowRunTrials')
+     
+    %Vis Section
+    if isfield(All(ind).out,'vis')
+        sz2 = size(All(ind).out.vis.zdfData);
         try
-        runVal = All(ind).out.vis.runVal;
-        rnSz = size(runVal);
-        runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
-        lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
-        lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
-        All(ind).out.vis.lowRunTrials = lowRunTrials;
+            visStart = All(ind).out.vis.visStart;
         catch
-            disp('Vis Run Trial Problem')
+            visStart = 0.92; %seemed typical
+            fprintf('\nError vis.visStart not detected...')
         end
+        winToUse = min(round((visStart+recWinRange).*All(ind).out.info.FR),[inf sz2(2)]) ;
+        bwinToUse = max(round([0 visStart]*All(ind).out.info.FR),[1 1]);
+        %      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz2(2)]) ;
+        %      bwinToUse = max(round([0 recWinSec(1)]*All(ind).out.info.FR),[1 1]);
+        All(ind).out.anal.visRecWinUsed = winToUse;
+        
+        
+        rdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
+        bdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
+        
+        All(ind).out.vis.rdata=rdata;
+        All(ind).out.vis.bdata=bdata;
+        
+        
+        
+        
+        
+        
+        if ~isfield(All(ind).out.vis,'lowRunTrials')
+            try
+                runVal = All(ind).out.vis.runVal;
+                rnSz = size(runVal);
+                runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
+                lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
+                lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
+                All(ind).out.vis.lowRunTrials = lowRunTrials;
+            catch
+                disp('Vis Run Trial Problem')
+            end
+        end
+        
     end
-       
     
     %Total Number of Targets Shot per recording
      temp = unique([All(ind).out.exp.holoTargets{:}]);
@@ -194,8 +200,43 @@ clear ensStimScore
 
  end
  
-
+ %check if stimParams.roi empty
+ for ind = 1:numExps
+     roiList=[];
+    if isfield(All(ind).out.exp.stimParams, 'numCells')
+        roiList = [All(ind).out.exp.stimParams.roi{:}];
+        roiList(roiList==0) = [];
+    end
+    
+    if isempty(roiList)
+        disp(['***Error no rois listed in stimParams.rois ind: ' num2str(ind)]);
+    end
+ end
  
+%check that stimParams.numCells is there
+for ind = 1:numExps
+    if ~isfield(All(ind).out.exp.stimParams, 'numCells')...
+            | numel(All(ind).out.exp.stimParams.Seq)-1 ~= numel(All(ind).out.exp.stimParams.numCells)
+        try
+            roiList = [All(ind).out.exp.stimParams.roi{:}];
+            roiList(roiList==0) = [];
+            roiCellCount = cellfun(@(x) numel(x), All(ind).out.exp.rois);
+            All(ind).out.exp.stimParams.numCells = roiCellCount(roiList);
+
+            disp(['Corrected numCells on Ind: ' num2str(ind)]);
+        catch
+            disp(['*** ERROR COULD NOT CORRECT NUMCELL IND: ' num2str(ind)]);
+        end
+    end
+end
+ 
+%check that Hz exists 
+for ind = 1:numExps
+    if ~isfield(All(ind).out.exp.stimParams, 'Hz')
+        All(ind).out.exp.stimParams.Hz = ones(size(All(ind).out.exp.stimParams.numCells)) * 30;
+        disp(['Corrected stimRate to 30Hz (note if incorrect) on ind: ' num2str(ind)])
+    end
+end
  %%Get the number of spikes in each stimulus
 
 clear numSpikesEachStim numCellsEachEns hzEachEns

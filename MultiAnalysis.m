@@ -82,12 +82,12 @@ ensIndNumber =outVars.ensIndNumber;
 visPercent = outVars.visPercent;
 
 %% if there is a red section
-[outVars] = detectShotRedCells(All,outVars)
+[outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 
-numTrialsPerEns =[];
+numTrialsPerEns =[];numTrialsPerEnsTotal=[]; 
 for ind=1:numExps
     us=unique(All(ind).out.exp.stimID);
     
@@ -98,11 +98,12 @@ for ind=1:numExps
             All(ind).out.exp.stimID == us(i) ;
         
         numTrialsPerEns(end+1)=sum(trialsToUse);
+        numTrialsPerEnsTotal(end+1) = sum(All(ind).out.exp.stimID == us(i));
     end
     
 end
 numTrialsPerEns(numSpikesEachStim==0)=[];
-
+numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -118,7 +119,7 @@ ensemblesToUse = numSpikesEachEns > 75 ...
     & lowRunInds ...
     & ensStimScore > 0.5 ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
-    & numTrialsPerEns > 10 ... ;%10;%&...
+    & numTrialsPerEns > 3 ... ;%10;%&...
     & ~ensHasRed ...
     ;
 %& numCellsEachEns>10 ;

@@ -2,7 +2,7 @@
 clear
 SSTLoadList
 
-loadList = loadList(5);
+loadList = loadList(2);
  loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
