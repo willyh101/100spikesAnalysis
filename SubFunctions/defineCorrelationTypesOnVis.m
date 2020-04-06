@@ -4,11 +4,11 @@ numExps = numel(All);
 for ind = 1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
-    
+            numCells = All(ind).out.anal.numCells; 
+
     if ~isfield(All(ind).out, 'vis')
         fprintf(' No Vis... ')
         
-        numCells = All(ind).out.anal.numCells; 
         
         All(ind).out.anal.SpontCorr = nan([numCells numCells]);
     All(ind).out.anal.SpCoP = nan([numCells numCells]);
@@ -34,7 +34,12 @@ for ind = 1:numExps
     sz = size(unrollData);
     unrollData = reshape(unrollData,[sz(1) sz(2)*sz(3)]);
     
-    [SpontCorr SpCoP] = corr(unrollData');
+    if isempty(unrollData)
+        SpontCorr  = nan([numCells numCells]);
+        SpCoP = nan([numCells numCells]);
+    else
+        [SpontCorr SpCoP] = corr(unrollData');
+    end
     
     %AllCorr - the correlation coef on all time series
     trialsToUse = All(ind).out.vis.lowMotionTrials &...
@@ -61,6 +66,8 @@ for ind = 1:numExps
         All(ind).out.vis.lowRunTrials;
        
     vs = unique(All(ind).out.vis.visID);
+    vs(vs==0)=[];
+    
     unrollData = [];
     meanResps = [];
     for k = 1:numel(vs)
