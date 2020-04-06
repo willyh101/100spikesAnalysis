@@ -116,4 +116,25 @@ if ~isempty(indToUse)
     All(indToUse).out.exp.visCond = cat(2,repmat ([1;nan],[1 425]),All(indToUse).out.exp.visCond);
 end
 
+%% fix vis sections 190420
+nameToUse = '190420_I127_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
 
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    sz = size(All(indToUse).out.vis.zdfData);
+    All(indToUse).out.vis.runVal = zeros([sz(3) sz(2)]);
+    All(indToUse).out.vis.visID = ones([1 sz(3)]);
+    disp('Some Vis Data wasn not availble. i guessed')
+end
+
+%% fix trial counts 191212 I 138
+nameToUse = '191212_I138_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    sz = size(All(indToUse).out.vis.zdfData);
+
+    All(indToUse).out.vis.runVal = All(indToUse).out.vis.runVal(1:sz(3),:);
+    All(indToUse).out.vis.visID = All(indToUse).out.vis.visID(1:sz(3));
+end

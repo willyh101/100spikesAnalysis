@@ -86,6 +86,7 @@ clear ensStimScore
             visStart = All(ind).out.vis.visStart;
         catch
             visStart = 0.92; %seemed typical
+            All(ind).out.vis.visStart = visStart;
             fprintf('\nError vis.visStart not detected...')
         end
         winToUse = min(round((visStart+recWinRange).*All(ind).out.info.FR),[inf sz2(2)]) ;

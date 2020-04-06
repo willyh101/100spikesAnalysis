@@ -38,9 +38,10 @@ else
 end
 
 %% Fix Known Errors
+%CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
 
-%% clean Data
+%% clean Data, and create fields. 
 
 opts.FRDefault=6;
 opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
@@ -80,12 +81,14 @@ opts.distBins =  [0:25:1000];
 [All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
 
 visPercent = outVars.visPercent;
+outVars.visPercentFromExp = visPercent;
 ensIndNumber =outVars.ensIndNumber;
 
 
 %% Optional: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
+outVars.visPercentFromVis = visPercent;
 
 %% if there is a red section
 [outVars] = detectShotRedCells(All,outVars);
@@ -121,7 +124,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 
 ensemblesToUse = numSpikesEachEns > 75 ...
     & numSpikesEachEns <110 ...
-    ... & highVisPercentInd ...
+    & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > 0.5 ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
