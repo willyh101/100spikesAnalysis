@@ -277,3 +277,25 @@ outVars.numCellsEachEns=numCellsEachEns;
 outVars.numSpikesEachStim=numSpikesEachStim;
 outVars.numSpikesEachEns = numSpikesEachEns;
 outVars.percentLowRunTrials=percentLowRunTrials;
+
+%% catch some errors in viscode
+disp('Running Additional corrections...')
+for ind = 1:numExps
+    vs = unique(All(ind).out.exp.visID);
+    if ~all(floor(vs)==vs)
+        disp(['NonStandard visID... Correcting... ind: ' num2str(ind)]);
+        tempVisID = All(ind).out.exp.visID;
+        All(ind).out.exp.visIDBackup = tempVisID;
+        vs=unique(tempVisID);
+        newVisID = zeros(size(tempVisID)); 
+        for i =1:numel(tempVisID)
+            newVisID(i) = find(vs==tempVisID(i));
+        end
+        All(ind).out.exp.visID=newVisID; 
+    end
+end
+disp('Done')
+
+            
+        
+    

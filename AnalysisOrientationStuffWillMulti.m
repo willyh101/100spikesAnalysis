@@ -55,9 +55,9 @@ All(15).out.exp.visID = newVisID;
 
 
 %%Eliminate low contrast Exp 16
-All(16).out.exp.visID(All(ind).out.exp.visID(1,:)~=1)=0;
+All(16).out.exp.visID(All(16).out.exp.visID(1,:)~=1)=0;
 
-%%fix missing offsets
+%% fix missing offsets
 All(15).out.info.offsets = [1.4667 -88.8667];
 All(16).out.info.offsets = [-0.2 -0.1333];
 
