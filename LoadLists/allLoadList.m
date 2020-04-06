@@ -1,3 +1,4 @@
+loadListName = 'allLoadList'; 
 loadList = {
     '190310_I127_1_outfile.mat'
     '190415_I127_1_outfile.mat'

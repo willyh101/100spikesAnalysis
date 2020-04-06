@@ -1,3 +1,5 @@
+loadListName = 'SSTLoadList'; 
+
 loadList = {
     '200217_w14_1_outfile.mat'
     '200224_w14_1_outfile.mat'
