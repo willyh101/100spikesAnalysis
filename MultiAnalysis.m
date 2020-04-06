@@ -11,6 +11,8 @@ addpath('LoadLists')
 %%
 oriLoadList
 loadList = loadList(15);
+
+allLoadList;
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
@@ -34,6 +36,10 @@ if numExps ~= 0
 else
     disp('Did you press this by accident?')
 end
+
+%% Fix Known Errors
+[All] = allLoadListErrorFixer(All,loadList);
+
 %% clean Data
 
 opts.FRDefault=6;
