@@ -101,7 +101,8 @@ indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
 if ~isempty(indToUse)
     disp(['Correcting from Ind: ' num2str(indToUse)]);
     
-    All(indToUse).out.exp.visID(All(indToUse).out.exp.visID<4)=0;
+    All(indToUse).out.exp.visID(All(indToUse).out.exp.visID<4 ...
+        & All(indToUse).out.exp.visID>1)=0;
     All(indToUse).out.info.offsets = [-0.2 -0.1333];
 end
 

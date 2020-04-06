@@ -90,7 +90,7 @@ ensIndNumber =outVars.ensIndNumber;
 visPercent = outVars.visPercent;
 outVars.visPercentFromVis = visPercent;
 
-%% if there is a red section
+%% if there is a red section (will run even if not...)
 [outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
 %% main Ensembles to Use section
@@ -244,7 +244,7 @@ ylabel('Circular PO')
 xlabel('Max PO')
 c = colorbar;
 c.Label.String = 'OSI by circ tuning';
-%% Red Cell Analysis
+%% Red Cell Analysis (will only run if you have the red section on all your recordings). 
 [outVars] = plotResponseOfRedCells(All,outVars,opts);
 
 
@@ -271,3 +271,4 @@ plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
 title('Not Red Cells')
 linkaxes([ax ax2])
 
+%% Correlation 
