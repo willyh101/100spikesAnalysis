@@ -272,3 +272,6 @@ title('Not Red Cells')
 linkaxes([ax ax2])
 
 %% Correlation 
+[All outVars] = defineCorrelationTypes(All, outVars);
+
+ [All outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
