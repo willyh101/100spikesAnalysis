@@ -1651,7 +1651,11 @@ for ind = 1:numExps
                 Tg(isnan(Tg))=[];
                 
                 distCorr = corrToUse(Tg,:);
-                minDist = mean(distCorr);
+                if numel(Tg)==1
+                    minDist = distCorr;
+                else
+                minDist = nanmean(distCorr);
+                end
                 
                 if numel(Tg)==0
                     minDistbyHolo(i,:) = ones([1 size(minDist,2)])*1000;

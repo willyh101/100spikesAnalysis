@@ -119,16 +119,17 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
+opts.numSpikeToUseRange = [98 101];
+opts.ensStimScoreThreshold = 0.5; %its not used in a function it just felt like an opt
+opts.numTrialsPerEnsThreshold = 3; 
 
-
-
-ensemblesToUse = numSpikesEachEns > 75 ...
-    & numSpikesEachEns <110 ...
+ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
+    & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
     & highVisPercentInd ...
     & lowRunInds ...
-    & ensStimScore > 0.5 ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
+    & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
-    & numTrialsPerEns > 3 ... ;%10;%&...
+    & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
     & ~ensHasRed ...
     ;
 %& numCellsEachEns>10 ;
@@ -144,6 +145,16 @@ outVars.indsSub             = indsSub;
 outVars.numTrialsPerEns     = numTrialsPerEns;
 outVar.highVisPercentInd    = highVisPercentInd;
 outVar.lowRunInds           = lowRunInds;
+
+%% Optional: Where are the losses comming from
+
+disp(['Fraction of Ens correct Size: ' num2str(mean(numSpikesEachEns > 75 & numSpikesEachEns <110))]);
+disp(['Fraction of Ens highVis: ' num2str(mean(highVisPercentInd))]);
+disp(['Fraction of Ens lowRun: ' num2str(mean(lowRunInds))]);
+disp(['Fraction of Ens high stimScore: ' num2str(mean(ensStimScore>opts.ensStimScoreThreshold))]);
+disp(['Fraction of Ens high trial count: ' num2str(mean(numTrialsPerEns>opts.numTrialsPerEnsThreshold))]);
+disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
+disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 
 %% Set Default Trials to Use
 for ind=1:numExps
@@ -271,7 +282,9 @@ plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
 title('Not Red Cells')
 linkaxes([ax ax2])
 
-%% Correlation 
-[All outVars] = defineCorrelationTypes(All, outVars);
-
- [All outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
+%% Correlation Pick One. Functions are Mutually Exclusive.
+[All outVars] = defineCorrelationTypes(All,outVars); %Caution this and below are mutually exclusive
+plotEnsembleCorrelationResponse(outVars,200);
+[All outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
+plotEnsembleCorrelationResponse(outVars,300)
+%% 
