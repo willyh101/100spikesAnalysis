@@ -54,16 +54,19 @@ p{2}(2).LineWidth = 1;
     r.LineStyle=':';
     r.Color = rgb('grey');
 
-pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off')
-% 
+pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off');
+
+disp(['Anova pVal between sizes: ' num2str(pValEnselbeSize)]);
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==10))
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==20))
-
+uniqueEns(end+1) = 0; 
 for i=1:size(data,2)
     %     prs = ranksum(data{i},0);
     psr = signrank(data{i});
     
     [h p ] = ttest(data{i},0);
-    disp(['Signed Rank: ' num2str(psr,3) '. ttest: ' num2str(p,3)])
+    disp(['Size: ' num2str(uniqueEns(i)) ', n=' num2str(numel(data{i}))...
+        '. Mean: ' num2str(nanmean(data{i}),2) ' ' char(177) ' ' num2str(sem(data{i}),2)...
+        '. Signed Rank: ' num2str(psr,2) '. ttest: ' num2str(p,2)])
 end

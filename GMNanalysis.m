@@ -1544,7 +1544,7 @@ for ind = 1:numExps
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
 end
 
-%%Determine the Ensemble CoCorrelation
+%% Determine the Ensemble CoCorrelation
 
 ensSpCo=[];ensAlCo=[];ensAmCo=[];ensSiCo=[];ensNoCo=[];
 for ind = 1:numExps
@@ -1552,6 +1552,7 @@ for ind = 1:numExps
     for i =1:numel(All(ind).out.exp.holoTargets)
         ht = All(ind).out.exp.holoTargets{i};
         ht(isnan(ht))=[];
+        
         corrToUse = All(ind).out.anal.SpontCorr;
         corMat = corrToUse(ht,ht); 
         corMat(logical(eye(numel(ht))))=nan;

@@ -1,8 +1,11 @@
 function [outVars] = plotResponseOfRedCells(All,outVars,opts)
 %% 
 numExps = numel(All);
-minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
 
+minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
+strtFrames = arrayfun(@(x) x.out.anal.recStartFrame,All);
+totNumFrames = arrayfun(@(x) size(x.out.exp.zdfData,2),All);
+minEndFrame = min(totNumFrames-minStrtFrame);
 
     clear popRespRed popRespNotRed popRespRedSEM popRespNotRedSEM
     clear popTSRed popTSNotRed nRedNotRed
@@ -49,14 +52,15 @@ for ind = 1:numExps;
             %TS code
              strtFrame = All(ind).out.anal.recStartFrame;
              newStart = strtFrame-minStrtFrame+1;
+             newEnd = newStart+minEndFrame-1;
             s = us(i); 
             
             
-           dat = All(ind).out.exp.zdfData(cellsToUse & isRed,newStart:end,trialsToUse &...
+           dat = All(ind).out.exp.zdfData(cellsToUse & isRed,newStart:newEnd,trialsToUse &...
                 All(ind).out.exp.stimID==s &...
                 All(ind).out.exp.visID==v );
             popTSRed(c,:) = mean(mean(dat,3),1);
-            dat = All(ind).out.exp.zdfData(cellsToUse & ~isRed,newStart:end,trialsToUse &...
+            dat = All(ind).out.exp.zdfData(cellsToUse & ~isRed,newStart:newEnd,trialsToUse &...
                 All(ind).out.exp.stimID==s &...
                 All(ind).out.exp.visID==v );
             popTSNotRed(c,:) = mean(mean(dat,3),1);

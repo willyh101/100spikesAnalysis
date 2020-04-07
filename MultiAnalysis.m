@@ -11,6 +11,8 @@ addpath('LoadLists')
 %%
 oriLoadList
 loadList = loadList(15);
+
+allLoadList;
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
@@ -34,7 +36,12 @@ if numExps ~= 0
 else
     disp('Did you press this by accident?')
 end
-%% clean Data
+
+%% Fix Known Errors
+%CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
+[All] = allLoadListErrorFixer(All,loadList);
+
+%% clean Data, and create fields. 
 
 opts.FRDefault=6;
 opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
@@ -74,20 +81,22 @@ opts.distBins =  [0:25:1000];
 [All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
 
 visPercent = outVars.visPercent;
+outVars.visPercentFromExp = visPercent;
 ensIndNumber =outVars.ensIndNumber;
 
 
 %% Optional: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
+outVars.visPercentFromVis = visPercent;
 
-%% if there is a red section
-[outVars] = detectShotRedCells(All,outVars)
+%% if there is a red section (will run even if not...)
+[outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 
-numTrialsPerEns =[];
+numTrialsPerEns =[];numTrialsPerEnsTotal=[]; 
 for ind=1:numExps
     us=unique(All(ind).out.exp.stimID);
     
@@ -98,11 +107,12 @@ for ind=1:numExps
             All(ind).out.exp.stimID == us(i) ;
         
         numTrialsPerEns(end+1)=sum(trialsToUse);
+        numTrialsPerEnsTotal(end+1) = sum(All(ind).out.exp.stimID == us(i));
     end
     
 end
 numTrialsPerEns(numSpikesEachStim==0)=[];
-
+numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -114,11 +124,11 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 
 ensemblesToUse = numSpikesEachEns > 75 ...
     & numSpikesEachEns <110 ...
-    ... & highVisPercentInd ...
+    & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > 0.5 ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
-    & numTrialsPerEns > 10 ... ;%10;%&...
+    & numTrialsPerEns > 3 ... ;%10;%&...
     & ~ensHasRed ...
     ;
 %& numCellsEachEns>10 ;
@@ -234,7 +244,7 @@ ylabel('Circular PO')
 xlabel('Max PO')
 c = colorbar;
 c.Label.String = 'OSI by circ tuning';
-%% Red Cell Analysis
+%% Red Cell Analysis (will only run if you have the red section on all your recordings). 
 [outVars] = plotResponseOfRedCells(All,outVars,opts);
 
 
@@ -261,3 +271,7 @@ plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
 title('Not Red Cells')
 linkaxes([ax ax2])
 
+%% Correlation 
+[All outVars] = defineCorrelationTypes(All, outVars);
+
+ [All outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive

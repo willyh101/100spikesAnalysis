@@ -156,7 +156,7 @@ for ind=1:numExps
     
     distBins = opts.distBins; %[0:25:1000];
     numDist =numel(distBins)-1;
-    numStims = numel(All(ind).out.exp.stimParams.Seq);
+    numStims = numel(us); %numel(All(ind).out.exp.stimParams.Seq); %Caution I made this change but i'm not sure about it -Ian
     numVis = numel(vs);
 
     

@@ -1,4 +1,5 @@
 % add experiments for ori ensembles here...
+loadListName = 'oriLoadList'; 
 
 loadList = {
     '190418_I127_1_outfile.mat'
