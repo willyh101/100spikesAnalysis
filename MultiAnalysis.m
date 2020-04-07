@@ -284,7 +284,8 @@ linkaxes([ax ax2])
 
 %% Correlation Pick One. Functions are Mutually Exclusive.
 [All outVars] = defineCorrelationTypes(All,outVars); %Caution this and below are mutually exclusive
-plotEnsembleCorrelationResponse(outVars,200);
+plotEnsembleCorrelationResponse(outVars,200,1);
 [All outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
-plotEnsembleCorrelationResponse(outVars,300)
+plotEnsembleCorrelationResponse(outVars,300,1)
 %% 
+[outVars] = plotCorrelationResponse(All,outVars,'AllCorr');

@@ -1691,7 +1691,7 @@ end
 popRespCorr;
 
 
-temp = cellfun(@(x) squeeze(x(:,1,:)),popResponseCorr,'uniformoutput',0) ;
+temp = cellfun(@(x) permute(x(:,1,:),[1 3 2]),popResponseCorr,'uniformoutput',0) ;
 % temp = cellfun(@(x) squeeze(x(:,end,:)),popResponseCorr,'uniformoutput',0) ;
 
 % temp = cellfun(@(x) squeeze(x(:,end,:)),popResponseCorrSub,'uniformoutput',0) ;

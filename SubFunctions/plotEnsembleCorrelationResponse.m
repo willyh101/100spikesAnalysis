@@ -1,6 +1,9 @@
-function plotEnsembleCorrelationResponse(outVars,figNum)
-if nargin<2
+function plotEnsembleCorrelationResponse(outVars,figNum,plotRegression)
+if nargin<2 || isempty(figNum)
     figNum = 100;
+end
+if nargin<3
+    plotRegression=0;
 end
 ensSpCo = outVars.ensSpCo;
 ensAlCo = outVars.ensAlCo;
@@ -44,10 +47,34 @@ for i=1:5
 end
 
 %% Plot Regression Lines
+if plotRegression
+ensTypes = unique(numCellsEachEns(ensemblesToUse)); 
 
 for i=1:5
     subplot(5,1,i)
     dataToUse = dat{i};
+    nanFinder = isnan(dataToUse);
+    dataToUse(nanFinder)=[];
+    popResponseTouse = popResponseEns(ensemblesToUse);
+    popResponseTouse(nanFinder)=[];
+    numCellsToUse = numCellsEachEns(ensemblesToUse);
+    numCellsToUse(nanFinder)=[];
     
-    dataToUse\popResponseEns(ensemblesToUse)
+    A = dataToUse';
+    B = popResponseTouse;
+    [p Rsq] = simplifiedLinearRegression(A,B);
+    
+    hold on
+    pl = plot(dataToUse',p(1)*dataToUse+p(2),'color',rgb('dimgrey'));
+    for k=1:numel(ensTypes)
+        A = dataToUse(numCellsToUse==ensTypes(k));
+        B = popResponseTouse(numCellsToUse==ensTypes(k))';
+        [p Rsq(k+1)] = simplifiedLinearRegression(A,B);
+        [x colorToUse] = colorMapPicker(numel(ensTypes),[],k);
+        pl2(k) = plot(dataToUse',p(1)*dataToUse+p(2),'color',colorToUse);
+    end
+
+    legend([pl pl2],cellfun(@(x) num2str(x),num2cell(Rsq),'uniformoutput',0));
+%     legend(pl2,num2str(Rsq,2))
+end
 end
