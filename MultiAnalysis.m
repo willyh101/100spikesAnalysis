@@ -94,6 +94,13 @@ outVars.visPercentFromVis = visPercent;
 %% if there is a red section (will run even if not...)
 [outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
+
+%% Identify the Experiment type for comparison or exclusion
+[All,outVars] = ExpressionTypeIdentifier(All,outVars);
+indExpressionType = outVars.indExpressionType;
+ensExpressionType = indExpressionType(outVars.ensIndNumber);
+outVars.ensExpressionType = ensExpressionType;
+
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 
@@ -115,9 +122,18 @@ end
 numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
+%ID inds to be excluded
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
+%exclude certain expression types:
+uniqueExpressionTypes = outVars.uniqueExpressionTypes;
+excludedTypes = {'AAV CamK2' 'Ai203'};
+exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
+excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
+
+
+%spot to add additional Exclusions
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
@@ -133,6 +149,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeInds ...
     & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
     & ~ensHasRed ...
+    & ~excludeExpressionType ...
     ;
 %& numCellsEachEns>10 ;
 
@@ -156,6 +173,7 @@ disp(['Fraction of Ens lowRun: ' num2str(mean(lowRunInds))]);
 disp(['Fraction of Ens high stimScore: ' num2str(mean(ensStimScore>opts.ensStimScoreThreshold))]);
 disp(['Fraction of Ens high trial count: ' num2str(mean(numTrialsPerEns>opts.numTrialsPerEnsThreshold))]);
 disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
+disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpressionType))]);
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 
 %% Set Default Trials to Use
@@ -184,6 +202,7 @@ outVars.numCellsEachEns= numCellsEachEns;
 plotAllEnsResponse(outVars)
 plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
+plotPopResponseByExpressionType(All,outVars);
 %% Distance Response Plots
 plotResponseByDistance(outVars,opts);
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
@@ -290,7 +309,7 @@ plotEnsembleCorrelationResponse(outVars,200,1);
 [All outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
 plotEnsembleCorrelationResponse(outVars,300,1)
 %% 
-opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+opts.CorrToPlot = 'SpontCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 [outVars] = plotCorrelationResponse(All,outVars,opts.CorrToPlot);
 
 %% Distance same idea as above

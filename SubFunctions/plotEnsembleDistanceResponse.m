@@ -37,7 +37,7 @@ for i=1:numPanels
     hold on
     title([names{i} ' Distance'])
     
-    xlabel(['Correlation of Ensemble'])
+    xlabel(['Spread of Ensemble (\mum)'])
     ylabel('Population Mean Response')
     % title('OSIs by Ensemble Size')
     cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));

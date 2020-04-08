@@ -14,10 +14,10 @@ loadList = {
     '190529_I127_1_outfile.mat'
     '190604_I127_1_outfile.mat'
     '190606_HB47_outfile.mat'
-%     '190826_I132_2_outfile.mat' %CamK2
-%     '191003_I135_1_outfile.mat' %camK2
-%     '191004_I135_1_outfile.mat' %CamK2
-%     '191008_I135_1_outfile.mat' %CamK2
+    '190826_I132_2_outfile.mat' %CamK2
+    '191003_I135_1_outfile.mat' %camK2
+    '191004_I135_1_outfile.mat' %CamK2
+    '191008_I135_1_outfile.mat' %CamK2
     '191014_I136_1_outfile.mat'
     '191015_W4_3_outfile.mat'
     '191016_I136_1_outfile.mat'
@@ -41,6 +41,7 @@ loadList = {
     '200316_i139_2_outfile.mat'
     '200310_HB95_outfile.mat'
     }
+
 
 %% Deliberately Not Included
 % '190307_I127_1_outfile.mat' %Too Different, stimparams don't exist right.
