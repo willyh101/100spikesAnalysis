@@ -165,7 +165,7 @@ outVars.numTrialsPerEns     = numTrialsPerEns;
 outVar.highVisPercentInd    = highVisPercentInd;
 outVar.lowRunInds           = lowRunInds;
 
-%% Optional: Where are the losses comming from
+%%Optional: Where are the losses comming from
 
 disp(['Fraction of Ens correct Size: ' num2str(mean(numSpikesEachEns > 75 & numSpikesEachEns <110))]);
 disp(['Fraction of Ens highVis: ' num2str(mean(highVisPercentInd))]);
@@ -303,16 +303,23 @@ plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
 title('Not Red Cells')
 linkaxes([ax ax2])
 
-%% Correlation Pick One. Functions are Mutually Exclusive.
-[All outVars] = defineCorrelationTypes(All,outVars); %Caution this and below are mutually exclusive
+%% Correlation Pick One. Option A. Vis activity from interleaved Trials
+%Functions are Mutually Exclusive.
+[All, outVars] = defineCorrelationTypes(All,outVars); %Caution this and below are mutually exclusive
 plotEnsembleCorrelationResponse(outVars,200,1);
-[All outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
+
+opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+[outVars] = plotCorrelationResponse(All,outVars,opts.CorrToPlot);
+%% Correlation Pick One. Option B. Vis Activity from out.vis epoch
+[All, outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
 plotEnsembleCorrelationResponse(outVars,300,1)
-%% 
-opts.CorrToPlot = 'SpontCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+
+opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 [outVars] = plotCorrelationResponse(All,outVars,opts.CorrToPlot);
 
 %% Distance same idea as above
 [All, outVars] = defineDistanceTypes(All, outVars);
 plotEnsembleDistanceResponse(outVars,100,1)
+
+%%
 
