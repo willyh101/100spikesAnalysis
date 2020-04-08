@@ -48,7 +48,7 @@ opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
 
 
 %Stim Success Thresholds
-opts.stimsuccessZ = 0.25; %over this number is a succesfull stim
+opts.stimsuccessZ = 0.3; %0.25 over this number is a succesfull stim
 opts.stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
 
 %run Threshold
@@ -119,8 +119,9 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
+%Options
 opts.numSpikeToUseRange = [98 101];
-opts.ensStimScoreThreshold = 0.5; %its not used in a function it just felt like an opt
+opts.ensStimScoreThreshold = 0.5; 
 opts.numTrialsPerEnsThreshold = 3; 
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
@@ -288,4 +289,10 @@ plotEnsembleCorrelationResponse(outVars,200,1);
 [All outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
 plotEnsembleCorrelationResponse(outVars,300,1)
 %% 
-[outVars] = plotCorrelationResponse(All,outVars,'AllCorr');
+opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+[outVars] = plotCorrelationResponse(All,outVars,opts.CorrToPlot);
+
+%% Distance same idea as above
+[All, outVars] = defineDistanceTypes(All, outVars);
+plotEnsembleDistanceResponse(outVars,100,1)
+
