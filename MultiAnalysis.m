@@ -123,12 +123,16 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
+opts.IndsVisThreshold = 0.05; %default 0.05
+
+highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 excludedTypes = {'AAV CamK2' 'Ai203'};
+% excludedTypes = {'Ai203'};
+
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
 excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 
@@ -138,7 +142,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 
 %Options
 opts.numSpikeToUseRange = [98 101];
-opts.ensStimScoreThreshold = 0.5; 
+opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 3; 
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
@@ -162,8 +166,8 @@ outVars.ensemblesToUse      = ensemblesToUse;
 outVars.IndsUsed            = IndsUsed;
 outVars.indsSub             = indsSub;
 outVars.numTrialsPerEns     = numTrialsPerEns;
-outVar.highVisPercentInd    = highVisPercentInd;
-outVar.lowRunInds           = lowRunInds;
+outVars.highVisPercentInd    = highVisPercentInd;
+outVars.lowRunInds           = lowRunInds;
 
 %%Optional: Where are the losses comming from
 
@@ -208,7 +212,10 @@ plotResponseByDistance(outVars,opts);
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
 %% Contrast Response Functions
 
-%eh I'll do it later
+opts.distBinCRF = [50:25:350]; %split Contrast Response Fun by distance
+opts.visAlphaCRF = 10.05; %visAlpha for looking just at vis responsive cells;
+
+[outVars] = plotContrastResponseFunction(All,outVars,opts);
 
 %% Orientation Tuning and OSI
 % leaving this a mess here for now to compare the different prefOri
