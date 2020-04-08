@@ -1,7 +1,7 @@
 clear;
-date = '20200316';
-mouse = 'i139_2';%'I138_1';%'I136_1';
-epochs = '1_2_4_5';
+date = '200310';
+mouse = 'HB95';%'I138_1';%'I136_1';
+epochs = '1_2_3_4_5';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['C:\Users\Will\Local Data\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -312,6 +312,7 @@ visStop = nanmean(timeOfVisStimEnd(2:end));
 
 uniqueVisStim = unique(visID);
 
+disp('Ready')
 %%
 
 clear mov1 mov2 mov3 sweeps DIGITSWEEP

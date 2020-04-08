@@ -5,6 +5,7 @@ addpath('SubFunctions') %will, does this work for you?
 addpath('circStats')
 addpath('LoadLists')
 
+%%
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
