@@ -26,8 +26,12 @@ end
 data{end+1} = noStimPopResp;
 names{end+1} = 'No Stim';
 
-cmap=colormap(viridis(numEns));
-cmap(end+1,:)=rgb('grey');
+% cmap = colormap(outVars.defaultColorMap);
+% cmap=cmap(numEns,:);
+% cmap(end+1,:)=rgb('grey');
+cmap = colorMapPicker(numEns,outVars.defaultColorMap);
+cmap{end+1} = rgb('grey');
+
 p = plotSpread(data, 'xNames', names, 'showMM', 4, 'distributionColors',cmap);
 % bar(x, avg)
 % hold on

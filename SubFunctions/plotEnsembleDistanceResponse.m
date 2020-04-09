@@ -44,6 +44,7 @@ for i=1:numPanels
     cb.Label.String = 'Number of Cells in Ensemble';
     r = refline(0);
     r.LineStyle =':';
+    colormap(outVars.defaultColorMap);
 end
 
 %% Plot Regression Lines
@@ -71,7 +72,7 @@ if plotRegression
             A = dataToUse(numCellsToUse==ensTypes(k));
             B = popResponseTouse(numCellsToUse==ensTypes(k))';
             [p Rsq(k+1)] = simplifiedLinearRegression(A,B);
-            [x colorToUse] = colorMapPicker(numel(ensTypes),[],k);
+            [x colorToUse] = colorMapPicker(numel(ensTypes),outVars.defaultColorMap,k);
             pl2(k) = plot(dataToUse',p(1)*dataToUse+p(2),'color',colorToUse);
         end
         

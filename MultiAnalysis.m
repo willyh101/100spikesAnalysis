@@ -203,6 +203,7 @@ numCellsEachEns = outVars.numCellsEachEnsBackup;
 outVars.numCellsEachEns= numCellsEachEns;
 
 %% Basic Response Plots
+outVars.defaultColorMap = 'plasma';
 plotAllEnsResponse(outVars)
 plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)

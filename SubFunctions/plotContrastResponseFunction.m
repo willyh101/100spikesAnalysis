@@ -10,7 +10,7 @@ ensemblesToUse  = outVars.ensemblesToUse;
 numCellsEachEns = outVars.numCellsEachEns; 
 
 ensSizes = unique(numCellsEachEns(ensemblesToUse)); 
-colorList = colorMapPicker(numel(ensSizes),'parula'); 
+colorList = colorMapPicker(numel(ensSizes),outVars.defaultColorMap); 
 
 numExps = numel(All); 
 

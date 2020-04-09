@@ -97,7 +97,7 @@ uniqueEns = unique(numCellsEachEns(ensemblesToUse));
 
 numEns = numel(uniqueEns);
 
-colorList = colorMapPicker(numEns,'parula');
+colorList = colorMapPicker(numEns,outVars.defaultColorMap);
 
 hold on
 for i=1:numEns

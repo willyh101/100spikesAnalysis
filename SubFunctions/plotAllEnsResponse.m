@@ -24,3 +24,4 @@ cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
 cb.Label.String = 'Number of Cells in Ensemble';
 r = refline(0);
 r.LineStyle =':';
+colormap(outVars.defaultColorMap)
