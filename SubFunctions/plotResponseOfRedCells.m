@@ -98,7 +98,7 @@ popRespNotRed(isControl)=[];
 
  figure(23);clf
  sp = scatter(outVars.numCellsEachEns(ensToPlot),popRespRed(ensToPlot),'o');
- sp.MarkerEdgeColor = 'r';
+ sp.MarkerEdgeColor = 'b';%'r'
  hold on
  sp2=scatter(outVars.numCellsEachEns(ensToPlot)+0.75,popRespNotRed(ensToPlot),'o');
   sp2.MarkerEdgeColor = 'k';
@@ -129,12 +129,13 @@ popRespNotRed(isControl)=[];
  end
  e = errorbar(ensCat+0.25,redGrandMean,redGrandSEM);
  e.LineWidth = 2;
- e.Color ='r';
+ e.Color ='b'; %'r'
  e = errorbar(ensCat+0.5,notRedGrandMean,notRedGrandSEM);
  e.LineWidth = 2;
  e.Color ='k';
  
- legend([sp(1) sp2(1)],'Red Cells', 'Not Red Cells')
+%  legend([sp(1) sp2(1)],'Red Cells', 'Not Red Cells')
+ legend([sp(1) sp2(1)],'Interneuron', 'Pyramid')
 
  %TS Section
  popTSRed(isControl,:)=[];
@@ -172,10 +173,15 @@ linkaxes(ax);
 
 figure(24);
 clf;
+
+rc =rectangle('position',[minStrtFrame -0.04 6 0.07]);
+rc.FaceColor = [rgb('FireBrick') 0.25];
+rc.LineStyle = 'none';
+
 hold on
-lineCol = rgb('FireBrick');
+lineCol = rgb('SteelBlue');% rgb('FireBrick');
 edgeCol = 'none';
-faceCol = rgb('FireBrick');
+faceCol = rgb('SteelBlue');% rgb('FireBrick');
 faceAlpha = 0.5;
 fp1 =  fillPlot(popTSRed(ensToPlot,:),[],'ci',lineCol,edgeCol,faceCol,faceAlpha);
 lineCol = rgb('Black');
@@ -183,6 +189,9 @@ edgeCol = 'none';
 faceCol = rgb('DimGray');
 faceAlpha = 0.5;
  fp2 = fillPlot(popTSNotRed(ensToPlot,:),[],'ci',lineCol,edgeCol,faceCol,faceAlpha);
- legend([fp1(1) fp2(1)],'Red Cells','Not Red Cells')
+ legend([fp1(1) fp2(1)],'Interneuron','Pyramid')
+ 
+ xlabel('Frame')
+ ylabel('\DeltaZ-Score dF/F')
  
  

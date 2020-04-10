@@ -99,25 +99,47 @@ meanTSSquareNR = cat(1,temp{:});
 temp = cellfun(@(x) x(2:end,1:shortestRec),allStdTS,'uniformoutput',0);
 stdTSSquare = cat(1,temp{:});
 
+clim = [-0.15 0.15];
+
 figure(25);clf
-subplot(2,2,2)
+ix(1) =subplot(2,2,2);
 imagesc(meanTSSquare(ensemblesToUse,:))
+ylabel('Ensemble')
+xlabel('Frame')
+
 % imagesc(meanTSSquare(:,:))
 title('stim')
 
 colormap rdbu
-caxis([-0.2 0.2])
+caxis(clim)
 
 clear ax
 ax(1)=subplot(2,2,4);
-fillPlot(meanTSSquare(ensemblesToUse,:),[],'ci');
 
-subplot(2,2,1)
+rc =rectangle('position',[minStrtFrame -0.025 6 0.045]);
+rc.FaceColor = [rgb('FireBrick') 0.25];
+rc.LineStyle = 'none';
+hold on
+
+fillPlot(meanTSSquare(ensemblesToUse,:),[],'ci');
+ylabel('\DeltaZ-Scored dF/F')
+xlabel('Frame')
+
+% line([minStrtFrame minStrtFrame], [min(meanTSSquare(ensemblesToUse,:)) max(meanTSSquare(ensemblesToUse,:))]);
+r = refline(0);
+r.Color = rgb('grey');
+r.LineStyle=':';
+r.LineWidth=2;
+
+
+ix(2) =subplot(2,2,1);
 imagesc(meanTSSquareNR(IndsUsed,:))
 title('NoStim')
+ylabel('Mouse')
+xlabel('Frame')
 
 colormap rdbu
-caxis([-0.1 0.1])
+caxis(clim)
 ax(2) = subplot(2,2,3);
 if numel(IndsUsed)>1
 fillPlot(meanTSSquareNR(IndsUsed,:),[],'ci');
@@ -126,4 +148,13 @@ else
     p.Color = 'k';
     p.LineWidth = 2;
 end
+
+r = refline(0);
+r.Color = rgb('grey');
+r.LineStyle=':';
+r.LineWidth=2;
+ylabel('\DeltaZ-Scored dF/F')
+xlabel('Frame')
 linkaxes(ax);
+linkaxes([ix ax],'x')
+xlim([1 size(meanTSSquareNR,2)]);

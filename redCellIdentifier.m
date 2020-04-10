@@ -30,7 +30,7 @@ end
 out = All.out;
 out.info
 nDepthsTotal=3;
-%% Identify Red Cells from another image
+%% Identify Red Cells from another image (INTERNEURON)
 [redImageFN redImagePath] = uigetfile('*.tif');
 % rawRedImg = bigread3([redImagePath redImageFN]);
 rawRedImg = ScanImageTiffReader([redImagePath redImageFN]).data;
@@ -97,7 +97,7 @@ if gfilt>0
 imToUse2 = imgaussfilt(imToUse2,gfilt);
 end
 mn = prctile(imToUse2(:),0.5);%min(imToUse2(:));% prctile(imToUse(:),0.5);
-mx = prctile(imToUse2(:),99.5);%max(imToUse2(:));%prctile(imToUse(:),99.5);
+mx = prctile(imToUse2(:),99.75);%max(imToUse2(:));%prctile(imToUse(:),99.5);
 imToUse2 = (imToUse2-mn)./(mx-mn);
 
 %register images together
@@ -110,10 +110,11 @@ imagesc(imToUse2);
 
 IMG = zeros([512 512 3]);
 IMG(:,:,1) = imToUse2;
-IMG(:,:,2) = imToUse;
+IMG(:,:,3) = imToUse;
 
 figure(8);clf
 image(IMG)
+axis square
 
 IMTOUSE1{i} =  imToUse;
 IMTOUSE2{i} =  imToUse2;

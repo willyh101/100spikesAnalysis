@@ -39,7 +39,7 @@ p = plotSpread(data, 'xNames', names, 'showMM', 4, 'distributionColors',cmap);
 % er.Color = [0 0 0];
 % er.LineStyle = 'none';
 % hold off
-ylabel('Population Response (vis responsive)')
+ylabel('Population Response')
 % xticklabels(uniqueEns)
 % xticks = 1:6;
 title('Mean population response to holo')

@@ -42,6 +42,8 @@ end
 %CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
 
+
+
 %% clean Data, and create fields. 
 
 opts.FRDefault=6;
@@ -67,7 +69,11 @@ numSpikesEachEns    = outVars.numSpikesEachEns;
 
 outVars.numCellsEachEnsBackup = outVars.numCellsEachEns;
 
-
+names=[];
+for Ind = 1:numel(All)
+    names{Ind}=lower(strrep(All(Ind).out.info.mouse, '_', '.'));
+end
+outVars.names = names;
 
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
@@ -94,6 +100,9 @@ outVars.visPercentFromVis = visPercent;
 %% if there is a red section (will run even if not...)
 [outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
+
+arrayfun(@(x) sum(~isnan(x.out.red.RedCells)),All)
+arrayfun(@(x) mean(~isnan(x.out.red.RedCells)),All)
 
 %% Identify the Experiment type for comparison or exclusion
 [All,outVars] = ExpressionTypeIdentifier(All,outVars);
@@ -147,7 +156,7 @@ opts.numTrialsPerEnsThreshold = 3;
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    & highVisPercentInd ...
+    ...& highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
@@ -196,6 +205,10 @@ numCellsEachEns = outVars.numCellsEachEnsBackup;
 numCellsEachEns(numCellsEachEns <=5) = 5;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
+outVars.numCellsEachEns= numCellsEachEns;
+
+%% set them all the same
+numCellsEachEns(numCellsEachEns >0 ) = 1;
 outVars.numCellsEachEns= numCellsEachEns;
 
 %% Optional Reset ensemble grouping to default

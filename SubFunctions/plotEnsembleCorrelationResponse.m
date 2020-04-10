@@ -63,19 +63,22 @@ for i=1:5
     
     A = dataToUse';
     B = popResponseTouse;
-    [p Rsq] = simplifiedLinearRegression(A,B);
-    
+      clear pVal
+    [p, Rsq, pVal] = simplifiedLinearRegression(A,B);
+    pV = double(pVal(1));
     hold on
     pl = plot(dataToUse',p(1)*dataToUse+p(2),'color',rgb('dimgrey'));
     for k=1:numel(ensTypes)
-        A = dataToUse(numCellsToUse==ensTypes(k));
-        B = popResponseTouse(numCellsToUse==ensTypes(k))';
-        [p Rsq(k+1)] = simplifiedLinearRegression(A,B);
+        A = dataToUse(numCellsToUse==ensTypes(k))'; %corr
+        B = popResponseTouse(numCellsToUse==ensTypes(k));
+        clear pVal
+        [p, Rsq(k+1), pVal] = simplifiedLinearRegression(A,B);
+        pV(k+1) = double(pVal(1));
         [x colorToUse] = colorMapPicker(numel(ensTypes),outVars.defaultColorMap,k);
         pl2(k) = plot(dataToUse',p(1)*dataToUse+p(2),'color',colorToUse);
     end
 
-    legend([pl pl2],cellfun(@(x) num2str(x),num2cell(Rsq),'uniformoutput',0));
+    legend([pl pl2],cellfun(@(x) num2str(x),num2cell(pV),'uniformoutput',0));
 %     legend(pl2,num2str(Rsq,2))
 end
 end
