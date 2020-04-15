@@ -85,7 +85,7 @@ opts.visAlpha = 0.05;
 %oftarget risk params
 opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
-opts.distBins =  [0:20:1000]; [0:25:1000];
+opts.distBins =  [0:25:1000]; [0:25:1000];
 
 [All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
 
@@ -115,7 +115,7 @@ outVars.ensExpressionType = ensExpressionType;
 
 %% Missed Target Exclusion Criteria
 %detects if too many targets were not detected in S2p
-opts.FractionMissable = 0.5; %what percent of targets are missable before you exclude the ens
+opts.FractionMissable = 0.33; %what percent of targets are missable before you exclude the ens
 [outVars] = missedTargetDetector(All,outVars,opts);
 
 ensMissedTargetF = outVars.ensMissedTargetF; %Fraction of targets per ensemble Missed
@@ -235,6 +235,7 @@ plotAllEnsResponse(outVars)
 plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
+[All outVars] = createTSPlotByEnsSize(All,outVars)
 %% Distance Response Plots
 plotResponseByDistance(outVars,opts);
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
