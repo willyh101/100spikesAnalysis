@@ -83,7 +83,7 @@ opts.visAlpha = 0.05;
 %oftarget risk params
 opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
-opts.distBins =  [0:25:1000];
+opts.distBins =  [0:20:1000]; [0:25:1000];
 
 [All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
 
@@ -101,14 +101,23 @@ outVars.visPercentFromVis = visPercent;
 [outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
 
+try
 arrayfun(@(x) sum(~isnan(x.out.red.RedCells)),All)
 arrayfun(@(x) mean(~isnan(x.out.red.RedCells)),All)
-
+catch end
 %% Identify the Experiment type for comparison or exclusion
 [All,outVars] = ExpressionTypeIdentifier(All,outVars);
 indExpressionType = outVars.indExpressionType;
 ensExpressionType = indExpressionType(outVars.ensIndNumber);
 outVars.ensExpressionType = ensExpressionType;
+
+%% Missed Target Exclusion Criteria
+%detects if too many targets were not detected in S2p
+opts.FractionMissable = 0.5; %what percent of targets are missable before you exclude the ens
+[outVars] = missedTargetDetector(All,outVars,opts);
+
+ensMissedTargetF = outVars.ensMissedTargetF; %Fraction of targets per ensemble Missed
+ensMissedTarget = outVars.ensMissedTarget; %Ensemble is unuseable
 
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
@@ -156,13 +165,14 @@ opts.numTrialsPerEnsThreshold = 3;
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    ...& highVisPercentInd ...
+    & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
     & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
+    & ~ensMissedTarget ...
     ;
 %& numCellsEachEns>10 ;
 
@@ -187,6 +197,8 @@ disp(['Fraction of Ens high stimScore: ' num2str(mean(ensStimScore>opts.ensStimS
 disp(['Fraction of Ens high trial count: ' num2str(mean(numTrialsPerEns>opts.numTrialsPerEnsThreshold))]);
 disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
 disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpressionType))]);
+disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
+
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 
 %% Set Default Trials to Use

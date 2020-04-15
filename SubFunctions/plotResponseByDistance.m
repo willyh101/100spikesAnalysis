@@ -47,7 +47,8 @@ semDat = stdDat./sqrt(numpDat);
 
 
 hold on
-errorbar(distBins(2:end),meanDat,semDat,'linewidth',2,'color',colorList{i})
+distBinSize = distBins(2)-distBins(1);
+errorbar(distBins(2:end)-distBinSize/2,meanDat,semDat,'linewidth',2,'color',colorList{i})
 end
 r = refline(0);
 r.LineStyle=':';
