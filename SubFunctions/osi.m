@@ -1,22 +1,24 @@
-function result = osi(tuning_curve)
+function result = osi(curve)
+% do not include catch condition!
+% should be condition x cell
 
-[~, prefOri]= max(tuning_curve);
+assert( size(curve,1) < size(curve,2), ... 
+    ['Dim 1 of tuning curve must be greater than dim 2 of tuning curve. '...
+    'Make sure tuning curve is ori x cell.'] )
+    
+curve = curve - min(curve);
+curve = makeTuningCurve180(curve);
 
-orthoOri = prefOri-2;
-orthoOri(orthoOri<2)=orthoOri(orthoOri<2)+8;
+[~, prefOri]= max(curve);
 
-orthoOri2 = orthoOri+4;
-orthoOri2(orthoOri2>9) = orthoOri2(orthoOri2>9)-8;
+orthoOri = mod(prefOri + 2, 4);
+orthoOri(orthoOri==0) = 4;
 
-orthoOri = cat(1,orthoOri, orthoOri2);
+OSI = zeros(size(prefOri));
 
-oriCurveBL = tuning_curve - min(tuning_curve);
-
-OSI=[];
 for i=1:numel(prefOri)
-    OSI(i) = (oriCurveBL(prefOri(i),i) - mean(oriCurveBL(orthoOri(:,i)',i)) )...
-        / (oriCurveBL(prefOri(i),i)+ mean(oriCurveBL(orthoOri(:,i)',i)) );
-    OSI(prefOri==1)=nan;
+    OSI(i) = (curve(prefOri(i),i) - curve(orthoOri(i),i)) ...
+        / (curve(prefOri(i),i) + curve(orthoOri(i),i));
 end
 
 result = OSI;
