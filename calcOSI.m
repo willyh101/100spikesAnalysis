@@ -3,12 +3,15 @@ function [All, outVars] = calcOSI(All, outVars)
 % settings
 numExps = numel(All);
 
-if ~isfield(All(1).out.anal, 'oriCurve')
-    error("No ori curve, can't calculate OSI.")
-end
+assert(isfield(All(1).out.anal, 'oriCurve'), ...
+    "No ori curve, can't calculate OSI.")
 
 for ind = 1:numExps
-    result = osi(All(ind).out.anal.oriCurve);
+    curve = All(ind).out.anal.oriCurve;
+    [~, po] = max(curve, [], 1);
+    curve(:, po==1) = nan;
+    curve(1,:) = [];
+    result = osi(curve);
     All(ind).out.anal.osi = result;
     osi2save{ind} = result;
 end

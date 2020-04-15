@@ -1,23 +1,25 @@
 %% Load Experiments/Setup
 clear all
 close all
-addpath('SubFunctions') %will, does this work for you?
-addpath('circStats')
-addpath('LoadLists')
+% addpath('SubFunctions') %will, does this work for you?, nope....
+% addpath('circStats')
+% addpath('LoadLists')
 
 %%
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
 %%
-oriLoadList
-loadList = loadList(15);
+% oriLoadList
+% loadList = loadList(15);
 
-allLoadList;
+% allLoadList;
+SSTOriLoadList;
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 % loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
+loadPath = 'E:\100spikes-results\outfiles-all'
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -216,7 +218,7 @@ numCellsEachEns = outVars.numCellsEachEnsBackup;
 outVars.numCellsEachEns= numCellsEachEns;
 
 %% Basic Response Plots
-outVars.defaultColorMap = 'plasma';
+outVars.defaultColorMap = 'viridis';
 plotAllEnsResponse(outVars)
 plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
@@ -282,7 +284,7 @@ for i=1:numel(prefOriBinned)
 end
 orthoIDs = cat(1,orthoIDs1, orthoIDs2);
 
-
+%%
 oriCurveBL = outVars.circCurves{1}';
 % oriCurveBL = curves - min(curves);
 OSI=[];

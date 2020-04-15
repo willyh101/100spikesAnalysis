@@ -1740,7 +1740,7 @@ OSItoUse = ensOSI';%meanOSI';
 lowOSI = 0.3;
 highOSI = 0.7;
 
-EnsSizeToUse = 10;
+EnsSizeToUse = 3;
 
 % temp = cellfun(@(x) reshape(x(:,1,:),size(x(:,1,:),1),size(x(:,1,:),3)),popResponseCorr,'uniformoutput',0) ;
 temp = cellfun(@(x) reshape(x(:,end,:),size(x(:,end,:),1),size(x(:,end,:),3)),popResponseCorr,'uniformoutput',0) ;
