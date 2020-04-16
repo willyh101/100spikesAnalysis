@@ -9,6 +9,8 @@ numCellsEachEns = outVars.numCellsEachEns;
 
 distBins = opts.distBins;
 
+xaxisrange = opts.distAxisRange;
+
 %% Plot Pop Response by Distance
 % popDistAll = cell2mat(RespToPlot');
 % popDistAll = cell2mat(popResponseDistVis');
@@ -48,7 +50,8 @@ semDat = stdDat./sqrt(numpDat);
 
 
 hold on
-errorbar(distBins(2:end),meanDat,semDat,'linewidth',2,'color',colorList{i})
+distBinSize = distBins(2)-distBins(1);
+errorbar(distBins(2:end)-distBinSize/2,meanDat,semDat,'linewidth',2,'color',colorList{i})
 end
 r = refline(0);
 r.LineStyle=':';
@@ -56,7 +59,7 @@ r.Color = rgb('grey');
 r.LineWidth = 2;
 xlabel('Distance from a target')
 ylabel('Population Response (mean of ensembles'' pop response)')
-xlim([0 350])
+xlim(xaxisrange)
 if numEnsembles ==3;
     legend('Small', 'Medium', 'Big')
 else

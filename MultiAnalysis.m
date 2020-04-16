@@ -237,7 +237,28 @@ plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
 [All outVars] = createTSPlotByEnsSize(All,outVars);
 %% Distance Response Plots
-plotResponseByDistance(outVars,opts);
+ plotResponseByDistance(outVars,opts);
+
+%% Second more flexible way to make Distance Plots
+
+
+%% Compare Distance responses
+figure(102);clf
+
+distTypes = {'min' 'geo' 'mean' 'harm'}
+for i =1:4
+    disp(['working on ' distTypes{i}])
+    opts.distType = distTypes{i}; %options: min geo mean harm
+    CellToUseVar = [];
+    [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+    ax = subplot(2,2,i);
+    opts.distAxisRange = [0 550]; %[0 350] is stand
+    plotDistRespGeneric(popRespDist,outVars,opts,ax);
+    title(distTypes{i})
+end
+disp('done')
+
+%% Distance by Vis Response (will only work if consistent number of unique(visID)
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
 %% Contrast Response Functions
 
