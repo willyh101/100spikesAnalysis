@@ -1,10 +1,12 @@
 function result = osi(curve)
 % do not include catch condition!
 % should be condition x cell
-
-assert( size(curve,1) < size(curve,2), ... 
-    ['Dim 1 of tuning curve must be greater than dim 2 of tuning curve. '...
-    'Make sure tuning curve is ori x cell.'] )
+% 
+% try
+%     assert( size(curve,1) < size(curve,2))
+% catch
+%     warning('Dim 1 of tuning curve is not greater than dim 2 of tuning curve. Make sure tuning curve is ori x cell.')
+% end
     
 curve = curve - min(curve);
 curve = makeTuningCurve180(curve);

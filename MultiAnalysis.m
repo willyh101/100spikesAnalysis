@@ -271,6 +271,7 @@ opts.visAlphaCRF = 10.05; %visAlpha for looking just at vis responsive cells;
 [All, outVars] = getTuningCurve(All, opts, outVars);
 [All, outVars] = calcOSI(All, outVars);
 [All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
+[All, outVars] = getEnsembleOSI(All, outVars); % for ensembles specifically
 
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
 opts.numExamples = 5;
