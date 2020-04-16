@@ -13,6 +13,8 @@ for ind = 1:numExps
     %add additional constraints to cellsToUse
     if isempty(CellToUseVar)
         cellToUseLimit = ones([1 size(All(ind).out.anal.respMat,3)]);
+    elseif islogical(CellToUseVar)
+        cellToUseLimit=CellToUseVar;
     else
        try
             cellToUseLimit = eval(['All(ind).out.' CellToUseVar]);

@@ -23,18 +23,19 @@ ensSizes = unique(numCellsEachEns(ensemblesToUse))   ;
 
 numEnsembles = numel(ensSizes);
 
-if numEnsembles==3
-    colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
-else
-    cl=[];
-    colorList = [];%{rgb('gray')};
-    cl = colormap('plasma');%colormap('rdbu');
-%     nColors = 3; numel(MRDat);
-    ncs = round(linspace(1,size(cl,1),numEnsembles));
-    for i=1:numEnsembles;
-        colorList{end+1} =  cl(ncs(i),:);
-    end
-end
+colorList = colorMapPicker(numEnsembles,outVars.defaultColorMap);
+% if numEnsembles==3
+%     colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
+% else
+%     cl=[];
+%     colorList = [];%{rgb('gray')};
+%     cl = colormap('plasma');%colormap('rdbu');
+% %     nColors = 3; numel(MRDat);
+%     ncs = round(linspace(1,size(cl,1),numEnsembles));
+%     for i=1:numEnsembles;
+%         colorList{end+1} =  cl(ncs(i),:);
+%     end
+% end
 % figure(9);clf
 subplot(axesHandle);
 for i = 1:size(ensSizes,2)

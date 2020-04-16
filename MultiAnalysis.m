@@ -167,7 +167,7 @@ opts.numTrialsPerEnsThreshold = 3;
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    & highVisPercentInd ...
+    ...& highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
@@ -235,7 +235,7 @@ plotAllEnsResponse(outVars)
 plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
-[All outVars] = createTSPlotByEnsSize(All,outVars)
+[All outVars] = createTSPlotByEnsSize(All,outVars);
 %% Distance Response Plots
 plotResponseByDistance(outVars,opts);
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
@@ -338,6 +338,37 @@ ax2 = subplot(1,2,2);
 plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
 title('Not Red Cells')
 linkaxes([ax ax2])
+
+%% Pos vs Neg 
+[All outVars] = posNegIdentifiers(All,outVars,opts);
+opts.distType = 'min';
+
+numEns = numel(outVars.posCellbyInd);
+
+ensIndNumber = outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber;
+
+for i=1:numEns %i know its slow, but All is big so don't parfor it
+    if mod(i,round(numEns/10))==1
+        fprintf('.')
+    end
+    cellToUseVar = outVars.posCellbyInd{i};
+    popToPlotPos(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+
+     cellToUseVar = outVars.negCellbyInd{i};
+    popToPlotNeg(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+
+end
+disp('Done')
+
+%%
+figure(10);clf
+ax =subplot(1,2,1);
+plotDistRespGeneric(popToPlotPos,outVars,opts,ax);
+title('Cells that go up')
+ax2 =subplot(1,2,2);
+plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
+title('Cells That go down')
 
 %% Correlation Pick One. Option A. Vis activity from interleaved Trials
 %Functions are Mutually Exclusive.
