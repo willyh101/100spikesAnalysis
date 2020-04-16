@@ -139,3 +139,5 @@ if ~isempty(indToUse)
     All(indToUse).out.vis.runVal = All(indToUse).out.vis.runVal(1:sz(3),:);
     All(indToUse).out.vis.visID = All(indToUse).out.vis.visID(1:sz(3));
 end
+
+disp('Done fixing.')

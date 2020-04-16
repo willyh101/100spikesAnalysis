@@ -1,10 +1,9 @@
 %% Load Experiments/Setup
-clear all
+clear
 close all
-% addpath('SubFunctions') %will, does this work for you?, nope....
-% addpath('circStats')
-% addpath('LoadLists')
 
+
+addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-code/matlab')) % will pathing
 %%
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
@@ -239,7 +238,7 @@ opts.visAlphaCRF = 10.05; %visAlpha for looking just at vis responsive cells;
 [All, outVars] = getTuningCurve(All, opts, outVars);
 [All, outVars] = calcOSI(All, outVars);
 [All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
-
+%%
 % compare max vs circular mean for determining PO
 po = outVars.prefOris{1};
 oris = 0:45:315;
@@ -249,6 +248,17 @@ osi(po==1)=[];
 po(po==1)=[];
 
 podeg = oris(po-1);
+
+figure(2)
+clf
+subplot(1,2,1)
+histogram(podeg, 9)
+title('PO by Max')
+
+subplot(1,2,2)
+histogram(outVars.circTuning{1}, 9)
+title('PO by Circular Mean')
+%%
 
 figure(1)
 clf
@@ -299,8 +309,13 @@ ylabel('Circular PO')
 xlabel('Max PO')
 c = colorbar;
 c.Label.String = 'OSI by circ tuning';
-%% Red Cell Analysis (will only run if you have the red section on all your recordings). 
+%% Red Cell Analysis (will only run if you have the red section on all your recordings).
+opts.numExamples = 5;
+opts.osiThreshold4Examples = 0.5;
+opts.visAlpha = 1;
+
 [outVars] = plotResponseOfRedCells(All,outVars,opts);
+[All, outVars] = redCellTuningAnalysis(All, outVars, opts);
 
 
 %% Red Distance section

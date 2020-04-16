@@ -9,6 +9,7 @@ for ind=1:numExps
     uVisID(uVisID==0)=[];
     
     oriCurve=[];
+    oriCurveSEM = [];
     for i=1:numel(uVisID)
         v= uVisID(i);
         
@@ -16,10 +17,12 @@ for ind=1:numExps
             All(ind).out.vis.lowMotionTrials &...
             All(ind).out.vis.lowRunTrials;
         
-        oriCurve(i,:)=mean(All(ind).out.vis.rdata(:,trialsToUse),2);
+        oriCurve(i,:) = mean(All(ind).out.vis.rdata(:,trialsToUse), 2);
+        oriCurveSEM(i,:) = sem2(All(ind).out.vis.rdata(:,trialsToUse), 2);
     end
     
     All(ind).out.anal.oriCurve = oriCurve;
+    All(ind).out.anal.oriCurveSEM = oriCurveSEM;
     
     [~, maxOriIndex]= max(oriCurve);
     All(ind).out.anal.prefOri = maxOriIndex;
@@ -35,8 +38,10 @@ for ind=1:numExps
     
     % save the datas
     tuningCurves{ind} = oriCurve;
+    tuningCurvesSEM{ind} = oriCurveSEM;
     prefOris{ind} = prefOri;
     orthoOris{ind} = orthoOri;
+    
     All(ind).out.anal.prefOri = prefOri;
     All(ind).out.anal.orthoOri = orthoOri;
 
@@ -45,4 +50,5 @@ end
 outVars.prefOris = prefOris;
 outVars.orthoOris = orthoOris;
 outVars.tuningCurves = tuningCurves;
+outVars.tuningCurvesSEM = tuningCurvesSEM;
     
