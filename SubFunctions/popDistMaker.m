@@ -1,6 +1,6 @@
 function [popRespDistEns] = popDistMaker(opts,All,CellToUseVar,plotFlag)
 %% make distance plots 
-distType = opts.distType;
+distType = lower(opts.distType);
 distBins = opts.distBins; %[0:25:1000];
 numDist =numel(distBins)-1;
 numExps = numel(All);
@@ -13,6 +13,8 @@ for ind = 1:numExps
     %add additional constraints to cellsToUse
     if isempty(CellToUseVar)
         cellToUseLimit = ones([1 size(All(ind).out.anal.respMat,3)]);
+    elseif islogical(CellToUseVar)
+        cellToUseLimit=CellToUseVar;
     else
        try
             cellToUseLimit = eval(['All(ind).out.' CellToUseVar]);
@@ -57,14 +59,8 @@ for ind = 1:numExps
             Tg=All(ind).out.exp.rois{holo};
             dists = StimDistance(Tg,:);
             
-            minDist = min(dists,[],1);
-            try
-                geoDist = geo_mean(dists,1);
-            catch
-                geoDist = geomean(dists,1);
-            end
-            meanDist = mean(dists,1);
-            harmDist = harmmean(dists,1);
+            
+            
             
 %             minDistbyHolo(i,:) = minDist;
 %             geoDistbyHolo(i,:) = geoDist;
@@ -73,15 +69,24 @@ for ind = 1:numExps
             
             switch distType
                 case 'min'
+                    minDist = min(dists,[],1);
                     distToUse = minDist;
                 case 'geo'
+                    try
+                        geoDist = geo_mean(dists,1);
+                    catch
+                        geoDist = geomean(dists,1);
+                    end
                     distToUse = geoDist;
                 case 'mean'
+                    meanDist = mean(dists,1);
                     distToUse = meanDist;
                 case 'harm'
+                    harmDist = harmmean(dists,1);
                     distToUse = harmDist;
                 otherwise
                     disp('dist type not understood, using min')
+                    minDist = min(dists,[],1);
                     distToUse =minDist;
             end
             

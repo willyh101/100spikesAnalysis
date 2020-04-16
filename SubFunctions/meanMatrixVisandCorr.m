@@ -13,6 +13,7 @@ numSpikesEachStim = outVars.numSpikesEachStim;
 
 clear popResponse pVisR pVisT
 ensIndNumber=[];
+ensHNumber=[];
 for ind=1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
@@ -25,7 +26,7 @@ for ind=1:numExps
     vs(vs==0)=[];
     us = unique(All(ind).out.exp.stimID);
 
-    clear respMat baseMat %Order stims,vis,cells
+    clear respMat baseMat stdMat numMat%Order stims,vis,cells
     for i=1:numel(us)
         s = us(i);
 
@@ -38,12 +39,19 @@ for ind=1:numExps
                 baseMat(i,v,:) = mean(All(ind).out.exp.bdata(:,...
                     trialsToUse & All(ind).out.exp.stimID ==s &...
                     All(ind).out.exp.visID ==v), 2) ;
+                stdMat(i,v,:) = std(All(ind).out.exp.rdData(:,...
+                    trialsToUse & All(ind).out.exp.stimID ==s &...
+                    All(ind).out.exp.visID ==v),[], 2) ;
+                numMat(i,v,:) = sum(trialsToUse & All(ind).out.exp.stimID ==s &...
+                    All(ind).out.exp.visID ==v) ;
             end
         end
     end
 
     All(ind).out.anal.respMat = respMat;
     All(ind).out.anal.baseMat = baseMat;
+    All(ind).out.anal.stdMat = stdMat;
+    All(ind).out.anal.numMat = numMat;
 
 
     %%offtargetRisk
@@ -258,7 +266,7 @@ for ind=1:numExps
     popResponseAllDistSubVisNC{ind} = popRespDistVisNumCells; %num cells visR by holo and distance
     
     ensIndNumber = [ensIndNumber ones(size(popResp(:,1)'))*ind];
-    
+    ensHNumber = [ensHNumber 1:numel(popResp(:,1))];
 
     
     fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
@@ -269,12 +277,15 @@ popResponseEns=popResponse;
 popResponseEns(numSpikesEachStim==0)=[];
 
 ensIndNumber(numSpikesEachStim==0)=[];
+ensHNumber(numSpikesEachStim==0)=[];
 
 noStimPopResp = popResponse(numSpikesEachStim==0);
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<0.05)); %remove low vis responsive experiments
 
-outVars.ensIndNumber            = ensIndNumber;
+outVars.ensIndNumber            = ensIndNumber; %the ind that each holo came from
+outVars.ensHNumber            = ensHNumber; %the holo ID number index of uniquestims
+
 outVars.visPercent              = visPercent;
 outVars.popResponse             = popResponse;
 outVars.popResponseDist         = popResponseDist;

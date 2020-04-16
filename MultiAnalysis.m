@@ -84,7 +84,7 @@ opts.visAlpha = 0.05;
 %oftarget risk params
 opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
-opts.distBins =  [0:25:1000];
+opts.distBins =  [0:25:1000]; [0:25:1000];
 
 [All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
 
@@ -102,14 +102,23 @@ outVars.visPercentFromVis = visPercent;
 [outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
 
+try
 arrayfun(@(x) sum(~isnan(x.out.red.RedCells)),All)
 arrayfun(@(x) mean(~isnan(x.out.red.RedCells)),All)
-
+catch end
 %% Identify the Experiment type for comparison or exclusion
 [All,outVars] = ExpressionTypeIdentifier(All,outVars);
 indExpressionType = outVars.indExpressionType;
 ensExpressionType = indExpressionType(outVars.ensIndNumber);
 outVars.ensExpressionType = ensExpressionType;
+
+%% Missed Target Exclusion Criteria
+%detects if too many targets were not detected in S2p
+opts.FractionMissable = 0.33; %what percent of targets are missable before you exclude the ens
+[outVars] = missedTargetDetector(All,outVars,opts);
+
+ensMissedTargetF = outVars.ensMissedTargetF; %Fraction of targets per ensemble Missed
+ensMissedTarget = outVars.ensMissedTarget; %Ensemble is unuseable
 
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
@@ -164,6 +173,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
+    & ~ensMissedTarget ...
     ;
 %& numCellsEachEns>10 ;
 
@@ -188,6 +198,8 @@ disp(['Fraction of Ens high stimScore: ' num2str(mean(ensStimScore>opts.ensStimS
 disp(['Fraction of Ens high trial count: ' num2str(mean(numTrialsPerEns>opts.numTrialsPerEnsThreshold))]);
 disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
 disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpressionType))]);
+disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
+
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 
 %% Set Default Trials to Use
@@ -222,8 +234,30 @@ plotAllEnsResponse(outVars)
 plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
+[All outVars] = createTSPlotByEnsSize(All,outVars);
 %% Distance Response Plots
-plotResponseByDistance(outVars,opts);
+ plotResponseByDistance(outVars,opts);
+
+%% Second more flexible way to make Distance Plots
+
+
+%% Compare Distance responses
+figure(102);clf
+
+distTypes = {'min' 'geo' 'mean' 'harm'}
+for i =1:4
+    disp(['working on ' distTypes{i}])
+    opts.distType = distTypes{i}; %options: min geo mean harm
+    CellToUseVar = [];
+    [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+    ax = subplot(2,2,i);
+    opts.distAxisRange = [0 550]; %[0 350] is stand
+    plotDistRespGeneric(popRespDist,outVars,opts,ax);
+    title(distTypes{i})
+end
+disp('done')
+
+%% Distance by Vis Response (will only work if consistent number of unique(visID)
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
 %% Contrast Response Functions
 
@@ -340,6 +374,37 @@ ax2 = subplot(1,2,2);
 plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
 title('Not Red Cells')
 linkaxes([ax ax2])
+
+%% Pos vs Neg 
+[All outVars] = posNegIdentifiers(All,outVars,opts);
+opts.distType = 'min';
+
+numEns = numel(outVars.posCellbyInd);
+
+ensIndNumber = outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber;
+
+for i=1:numEns %i know its slow, but All is big so don't parfor it
+    if mod(i,round(numEns/10))==1
+        fprintf('.')
+    end
+    cellToUseVar = outVars.posCellbyInd{i};
+    popToPlotPos(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+
+     cellToUseVar = outVars.negCellbyInd{i};
+    popToPlotNeg(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+
+end
+disp('Done')
+
+%%
+figure(10);clf
+ax =subplot(1,2,1);
+plotDistRespGeneric(popToPlotPos,outVars,opts,ax);
+title('Cells that go up')
+ax2 =subplot(1,2,2);
+plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
+title('Cells That go down')
 
 %% Correlation Pick One. Option A. Vis activity from interleaved Trials
 %Functions are Mutually Exclusive.
