@@ -1,6 +1,6 @@
 function [All, outVars] = getEnsembleOSI(All, outVars)
 
-%Get the number of spikes in each stimulus
+clear meanEnsOSI meanEnsOri cmeanEnsOri ensCurve ensCurveSEM ensOSI ensPO
 
 for ind = 1:numel(All)
 
@@ -41,11 +41,19 @@ for ind = 1:numel(All)
     All(ind).out.exp.ensPO = ensPO;
     
     
-    outVars.meanEnsOSI{ind} = meanOSI;
-    outVars.meanEnsOri{ind} = meanOri;
-    outVars.cmeanEnsOri{ind} = cmeanOri;
-    outVars.ensCurve{ind} = curve2save;
-    outVars.ensCurveSEM{ind} = curveSEM;
-    outVars.ensOSI{ind} = ensOSI;
-    outVars.ensPO{ind} = ensPO;
+    meanEnsOSItemp{ind} = meanOSI;
+    meanEnsOritemp{ind} = meanOri;
+    cmeanEnsOritemp{ind} = cmeanOri;
+    ensCurvetemp{ind} = curve2save;
+    ensCurveSEMtemp{ind} = curveSEM;
+    ensOSItemp{ind} = ensOSI;
+    ensPOtemp{ind} = ensPO;
 end
+
+outVars.meanEnsOSI = cell2mat(meanEnsOSItemp(:)');
+outVars.meanEnsOri = cell2mat(meanEnsOritemp(:)');
+outVars.cmeanEnsOri = cell2mat(cmeanEnsOritemp(:)');
+outVars.ensCurve = cell2mat(ensCurvetemp(:)');
+outVars.ensCurveSEM = cell2mat(ensCurveSEMtemp(:)');
+outVars.ensOSI = cell2mat(ensOSItemp(:)');
+outVars.ensPO = cell2mat(ensPOtemp(:)');

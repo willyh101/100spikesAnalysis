@@ -9,11 +9,11 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
 %%
-% oriLoadList
+oriLoadList
 % loadList = loadList(15);
 
-% allLoadList;
-SSTOriLoadList;
+% allLoadList;              
+% SSTOriLoadList;
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
@@ -215,7 +215,7 @@ end
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
-numCellsEachEns(numCellsEachEns <=5) = 5;
+numCellsEachEns(numCellsEachEns <= 5) = 5;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
 outVars.numCellsEachEns= numCellsEachEns;
@@ -272,14 +272,20 @@ opts.visAlphaCRF = 10.05; %visAlpha for looking just at vis responsive cells;
 [All, outVars] = calcOSI(All, outVars);
 [All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
 [All, outVars] = getEnsembleOSI(All, outVars); % for ensembles specifically
+%% plot vis things
+opts.ensOSImethod = 'ensOSI';
+
+plotOSIdists(outVars, opts);
+plotPopResponseEnsOSI(outVars, opts)
 
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
 opts.numExamples = 5;
 opts.osiThreshold4Examples = 0.5;
-opts.visAlpha = 1;
+opts.visAlpha = 0.05;
 
-[outVars] = plotResponseOfRedCells(All,outVars,opts);
+[outVars] = plotResponseOfRedCells(All, outVars, opts);
 [All, outVars] = redCellTuningAnalysis(All, outVars, opts);
+[outVars] = makeMeanRespEns(All, outVars);
 
 
 %% Red Distance section

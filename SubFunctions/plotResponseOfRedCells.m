@@ -10,11 +10,11 @@ minEndFrame = min(totNumFrames-minStrtFrame);
     clear popRespRed popRespNotRed popRespRedSEM popRespNotRedSEM
     clear popTSRed popTSNotRed nRedNotRed
 c=0;
-for ind = 1:numExps;
-    
+for ind = 1:numExps
     
     vs = unique(All(ind).out.exp.visID);
     vs(vs==0)=[];
+    
     us = unique(All(ind).out.exp.stimID);
     
     respMat = All(ind).out.anal.respMat;
@@ -31,42 +31,43 @@ for ind = 1:numExps;
     v=1;
         
     numStims = numel(All(ind).out.exp.stimParams.Seq);
- for i= 1:numStims
-            holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
-            c=c+1;
-            if i==1;
-                cellsToUse = ~ROIinArtifact';
-            else
-                cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:);
-            end
-            popRespRed(c) = nanmean(squeeze(respMat(i,v,cellsToUse & isRed) -...
-                baseMat(i,v,cellsToUse & isRed)));
-            popRespRedSEM(c) = sem(squeeze(respMat(i,v,cellsToUse & isRed) -...
-                baseMat(i,v,cellsToUse & isRed)));
-            popRespNotRed(c) = mean(squeeze(respMat(i,v,cellsToUse & ~isRed) -...
-                baseMat(i,v,cellsToUse & ~isRed)));
-            popRespNotRedSEM(c) = sem(squeeze(respMat(i,v,cellsToUse & ~isRed) -...
-                baseMat(i,v,cellsToUse & ~isRed)));
-            isControl(c) = i==1;
-
-            %TS code
-             strtFrame = All(ind).out.anal.recStartFrame;
-             newStart = strtFrame-minStrtFrame+1;
-             newEnd = newStart+minEndFrame-1;
-            s = us(i); 
-            
-            
-           dat = All(ind).out.exp.zdfData(cellsToUse & isRed,newStart:newEnd,trialsToUse &...
-                All(ind).out.exp.stimID==s &...
-                All(ind).out.exp.visID==v );
-            popTSRed(c,:) = mean(mean(dat,3),1);
-            dat = All(ind).out.exp.zdfData(cellsToUse & ~isRed,newStart:newEnd,trialsToUse &...
-                All(ind).out.exp.stimID==s &...
-                All(ind).out.exp.visID==v );
-            popTSNotRed(c,:) = mean(mean(dat,3),1);
-            nRedNotRed(c,1) = sum(cellsToUse & isRed);
-            nRedNotRed(c,2) = sum(cellsToUse & ~isRed);
- end
+    
+    for i= 1:numStims
+        holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
+        c=c+1;
+        if i==1
+            cellsToUse = ~ROIinArtifact';
+        else
+            cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:);
+        end
+        popRespRed(c) = nanmean(squeeze(respMat(i,v,cellsToUse & isRed) -...
+            baseMat(i,v,cellsToUse & isRed)));
+        popRespRedSEM(c) = sem(squeeze(respMat(i,v,cellsToUse & isRed) -...
+            baseMat(i,v,cellsToUse & isRed)));
+        popRespNotRed(c) = mean(squeeze(respMat(i,v,cellsToUse & ~isRed) -...
+            baseMat(i,v,cellsToUse & ~isRed)));
+        popRespNotRedSEM(c) = sem(squeeze(respMat(i,v,cellsToUse & ~isRed) -...
+            baseMat(i,v,cellsToUse & ~isRed)));
+        isControl(c) = i==1;
+        
+        %TS code
+        strtFrame = All(ind).out.anal.recStartFrame;
+        newStart = strtFrame-minStrtFrame+1;
+        newEnd = newStart+minEndFrame-1;
+        s = us(i);
+        
+        
+        dat = All(ind).out.exp.zdfData(cellsToUse & isRed,newStart:newEnd,trialsToUse &...
+            All(ind).out.exp.stimID==s &...
+            All(ind).out.exp.visID==v );
+        popTSRed(c,:) = mean(mean(dat,3),1);
+        dat = All(ind).out.exp.zdfData(cellsToUse & ~isRed,newStart:newEnd,trialsToUse &...
+            All(ind).out.exp.stimID==s &...
+            All(ind).out.exp.visID==v );
+        popTSNotRed(c,:) = mean(mean(dat,3),1);
+        nRedNotRed(c,1) = sum(cellsToUse & isRed);
+        nRedNotRed(c,2) = sum(cellsToUse & ~isRed);
+    end
  
 
  

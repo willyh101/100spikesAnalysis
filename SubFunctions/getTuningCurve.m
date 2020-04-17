@@ -41,6 +41,8 @@ for ind=1:numExps
     tuningCurvesSEM{ind} = oriCurveSEM;
     prefOris{ind} = prefOri;
     orthoOris{ind} = orthoOri;
+    isVisR{ind} = All(ind).out.anal.pVisR < 0.05;
+
     
     All(ind).out.anal.prefOri = prefOri;
     All(ind).out.anal.orthoOri = orthoOri;
@@ -51,4 +53,5 @@ outVars.prefOris = prefOris;
 outVars.orthoOris = orthoOris;
 outVars.tuningCurves = tuningCurves;
 outVars.tuningCurvesSEM = tuningCurvesSEM;
+outVars.isVisR = isVisR;
     
