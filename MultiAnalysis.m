@@ -362,23 +362,30 @@ linkaxes([ax ax2])
 
 %% Pos vs Neg 
 [All outVars] = posNegIdentifiers(All,outVars,opts);
-opts.distType = 'min';
+opts.distType = 'geo';
+opts.distBins = [0:25:1000];
 
 numEns = numel(outVars.posCellbyInd);
 
 ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
 
+clear popToPlotPos popToPlotNeg
 for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
         fprintf('.')
     end
+    if outVars.ensemblesToUse(i)
     cellToUseVar = outVars.posCellbyInd{i};
     popToPlotPos(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
      cellToUseVar = outVars.negCellbyInd{i};
     popToPlotNeg(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
+    else
+        popToPlotPos(i,:) = nan([numel(opts.distBins)-1 1]);
+        popToPlotNeg(i,:) = nan([numel(opts.distBins)-1 1]);
+    end
 end
 disp('Done')
 
@@ -390,18 +397,22 @@ title('Cells that go up')
 ax2 =subplot(1,2,2);
 plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
 title('Cells That go down')
+% linkaxes([ax ax2]);
+% xlim([0 250])
 
 %% Correlation Pick One. Option A. Vis activity from interleaved Trials
 %Functions are Mutually Exclusive.
 [All, outVars] = defineCorrelationTypes(All,outVars); %Caution this and below are mutually exclusive
 plotEnsembleCorrelationResponse(outVars,200,1);
 
+opts.CorrSpace = linspace(-0.5,0.5,40);
 opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
-[outVars] = plotCorrelationResponse(All,outVars,opts.CorrToPlot);
+[outVars] = plotCorrelationResponse(All,outVars,opts);
 %% Correlation Pick One. Option B. Vis Activity from out.vis epoch
 [All, outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
 plotEnsembleCorrelationResponse(outVars,300,1)
 
+opts.CorrSpace = linspace(-0.5,0.5,40);
 opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 [outVars] = plotCorrelationResponse(All,outVars,opts.CorrToPlot);
 
@@ -409,5 +420,32 @@ opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'Sig
 [All, outVars] = defineDistanceTypes(All, outVars);
 plotEnsembleDistanceResponse(outVars,100,1)
 
-%%
+%% Seperate Correlation by Pos and Neg
+
+opts.CorrSpace = linspace(-0.5,0.5,40);
+opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+
+numEns = numel(outVars.posCellbyInd);
+
+ensIndNumber = outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber;
+
+clear popToPlotPos popToPlotNeg
+for i=1:numEns %i know its slow, but All is big so don't parfor it
+    if mod(i,round(numEns/10))==1
+        fprintf('.')
+    end
+    if outVars.ensemblesToUse(i)
+    cellToUseVar = outVars.posCellbyInd{i};
+    popToPlotPos(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+
+     cellToUseVar = outVars.negCellbyInd{i};
+    popToPlotNeg(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+
+    else
+        popToPlotPos(i,:) = nan([numel(opts.distBins)-1 1]);
+        popToPlotNeg(i,:) = nan([numel(opts.distBins)-1 1]);
+    end
+end
+disp('Done')
 

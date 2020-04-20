@@ -23,8 +23,8 @@ title('Ensemble Distance Correlations by type')
 ylabel('Distance (\mum)')
 
 %%plot Pop Response by Correlation
-f4 = figure(figNum+1);
-clf(f4);
+figure(figNum+1);
+clf;
 
 popResponseEns = outVars.popResponseEns;
 numCellsEachEns = outVars.numCellsEachEns;
@@ -34,7 +34,7 @@ for i=1:numPanels
     dataToUse = dat{i};
     scatter(dataToUse,popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
     % scatter(1:sum(ensemblesToUse),popResponseEns(ensemblesToUse),[],numCellsEachEns(ensemblesToUse),'filled')
-    hold on
+     hold on
     title([names{i} ' Distance'])
     
     xlabel(['Spread of Ensemble (\mum)'])
@@ -50,10 +50,11 @@ end
 %% Plot Regression Lines
 if plotRegression
     ensTypes = unique(numCellsEachEns(ensemblesToUse));
-    figure(f4)
+%     figure(f4)
+%     hold on
     for i=1:numPanels
         subplot(numPanels,1,i)
-        hold on
+%          hold on
         
         dataToUse = dat{i};
         nanFinder = isnan(dataToUse);
@@ -67,6 +68,7 @@ if plotRegression
         B = popResponseTouse;
         [p Rsq pVal] = simplifiedLinearRegression(A,B);
         pV=double(pVal(1));
+        hold on
         pl = plot(dataToUse',p(1)*dataToUse+p(2),'color',rgb('dimgrey'));
         for k=1:numel(ensTypes)
             A = dataToUse(numCellsToUse==ensTypes(k))';

@@ -1,5 +1,9 @@
-function [outVars] = plotCorrelationResponse(All,outVars,stringCorrType)
+function [outVars] = plotCorrelationResponse(All,outVars,opts)
 numExps = numel(All);
+
+distBins = opts.CorrSpace;
+stringCorrType = opts.CorrToPlot;
+
 %% Plot
     disp('Calculating...')
 
@@ -48,7 +52,7 @@ for ind = 1:numExps
                 else
                     minDistbyHolo(i,:) = minDist;
                 end
-                distBins = linspace(-0.5,0.5,40);
+%                 distBins = linspace(-0.5,0.5,40);
                 for d = 1:numel(distBins)-1
                     cellsToUse = ~ROIinArtifact' &...
                         ~offTargetRisk(holo,:) &...
