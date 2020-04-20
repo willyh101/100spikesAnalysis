@@ -1,20 +1,19 @@
 %% Load Experiments/Setup
-clear all
+clear
 close all
-% addpath('SubFunctions') %will, does this work for you?, nope....
-% addpath('circStats')
-% addpath('LoadLists')
 
+
+addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-code/matlab')) % will pathing
 %%
 
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
 %%
-% oriLoadList
+oriLoadList
 % loadList = loadList(15);
 
-% allLoadList;
-SSTOriLoadList;
+% allLoadList;              
+% SSTOriLoadList;
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
@@ -216,7 +215,7 @@ end
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
-numCellsEachEns(numCellsEachEns <=5) = 5;
+numCellsEachEns(numCellsEachEns <= 5) = 5;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
 outVars.numCellsEachEns= numCellsEachEns;
@@ -268,73 +267,25 @@ opts.visAlphaCRF = 10.05; %visAlpha for looking just at vis responsive cells;
 [outVars] = plotContrastResponseFunction(All,outVars,opts);
 
 %% Orientation Tuning and OSI
-% leaving this a mess here for now to compare the different prefOri
-% calculations.... will tidy up later
+
 [All, outVars] = getTuningCurve(All, opts, outVars);
 [All, outVars] = calcOSI(All, outVars);
 [All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
+[All, outVars] = getEnsembleOSI(All, outVars); % for ensembles specifically
+%% plot vis things
+opts.ensOSImethod = 'ensOSI';
 
-% compare max vs circular mean for determining PO
-po = outVars.prefOris{1};
-oris = 0:45:315;
+plotOSIdists(outVars, opts);
+plotPopResponseEnsOSI(outVars, opts)
 
-osi = outVars.osi{1};
-osi(po==1)=[];
-po(po==1)=[];
+%% Red Cell Analysis (will only run if you have the red section on all your recordings).
+opts.numExamples = 5;
+opts.osiThreshold4Examples = 0.5;
+opts.visAlpha = 0.05;
 
-podeg = oris(po-1);
-
-figure(1)
-clf
-subplot(1,3,1)
-scatter(podeg, outVars.circTuning{1}, [], osi, 'filled')
-ylabel('Circular PO')
-xlabel('Max PO')
-c = colorbar;
-c.Label.String = 'OSI';
-
-subplot(1,3,2)
-scatter(podeg, outVars.circTuning{1}, [], outVars.circVar{1}, 'filled')
-ylabel('Circular PO')
-xlabel('Max PO')
-c = colorbar;
-c.Label.String = 'Circ. Var (deg)';
-
-% do OSI on new fancy tuning method
-prefOri = outVars.circTuning{1};
-ortho1 = mod(prefOri - 90, 135);
-ortho2 = mod(prefOri + 90, 135);
-orthoOri = cat(1,ortho1, ortho2);
-% but have to cast back to 0:45:135
-prefOriBinned = interp1(oris, oris, prefOri, 'nearest', 'extrap');
-orthoOriBinned = interp1(oris, oris, orthoOri, 'nearest', 'extrap');
-% then go back to visID to get idxs
-for i=1:numel(prefOriBinned)
-    o = prefOriBinned(i);
-    oo = orthoOriBinned(:,i);
-    prefIDs(i) = find(o==oris);
-    orthoIDs1(i) = find(oo(1,:)==oris);
-    orthoIDs2(i) = find(oo(2,:)==oris);
-end
-orthoIDs = cat(1,orthoIDs1, orthoIDs2);
-
-%%
-oriCurveBL = outVars.circCurves{1}';
-% oriCurveBL = curves - min(curves);
-OSI=[];
-for i=1:numel(prefOriBinned)
-    OSI(i) = (oriCurveBL(prefIDs(i),i) - mean(oriCurveBL(orthoIDs(:,i)',i)))...
-        / (oriCurveBL(prefIDs(i),i) + mean(oriCurveBL(orthoIDs(:,i)',i)));
-end
-
-subplot(1,3,3)
-scatter(podeg, outVars.circTuning{1}, [], OSI, 'filled')
-ylabel('Circular PO')
-xlabel('Max PO')
-c = colorbar;
-c.Label.String = 'OSI by circ tuning';
-%% Red Cell Analysis (will only run if you have the red section on all your recordings). 
-[outVars] = plotResponseOfRedCells(All,outVars,opts);
+[outVars] = plotResponseOfRedCells(All, outVars, opts);
+[All, outVars] = redCellTuningAnalysis(All, outVars, opts);
+[outVars] = makeMeanRespEns(All, outVars);
 
 
 %% Red Distance section

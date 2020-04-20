@@ -1197,8 +1197,12 @@ unique(numCellsEachEns(ensemblesToUse))
 clear f p ens2plt fits
 f5 = figure(5);
 clf(f5)
+ensemblesToUse = outVars.ensemblesToUse;
+numCellsEachEns = outVars.numCellsEachEns;
 numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
+ensOSI = outVars.meanEnsOSI;
+popResponseEns = outVars.popResponseEns;
 
 for i=1:numEns
     ens2plot = find(numCellsEachEns==uniqueEns(i) & ensemblesToUse & ~isnan(ensOSI'));

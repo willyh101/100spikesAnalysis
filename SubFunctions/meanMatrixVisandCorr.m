@@ -175,6 +175,7 @@ for ind=1:numExps
     popRespDistSubVis = nan([numStims max(vs) numDist]);
     popRespDistVis = nan([numStims max(vs) numDist]);
     popRespDistVisNumCells = nan([numStims max(vs) numDist]);
+    
     for k = 1:numVis
         v=vs(k); 
         for i= 1:numStims
