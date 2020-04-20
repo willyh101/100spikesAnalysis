@@ -86,7 +86,7 @@ opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 
-[All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
+[All, outVars] = meanMatrixVisandCorr(All,opts,outVars); %one of the main analysis functions
 
 visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
@@ -311,9 +311,9 @@ plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
 title('Not Red Cells')
 linkaxes([ax ax2])
 
-%% Pos vs Neg 
+%% Pos vs Neg by Distance
 [All outVars] = posNegIdentifiers(All,outVars,opts);
-opts.distType = 'geo';
+opts.distType = 'min';
 opts.distBins = [0:25:1000];
 
 numEns = numel(outVars.posCellbyInd);
@@ -340,8 +340,10 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
 end
 disp('Done')
 
-%%
+%%Plot Dist REsp
 figure(10);clf
+opts.distAxisRang = [0 350];
+
 ax =subplot(1,2,1);
 plotDistRespGeneric(popToPlotPos,outVars,opts,ax);
 title('Cells that go up')
@@ -387,16 +389,23 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         fprintf('.')
     end
     if outVars.ensemblesToUse(i)
-    cellToUseVar = outVars.posCellbyInd{i};
-    popToPlotPos(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+    cellToUseVar = outVars.posCellbyInd{i} ;
+    popToPlotCorrPos(i,:) = popCorrMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
      cellToUseVar = outVars.negCellbyInd{i};
-    popToPlotNeg(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+    popToPlotCorrNeg(i,:) = popCorrMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
     else
-        popToPlotPos(i,:) = nan([numel(opts.distBins)-1 1]);
-        popToPlotNeg(i,:) = nan([numel(opts.distBins)-1 1]);
+        popToPlotCorrPos(i,:) = nan([numel(opts.CorrSpace)-1 1]);
+        popToPlotCorrNeg(i,:) = nan([numel(opts.CorrSpace)-1 1]);
     end
 end
 disp('Done')
 
+figure(11);clf
+ax =subplot(1,2,1);
+plotRespGeneric(popToPlotCorrPos,opts.CorrSpace,outVars,opts,ax);
+title('Cells that go up')
+ax2 =subplot(1,2,2);
+plotRespGeneric(popToPlotCorrNeg,opts.CorrSpace,outVars,opts,ax2);
+title('Cells That go down')
