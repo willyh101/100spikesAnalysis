@@ -9,11 +9,11 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
 %%
-oriLoadList
+% oriLoadList
 % loadList = loadList(15);
 
 % allLoadList;              
-% SSTOriLoadList;
+SSTOriLoadList;
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
@@ -297,6 +297,9 @@ opts.visAlpha = 0.05;
 [All, outVars] = redCellTuningAnalysis(All, outVars, opts);
 [outVars] = makeMeanRespEns(All, outVars);
 
+%% Within Red Cell Analysis
+[All, outVars] = compareRedCellsVisResp(All, outVars);
+plotCompareRedCellVisResp(outVars)
 
 %% Red Distance section
 for ind = 1:numExps;
