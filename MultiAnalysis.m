@@ -421,4 +421,77 @@ ax2 =subplot(1,2,2);
 plotRespGeneric(popToPlotCorrNeg,opts.CorrSpace,outVars,opts,ax2);
 title('Cells That go down')
 
-%% 
+%% 2D Plot Maker
+
+opts.CorrSpace = linspace(-0.2,0.25,30);
+opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+
+opts.distType = 'min';
+opts.distBins = [0:20:600];
+
+numEns = numel(outVars.posCellbyInd);
+ensIndNumber = outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber;
+
+clear popResp2D numResponders
+for i=1:numEns %i know its slow, but All is big so don't parfor it
+    if mod(i,round(numEns/10))==1
+        fprintf('.')
+    end
+    if outVars.ensemblesToUse(i)
+        cellToUseVar = [];outVars.negCellbyInd{i} ;%outVars.posCellbyInd{i} ;
+        [popResp2D(i,:,:) numResponders(i,:,:)] = distCorr2DSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+    else
+        popResp2D(i,:,:) = nan([numel(opts.CorrSpace)-1 numel(opts.distBins)-1]);
+        numResponders(i,:,:) = nan([numel(opts.CorrSpace)-1 numel(opts.distBins)-1]);
+    end
+end
+disp('done')
+
+%%
+figure(13);clf
+subplot(1,2,1)
+imagesc(squeeze(nanmean(popResp2D,1)));
+colormap rdbu
+caxis([-0.1 0.1])
+ylabel('Correlation')
+xlabel('Distance')
+xSpcing = 5; 
+xticks(1:xSpcing:numel(opts.distBins))
+xticklabels(opts.distBins(1:xSpcing:end))
+ySpcing = 5;
+yticks(1:ySpcing:numel(opts.CorrSpace))
+yticklabels(opts.CorrSpace(1:ySpcing:end))
+
+subplot(1,2,2)
+imagesc(squeeze(nanmean(numResponders,1)));
+colormap rdbu
+% caxis([-0.1 0.1])
+ylabel('Correlation')
+xlabel('Distance')
+xSpcing = 5; 
+xticks(1:xSpcing:numel(opts.distBins))
+xticklabels(opts.distBins(1:xSpcing:end))
+ySpcing = 5;
+yticks(1:ySpcing:numel(opts.CorrSpace))
+yticklabels(opts.CorrSpace(1:ySpcing:end))
+
+figure(16);clf
+numSzs = numel(unique(numCellsEachEns(ensemblesToUse)));
+szs = unique(numCellsEachEns(ensemblesToUse));
+
+for i=1:numSzs
+    subplot(1,numSzs,i)
+    imagesc(squeeze(nanmean(popResp2D(numCellsEachEns==szs(i),:,:),1)));
+colormap rdbu
+caxis([-0.1 0.1])
+ylabel('Correlation')
+xlabel('Distance')
+xSpcing = 5; 
+xticks(1:xSpcing:numel(opts.distBins))
+xticklabels(opts.distBins(1:xSpcing:end))
+ySpcing = 5;
+yticks(1:ySpcing:numel(opts.CorrSpace))
+yticklabels(opts.CorrSpace(1:ySpcing:end))
+end
+    
