@@ -287,7 +287,9 @@ opts.visAlpha = 0.05;
 [All, outVars] = redCellTuningAnalysis(All, outVars, opts);
 [outVars] = makeMeanRespEns(All, outVars);
 
+%% Within Red Cell Analysis
 [All, outVars] = compareRedCellsVisResp(All, outVars);
+plotCompareRedCellVisResp(outVars)
 
 %% Red Distance section
 for ind = 1:numExps;
