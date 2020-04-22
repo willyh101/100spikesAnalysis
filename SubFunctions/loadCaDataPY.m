@@ -10,15 +10,16 @@ function   [localFiles, frameCount, MD, FR, minNumFrames, numFrames, numCells,..
 UseNPCorrection=1;
 
 dat = load(path{1});
-epoch_starts = find(dat.ops.first_tiffs);
 
-% this will get the number of frames per tiff
-try
-    frameCount = dat.ops.frames_per_file(epoch_starts(s2pEpoch):epoch_starts(s2pEpoch+1));
-catch
-    frameCount = dat.ops.frames_per_file(epoch_starts(s2pEpoch):end);
-end
+tiffs_per_folder = diff([0, find(diff(dat.ops.first_tiffs)==1), numel(dat.ops.first_tiffs)]);
 
+frameCountByEpoch = mat2cell(dat.ops.frames_per_file', tiffs_per_folder);
+frameCount = frameCountByEpoch{s2pEpoch}';
+
+files_by_epoch = mat2cell(dat.ops.filelist, tiffs_per_folder);
+localFiles = cellstr(files_by_epoch{s2pEpoch})';
+
+disp(['Found ' num2str(numel(localFiles)) ' tiffs...']);
 
 
 frameCount(frameCount==1)=[];
@@ -78,7 +79,8 @@ for DepthToLoad=1:nDepthsTotal
     end
     
     % this might be backwards?? x-y or y-z?
-    dat.ops.DS = [dat.ops.xoff; dat.ops.yoff]';
+    % I think this is OK as is
+    dat.ops.DS = [dat.ops.yoff; dat.ops.xoff]';
     T{DepthToLoad}= dat.ops.DS(Tstart:end,:);
     
     temp = dat.Fcell{s2pEpoch};
@@ -92,7 +94,8 @@ for DepthToLoad=1:nDepthsTotal
     Fdata = temp(find(cellID'==1),:);
     if ~skipSP
         SPdata = tempSP(find(cellID'==1),:);
-    end;
+    end
+    
     Fnp = dat.FcellNeu{s2pEpoch}(find(cellID'==1),:);
 %     npc = [dat.stat(find(cellID'==1)).neuropilCoefficient];
     npc = dat.ops.neucoeff;
@@ -104,30 +107,22 @@ for DepthToLoad=1:nDepthsTotal
     tempCOM = extractfield(dat.stat(cellID'==1),'med'); %get the center of each ROI
     tempCOM = reshape(tempCOM,2,numCell)'+double([yoffset xoffset]);
     
-    %     Mask{DepthToLoad} = zeros([512 512]);
-    
     ny=numel(dat.ops.yrange);
     nx=numel(dat.ops.xrange);
     
-    thisPlane=zeros(ny,nx);
-    thisPlane=thisPlane(:);
-    cellvce=find(cellID'==1);
+
+    cellvce = find(cellID'==1);
+    theROIs = zeros(ny, nx, numel(cellvce));
     for i = 1:numel(cellvce)
-        %         if cellID(i)
-        %             Mask{DepthToLoad}(dat.stat(i).ypix+yoffset,dat.stat(i).xpix+xoffset)=1;
-        thisPlane(dat.stat(cellvce(i)).ipix,i)=1;
-        disp(['cell = ' num2str(i) ', size= ' num2str(size(thisPlane))])
-        %         end
+        xs = double(dat.stat(cellvce(i)).xpix);
+        ys = double(dat.stat(cellvce(i)).ypix);
+        theROIs(:,:,i) = poly2mask(ys, xs, ny, nx);
     end
     
-    %% reshape throwing an error...
-    % numel(thisPlane) != ny*nx*i
-    
-    theROIs=reshape(thisPlane,ny,nx,i);
-    theROIImg=zeros(512,512,i);
-    theROIImg(dat.ops.yrange,dat.ops.xrange,:)=theROIs;
-    roiMasks = cat(3,roiMasks, theROIImg);
-  %%  
+    theROIImg=zeros(512, 512, i);
+    theROIImg(dat.ops.yrange, dat.ops.xrange,:)=theROIs;
+    roiMasks = cat(3, roiMasks, theROIImg);
+
     %compile fluorescence data
     sz=size(Fdata);
     
