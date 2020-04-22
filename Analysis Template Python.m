@@ -1,14 +1,16 @@
-clear;
-date = '20200309';
+clear
+
+date = '200309';
 mouse = 'w21_1';%'I138_1';%'I136_1';
 epochs = '2_3_4';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['C:\Users\Will\Local Data\Contrast Modulated Ensembles\' mouse '\' date '\'];
 % basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
-basePath = fullfile('E:/chrome tests',mouse,date,'/')
 
-planes = {'plane0', 'plane1', 'plane2'}
+basePath = fullfile('E:/chrome tests',mouse,date,'/');
+
+planes = {'plane0', 'plane1', 'plane2'};
 path = fullfile(basePath,epochs,'suite2p',{'plane0/Fall','plane1/Fall','plane2/Fall'});
 
 baseName = [mouse '_' date];%'I118a.2_180504';
@@ -21,7 +23,7 @@ load(physfile)
 %% Experiment
 
 s2pEpoch = 3 ;
-DAQepoch = 3 ;
+DAQepoch = 4 ;
 
 
 %% Scary Loading Part
@@ -144,7 +146,7 @@ stimDepth=[];
 
 offsets = -mean(cat(1,Toffsets{:}))
 if ~exist('dat')
-    load(fullfile(path,[loadList{1} '.mat']),'dat');
+    dat = load([path{1} '.mat']);
 end
 
 additionalOffsets = [0 0];

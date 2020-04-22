@@ -137,7 +137,7 @@ for DepthToLoad=1:nDepthsTotal;
     
     theROIs=reshape(thisPlane,ny,nx,i);
     theROIImg=zeros(512,512,i);
-    theROIImg(dat.ops.yrange,dat.ops.xrange,:)=theROIs;
+    theROIImg(dat.ops.yrange, dat.ops.xrange,:)=theROIs;
     roiMasks = cat(3,roiMasks, theROIImg);
     
     %compile fluorescence data
