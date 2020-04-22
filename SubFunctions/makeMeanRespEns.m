@@ -38,11 +38,11 @@ for ind = 1:numExps
             baseMat(i, v, :));
         
         if i==1
-            mRespRed{c}(~ROIinArtifact) = nan;
-            mRespNotRed{c}(~ROIinArtifact) = nan;
+            mRespRed{c}(ROIinArtifact) = nan;
+            mRespNotRed{c}(ROIinArtifact) = nan;
         else
-            mRespRed{c}(~offTargetRisk(holo, :) & ~ROIinArtifact) = nan;
-            mRespNotRed{c}(~offTargetRisk(holo, :) & ~ROIinArtifact) = nan;
+            mRespRed{c}(offTargetRisk(holo, :)' & ROIinArtifact) = nan;
+            mRespNotRed{c}(offTargetRisk(holo, :)' & ROIinArtifact) = nan;
         end
         
         mRespRed{c} = mRespRed{c}(isRed);
@@ -55,9 +55,6 @@ for ind = 1:numExps
     
 end
 
-% a = mRespRed
-
-
 outVars.mRespRed = mRespRed(~isControl);
 outVars.mRespNotRed = mRespNotRed(~isControl);
-outVars.uMouse =  umouse;
+outVars.uMouse =  umouse(~isControl);
