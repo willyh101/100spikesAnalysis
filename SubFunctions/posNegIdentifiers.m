@@ -6,12 +6,13 @@ posCellbyInd=[];
 negCellbyInd=[];
 for ind=1:numExps
     respMat = All(ind).out.anal.respMat;
+    baseMat = All(ind).out.anal.baseMat;
     
     numEns = size(respMat,1);
     clear posCells negCells
     for i=1:numEns;
-    posCells(i,:)= respMat(i,1,:)>0;
-    negCells(i,:)= respMat(i,1,:)<0;
+    posCells(i,:)= (respMat(i,1,:)-baseMat(i,1,:)) >0;
+    negCells(i,:)= (respMat(i,1,:)-baseMat(i,1,:)) <0;
     
     if i>1
        posCellbyInd{end+1} = squeeze( posCells(i,:));

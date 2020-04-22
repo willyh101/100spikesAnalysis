@@ -52,8 +52,8 @@ opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
 
 
 %Stim Success Thresholds
-opts.stimsuccessZ = 0.3; %0.25 over this number is a succesfull stim
-opts.stimEnsSuccess = 0.5; %fraction of ensemble that needs to be succsfull
+opts.stimsuccessZ = 0.25; %0.3, 0.25 over this number is a succesfull stim
+opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
 
 %run Threshold
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
@@ -86,7 +86,7 @@ opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 
-[All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
+[All, outVars] = meanMatrixVisandCorr(All,opts,outVars); %one of the main analysis functions
 
 visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
@@ -123,7 +123,7 @@ ensMissedTarget = outVars.ensMissedTarget; %Ensemble is unuseable
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 
-numTrialsPerEns =[];numTrialsPerEnsTotal=[]; 
+numTrialsPerEns =[];numTrialsPerEnsTotal=[]; numTrialsNoStimEns=[];
 for ind=1:numExps
     us=unique(All(ind).out.exp.stimID);
     
@@ -135,7 +135,12 @@ for ind=1:numExps
         
         numTrialsPerEns(end+1)=sum(trialsToUse);
         numTrialsPerEnsTotal(end+1) = sum(All(ind).out.exp.stimID == us(i));
+        
+        if i==1
+            numTrialsNoStimEns(ind) = sum(trialsToUse);
+        end
     end
+    
     
 end
 numTrialsPerEns(numSpikesEachStim==0)=[];
@@ -162,15 +167,19 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [98 101];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 3; 
+opts.numTrialsPerEnsThreshold = 10; 
+
+lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
+
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    ...& highVisPercentInd ...
+    & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
     & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
+    & ~lowBaseLineTrialCount ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
@@ -196,6 +205,7 @@ disp(['Fraction of Ens highVis: ' num2str(mean(highVisPercentInd))]);
 disp(['Fraction of Ens lowRun: ' num2str(mean(lowRunInds))]);
 disp(['Fraction of Ens high stimScore: ' num2str(mean(ensStimScore>opts.ensStimScoreThreshold))]);
 disp(['Fraction of Ens high trial count: ' num2str(mean(numTrialsPerEns>opts.numTrialsPerEnsThreshold))]);
+disp(['Fraction of Control Ens high trial count: ' num2str(mean(~lowBaseLineTrialCount))]);
 disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
 disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpressionType))]);
 disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
@@ -314,9 +324,9 @@ plotDistRespGeneric(popRespDistEnsNotRed,outVars,opts,ax2);
 title('Not Red Cells')
 linkaxes([ax ax2])
 
-%% Pos vs Neg 
+%% Pos vs Neg by Distance
 [All outVars] = posNegIdentifiers(All,outVars,opts);
-opts.distType = 'geo';
+opts.distType = 'min';
 opts.distBins = [0:25:1000];
 
 numEns = numel(outVars.posCellbyInd);
@@ -343,8 +353,10 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
 end
 disp('Done')
 
-%%
+%%Plot Dist REsp
 figure(10);clf
+opts.distAxisRang = [0 350];
+
 ax =subplot(1,2,1);
 plotDistRespGeneric(popToPlotPos,outVars,opts,ax);
 title('Cells that go up')
@@ -353,7 +365,9 @@ plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
 title('Cells That go down')
 % linkaxes([ax ax2]);
 % xlim([0 250])
-
+%% Distance of Ensemble
+[All, outVars] = defineDistanceTypes(All, outVars);
+plotEnsembleDistanceResponse(outVars,100,1)
 %% Correlation Pick One. Option A. Vis activity from interleaved Trials
 %Functions are Mutually Exclusive.
 [All, outVars] = defineCorrelationTypes(All,outVars); %Caution this and below are mutually exclusive
@@ -368,11 +382,7 @@ plotEnsembleCorrelationResponse(outVars,300,1)
 
 opts.CorrSpace = linspace(-0.5,0.5,40);
 opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
-[outVars] = plotCorrelationResponse(All,outVars,opts.CorrToPlot);
-
-%% Distance same idea as above
-[All, outVars] = defineDistanceTypes(All, outVars);
-plotEnsembleDistanceResponse(outVars,100,1)
+[outVars] = plotCorrelationResponse(All,outVars,opts);
 
 %% Seperate Correlation by Pos and Neg
 
@@ -390,16 +400,25 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         fprintf('.')
     end
     if outVars.ensemblesToUse(i)
-    cellToUseVar = outVars.posCellbyInd{i};
-    popToPlotPos(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+    cellToUseVar = outVars.posCellbyInd{i} ;
+    popToPlotCorrPos(i,:) = popCorrMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
      cellToUseVar = outVars.negCellbyInd{i};
-    popToPlotNeg(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+    popToPlotCorrNeg(i,:) = popCorrMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
     else
-        popToPlotPos(i,:) = nan([numel(opts.distBins)-1 1]);
-        popToPlotNeg(i,:) = nan([numel(opts.distBins)-1 1]);
+        popToPlotCorrPos(i,:) = nan([numel(opts.CorrSpace)-1 1]);
+        popToPlotCorrNeg(i,:) = nan([numel(opts.CorrSpace)-1 1]);
     end
 end
 disp('Done')
 
+figure(11);clf
+ax =subplot(1,2,1);
+plotRespGeneric(popToPlotCorrPos,opts.CorrSpace,outVars,opts,ax);
+title('Cells that go up')
+ax2 =subplot(1,2,2);
+plotRespGeneric(popToPlotCorrNeg,opts.CorrSpace,outVars,opts,ax2);
+title('Cells That go down')
+
+%% 
