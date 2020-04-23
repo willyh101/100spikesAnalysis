@@ -299,10 +299,12 @@ opts.visAlpha = 0.05;
 
 %% Within Red Cell Analysis
 [All, outVars] = compareRedCellsVisResp(All, outVars);
-plotCompareRedCellVisResp(outVars)
+
+opts.redCellXaxis = 'corr';
+plotCompareRedCellVisResp(outVars, opts)
 
 %% Red Distance section
-for ind = 1:numExps;
+for ind = 1:numExps
     if isfield(All(ind).out.red,'isRed')
         All(ind).out.red.notRed = ~All(ind).out.red.isRed;
     end
