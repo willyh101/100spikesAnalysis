@@ -18,7 +18,7 @@ for ind = 1:numel(All)
     redCells = find(All(ind).out.red.isRed);
     redCondCells = All(ind).out.red.(cond);
     
-    assert(isa(redCondCells, 'logical'), 'Input array must be a list of cells. Do not use logical indexing.')
+    assert(~isa(redCondCells, 'logical'), 'Input array must be a list of cells. Do not use logical indexing.')
     
     redCondLogical = zeros(1, numel(redCells))
     redCondLogical(redCondCells) = 1;
@@ -28,31 +28,4 @@ for ind = 1:numel(All)
     
     meanRedVis = [meanRedVis mean(mRespRed{ind}(redVisIdx, :))];
     semRedVis = [semRedVis sem2(mRespRed{ind}(redVisIdx, :))];
-end
-
-
-%%
-ensemblesToUse = outVars.ensemblesToUse;
-mRespRed = outVars.mRespRed;
-mRespNotRed = outVars.mRespNotRed;
-
-cond = 'isVis'; % must be logical
-
-for ind = numel(All)
-    cond = All(ind).out.red.(cond);
-    
-    redCells = find(All(ind).out.red.isRed);
-%     redVisCells = All(ind).out.red.isVisCells;
-    % more generically, just...
-    condCells = All(ind).out.red.(cond);
-    
-    assert(isa(condCells, 'logical'), 'Input array must be a list of cells. Do not use logical indexing.')
-    
-    invCondRedCells = find(~condCells & All(ind).out.red.isRed);
-    
-%     redNotVisCells = find(~All(ind).out.red.isVis & All(ind).out.red.isRed);
-    [~, redVisIdx] = ismember(redVisCells, redCells);
-    
-    
-    
 end

@@ -1,20 +1,14 @@
-function [All, outVars] = compareRedCellsVisResp(All, outVars)
-
-ensemblesToUse = outVars.ensemblesToUse;
+function [All, outVars] = compareRedCellsTuning(All, outVars)
 
 mRespRed = outVars.mRespRed;
-mRespNotRed = outVars.mRespNotRed;
 umouse = outVars.uMouse;
 
 mice = diff([0, find(diff(umouse)), numel(umouse)]);
 
 mRespRed = cellfun(@cell2mat, mat2cell(mRespRed, 1, mice), 'un', 0);
-mRespNotRed = cellfun(@cell2mat, mat2cell(mRespNotRed, 1, mice), 'un', 0);
 
 meanRedVis = [];
-semRedVis = [];
 meanRedNotVis = [];
-semRedNotVis = [];
 
 for ind = 1:numel(All)
     
