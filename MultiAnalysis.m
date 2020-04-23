@@ -299,6 +299,7 @@ opts.visAlpha = 0.05;
 
 %% Within Red Cell Analysis
 [All, outVars] = compareRedCellsVisResp(All, outVars);
+[All, outVars] = compareRedCellsTuning(All, outVars);
 
 opts.redCellXaxis = 'corr';
 plotCompareRedCellVisResp(outVars, opts)
