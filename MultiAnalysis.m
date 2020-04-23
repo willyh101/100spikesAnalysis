@@ -425,11 +425,11 @@ title('Cells That go down')
 
 %% 2D Plot Maker Corr vs Distance
 
-opts.CorrSpace =linspace(-0.2,0.3,10);
+opts.CorrSpace =linspace(-0.2,0.3,11); %linspace(-0.2,0.3,41);
 opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 
 opts.distType = 'min';
-opts.distBins = [0:25:600];
+opts.distBins = linspace(0,600,21);% linspace(0,600,91);% [0:25:600];
 
 numEns = numel(outVars.posCellbyInd);
 ensIndNumber = outVars.ensIndNumber;
@@ -441,7 +441,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         fprintf('.')
     end
     if outVars.ensemblesToUse(i)
-        cellToUseVar = outVars.negCellbyInd{i} ;%outVars.posCellbyInd{i} ;
+        cellToUseVar = [];outVars.negCellbyInd{i} ;%outVars.posCellbyInd{i} ;
         [popResp2D(i,:,:) numResponders(i,:,:)] = distCorr2DSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
     else
         popResp2D(i,:,:) = nan([numel(opts.CorrSpace)-1 numel(opts.distBins)-1]);
@@ -454,8 +454,10 @@ disp('done')
 
 
 colormaptouse = 'rdbu';
-climTouse = [-0.25 0];%[-0.2 0.2]; %color to use, set this or below to [] to skip.
+climTouse = [-0.2 0.2];%[-0.25 0];%[-0.2 0.2]; %color to use, set this or below to [] to skip.
 cprctile = [5 95]; %or both to 0 to auto
+xSpcing = 3;12; 
+ySpcing = 2;4;
 
 numCellsEachEns = outVars.numCellsEachEns;
 ensemblesToUse = outVars.ensemblesToUse;
@@ -470,32 +472,31 @@ if ~isempty(climTouse)
 end
 ylabel('Correlation')
 xlabel('Distance \mum')
-xSpcing = 5; 
 xticks(1:xSpcing:numel(opts.distBins))
 xticklabels(opts.distBins(1:xSpcing:end))
-ySpcing = 5;
 yticks(1:ySpcing:numel(opts.CorrSpace))
 yticklabels(opts.CorrSpace(1:ySpcing:end))
 
 subplot(1,2,2)
-imagesc(squeeze(nanmean(numResponders,1)));
+imagesc(log10(squeeze(nansum(numResponders,1))));
 colormap(colormaptouse)
 % caxis([-0.1 0.1])
 ylabel('Correlation')
 xlabel('Distance \mum')
-xSpcing = 5; 
 xticks(1:xSpcing:numel(opts.distBins))
 xticklabels(opts.distBins(1:xSpcing:end))
-ySpcing = 5;
 yticks(1:ySpcing:numel(opts.CorrSpace))
 yticklabels(opts.CorrSpace(1:ySpcing:end))
+h = colorbar;
+set(get(h,'label'),'string','Log Number of Sources per Pixel');
 
 figure(16);clf
 numSzs = numel(unique(numCellsEachEns(ensemblesToUse)));
 szs = unique(numCellsEachEns(ensemblesToUse));
 
+clear ax
 for i=1:numSzs
-    subplot(1,numSzs,i)
+    ax(i) = subplot(1,numSzs,i);
     datToPlot = squeeze(nanmean(popResp2D(numCellsEachEns==szs(i),:,:),1));
     imagesc(datToPlot);
     colormap(colormaptouse)
@@ -506,15 +507,13 @@ for i=1:numSzs
     end
     ylabel('Correlation')
     xlabel('Distance \mum')
-    xSpcing = 5;
     xticks(1:xSpcing:numel(opts.distBins))
     xticklabels(opts.distBins(1:xSpcing:end))
-    ySpcing = 1;
     yticks(1:ySpcing:numel(opts.CorrSpace))
     yticklabels(opts.CorrSpace(1:ySpcing:end))
     
     title(['Ensemble of Size ' num2str(szs(i))]);
 end
-    
+    linkaxes(ax)
 h = colorbar;
 set(get(h,'label'),'string','Avg. \Delta Z-Score dF/F');
