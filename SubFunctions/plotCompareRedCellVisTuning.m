@@ -1,16 +1,16 @@
-function f = plotCompareRedCellVisResp(outVars, opts)
+function plotCompareRedCellVisTuning(outVars, opts)
 
 by = opts.redCellXaxis;
 
 ensemblesToUse = outVars.ensemblesToUse;
 % ensOSI = outVars.ensOSI(ensemblesToUse);
-popRespRedVR = outVars.popRespEnsRedVisResp(ensemblesToUse);
-popRespRedNVR = outVars.popRespEnsRedNotVisResp(ensemblesToUse);
+popRespCoTuned = outVars.coTunedRedEnsResp(ensemblesToUse);
+popRespNotCoTuned = outVars.notCoTunedRedEnsResp(ensemblesToUse);
 % numCellsEachEns = outVars.numCellsEachEns(ensemblesToUse);
 
 switch by
     case 'order'
-        x = 1:numel(popRespRedVR);
+        x = 1:numel(popRespCoTuned);
         xname = 'Order of Being Done';
     case 'osi'
         x = outVars.ensOSI(ensemblesToUse);
@@ -23,15 +23,15 @@ switch by
         xname = 'Ensemble All Corr';
 end
 
-f = figure(47);
+f = figure(50);
 clf
 colormap(f, 'viridis')
 
-s1 = scatter(x, popRespRedVR, 'filled');
+s1 = scatter(x, popRespCoTuned, 'filled');
 
 hold on
 
-s2 = scatter(x, popRespRedNVR, 'filled');
+s2 = scatter(x, popRespNotCoTuned, 'filled');
 % s2.MarkerEdgeColor = 'k';
 
 xlabel(xname)
@@ -42,15 +42,15 @@ ylabel('Red Cell Population Mean Response')
 % % cb.Label.String = 'Number of Cells in Ensemble';
 r = refline(0);
 r.LineStyle =':';
-legend([s1, s2], {'Visually Responsive', sprintf('Not Visually\nResponsive')})
+legend([s1, s2], {'Co-Tuned', sprintf('Not Co-Tuned')})
 
-f2 = figure(48);
+f2 = figure(49);
 clf
 
-cats = categorical({'Vis Resp', 'Not Vis Resp'});
-cats = reordercats(cats ,{'Vis Resp', 'Not Vis Resp'});
-data = [mean(popRespRedVR) mean(popRespRedNVR)];
-sems = [sem2(popRespRedVR, 2) sem2(popRespRedNVR, 2)];
+cats = categorical({'Co-Tuned', 'Not Co-Tuned'});
+cats = reordercats(cats, {'Co-Tuned', 'Not Co-Tuned'});
+data = [nanmean(popRespCoTuned) nanmean(popRespNotCoTuned)];
+sems = [sem2(popRespCoTuned, 2) sem2(popRespNotCoTuned, 2)];
 
 b = bar(cats, data);
 % set(gca(), 'xticklabel', cats)

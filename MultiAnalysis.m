@@ -18,7 +18,7 @@ SSTOriLoadList;
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 % loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
-loadPath = 'E:\100spikes-results\outfiles-all'
+loadPath = 'E:\100spikes-results\outfiles-all';
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -167,7 +167,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [98 101];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 10; 
+opts.numTrialsPerEnsThreshold = 3; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -244,7 +244,7 @@ plotAllEnsResponse(outVars)
 plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
-[All outVars] = createTSPlotByEnsSize(All,outVars);
+[All, outVars] = createTSPlotByEnsSize(All,outVars);
 %% Distance Response Plots
  plotResponseByDistance(outVars,opts);
 
@@ -254,7 +254,7 @@ plotPopResponseByExpressionType(All,outVars);
 %% Compare Distance responses
 figure(102);clf
 
-distTypes = {'min' 'geo' 'mean' 'harm'}
+distTypes = {'min' 'geo' 'mean' 'harm'};
 for i =1:4
     disp(['working on ' distTypes{i}])
     opts.distType = distTypes{i}; %options: min geo mean harm
@@ -301,9 +301,9 @@ opts.visAlpha = 0.05;
 [All, outVars] = compareRedCellsVisResp(All, outVars);
 [All, outVars] = compareRedCellsTuning(All, outVars);
 
-opts.redCellXaxis = 'corr';
-plotCompareRedCellVisResp(outVars, opts)
-
+opts.redCellXaxis = 'order'; % order, osi, dist, corr... % correlation stuff is below, so might need to run that first if choosing corr
+plotCompareRedCellVisResp(outVars, opts);
+plotCompareRedCellVisTuning(outVars, opts);
 %% Red Distance section
 for ind = 1:numExps
     if isfield(All(ind).out.red,'isRed')

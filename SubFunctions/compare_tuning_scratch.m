@@ -1,4 +1,4 @@
-function [All, outVars] = compareRedCellsTuning(All, outVars)
+% function [All, outVars] = compareRedCellsTuning(All, outVars)
 
 clear coTunedRedResp notCoTunedRedResp coTunedRedEnsResp notCoTunedRedEnsResp temp resp
 
@@ -27,7 +27,12 @@ for ind = 1:numel(All)
     redVisIdx = find(ismember(redCells, redVisCells));
     redCellTuning = All(ind).out.red.redTuningOri;
     
-
+    % nans will show up as not-co-tuned but are visually responsive
+    % but they won't appear as a 'tuning' because they are removed as a
+    % uniquely shot tuning
+    isCoTuned = redVisIdx(ismember(redCellTuning, tuning));
+    isNotCoTuned = redVisIdx(~ismember(redCellTuning, tuning));
+    isNotVisResp = ~ismember(redCells, redVisCells);
     
     % so now we have a way to index into mRespRed to get co-tuned resps etc
     % how best to store data?
@@ -35,18 +40,8 @@ for ind = 1:numel(All)
 
     
     for tune = 1:numel(uEnsTunings)
-        % nans will show up as not-co-tuned but are visually responsive
-        % but they won't appear as a 'tuning' because they are removed as a
-        % uniquely shot tuning
-        
         tuning = uEnsTunings(tune);
         ensTuned = ensTunings{ind} == tuning;
-        
-        isCoTuned = redVisIdx(ismember(redCellTuning, tuning));
-        isNotCoTuned = redVisIdx(~ismember(redCellTuning, tuning));
-        isNotVisResp = ~ismember(redCells, redVisCells);
-        
-
         
         allEnsResp{ind}(tune, :) = nanmean(mRespRed{ind}, 1);
         allEnsResp{ind}(tune, ~ensTuned) = nan;
@@ -72,4 +67,7 @@ end
 outVars.allRedEnsResp = cell2mat(allEnsResp);
 outVars.coTunedRedEnsResp = cell2mat(coTunedRedResp);
 outVars.notCoTunedRedEnsResp = cell2mat(notCoTunedRedResp);
-outVars.notVisRespRedEnsResp = cell2mat(notVisResp);
+outVars.notVisRespRedEnsResp = cell2mat(notVisRespRedResp);
+
+
+
