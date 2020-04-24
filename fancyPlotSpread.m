@@ -11,4 +11,4 @@ p{2}(1).Color = rgb('darkgrey');
 p{2}(2).Color = rgb('darkgrey');
 p{2}(1).LineWidth = 1.5;
 p{2}(2).LineWidth = 1.5;
-uistack(p{2},'bottom')
+uistack(p{2},'top')

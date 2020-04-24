@@ -298,10 +298,11 @@ opts.visAlpha = 0.05;
 [outVars] = makeMeanRespEns(All, outVars);
 
 %% Within Red Cell Analysis
+
 [All, outVars] = compareRedCellsVisResp(All, outVars);
 [All, outVars] = compareRedCellsTuning(All, outVars);
 
-opts.redCellXaxis = 'order'; % order, osi, dist, corr... % correlation stuff is below, so might need to run that first if choosing corr
+opts.redCellXaxis = 'osi'; % order, osi, dist, corr... % correlation stuff is below, so might need to run that first if choosing corr
 plotCompareRedCellVisResp(outVars, opts);
 plotCompareRedCellVisTuning(outVars, opts);
 %% Red Distance section

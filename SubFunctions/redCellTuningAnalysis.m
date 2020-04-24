@@ -22,7 +22,10 @@ for ind = 1:numel(All)
     
     All(ind).out.red.isVis = isVisRed;
     All(ind).out.red.isVisCells = isVisRedCells;
+    All(ind).out.red.isVisOther = isVisOther;
+    All(ind).out.red.isVisOtherCells = isVisOtherCells;
     
+    disp(['Found ' num2str(numel(isVisOtherCells)) 'visually responsive and not red cells.'])
     disp(['Found ' num2str(numel(isVisRedCells)) ' visually responsive and red cells.'])
     
     % red cells first
@@ -43,13 +46,13 @@ for ind = 1:numel(All)
     
     % other cells
     % pref cond
-    notRedTuningIdx = All(ind).out.anal.prefOri(~isVisOther);
+    notRedTuningIdx = All(ind).out.anal.prefOri(isVisOther);
     All(ind).out.red.notRedTuningIdx = notRedTuningIdx;
     % ori
     notRedTuningOri = idx2ori(notRedTuningIdx, [nan 0:45:315]);
     All(ind).out.red.notRedTuningOri = notRedTuningOri;
     % osi
-    notRedOSI = All(ind).out.anal.osi(~isVisOther);
+    notRedOSI = All(ind).out.anal.osi(isVisOther);
     All(ind).out.red.notRedOSI = notRedOSI;
     % curves
     otherCurves = All(ind).out.anal.oriCurve(:, isVisOther);

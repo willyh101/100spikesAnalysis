@@ -27,13 +27,14 @@ f = figure(47);
 clf
 colormap(f, 'viridis')
 
+
+subplot (1,3,1)
 s1 = scatter(x, popRespRedVR, 'filled');
-
 hold on
-
 s2 = scatter(x, popRespRedNVR, 'filled');
 % s2.MarkerEdgeColor = 'k';
 
+title('Mean Population Response of Red Cells')
 xlabel(xname)
 ylabel('Red Cell Population Mean Response')
 % title('OSIs by Ensemble Size')
@@ -44,8 +45,8 @@ r = refline(0);
 r.LineStyle =':';
 legend([s1, s2], {'Visually Responsive', sprintf('Not Visually\nResponsive')})
 
-f2 = figure(48);
-clf
+
+subplot(1,3,2)
 
 cats = categorical({'Vis Resp', 'Not Vis Resp'});
 cats = reordercats(cats ,{'Vis Resp', 'Not Vis Resp'});
@@ -53,16 +54,21 @@ data = [mean(popRespRedVR) mean(popRespRedNVR)];
 sems = [sem2(popRespRedVR, 2) sem2(popRespRedNVR, 2)];
 
 b = bar(cats, data);
-% set(gca(), 'xticklabel', cats)
+nbars = 1:numel(data);
 
 hold on
-
-nbars = 1:numel(data);
 
 er = errorbar(nbars, data, sems);    
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';
 er.LineWidth = 1;
 
+title('Pop Response To Ensemble, Red Cells')
+ylabel('Mean Population Response')
+
+
+subplot(1,3,3)
+
+f = fancyPlotSpread([popRespRedVR; popRespRedNVR]', {'Vis Resp', 'Not Vis Resp'});
 title('Pop Response To Ensemble, Red Cells')
 ylabel('Mean Population Response')
