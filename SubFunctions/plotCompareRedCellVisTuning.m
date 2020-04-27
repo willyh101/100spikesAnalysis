@@ -3,11 +3,10 @@ function plotCompareRedCellVisTuning(outVars, opts)
 by = opts.redCellXaxis;
 
 ensemblesToUse = outVars.ensemblesToUse;
-% ensOSI = outVars.ensOSI(ensemblesToUse);
 popRespCoTuned = outVars.coTunedRedEnsResp(ensemblesToUse);
 popRespNotCoTuned = outVars.notCoTunedRedEnsResp(ensemblesToUse);
 popRespNotVisResp = outVars.notVisRespRedEnsResp(ensemblesToUse);
-% numCellsEachEns = outVars.numCellsEachEns(ensemblesToUse);
+allRedRespEns = outVars.allRedEnsResp;
 
 switch by
     case 'order'
@@ -24,7 +23,7 @@ switch by
         xname = 'Ensemble All Corr';
 end
 
-f1 = figure(50);
+f1 = figure(30);
 clf
 colormap(f1, 'viridis')
 
@@ -35,9 +34,9 @@ s2 = scatter(x, popRespNotCoTuned, 'filled');
 % s2.MarkerEdgeColor = 'k';
 s3 = scatter(x, popRespNotVisResp, 'filled');
 
-title('Mean Population Response of Red Cells')
+title({'Mean Population Response','SST Cells'})
 xlabel(xname)
-ylabel('Red Cell Population Mean Response')
+ylabel('SST Cell Population Mean Response')
 % title('OSIs by Ensemble Size')
 % set(gcf(),'Name','OSIs by Ensemble Size')
 % % cb = colorbar('Ticks', unique(numCellsEachEns));
@@ -49,10 +48,10 @@ legend([s1, s2, s3], {'Co-Tuned', 'Not Co-Tuned', sprintf('Not Vis\nResponsive')
 
 subplot(1,3,2)
 
-cats = categorical({'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp'});
-cats = reordercats(cats, {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp'});
-data = [nanmean(popRespCoTuned) nanmean(popRespNotCoTuned) nanmean(popRespNotVisResp)];
-sems = [sem2(popRespCoTuned, 2) sem2(popRespNotCoTuned, 2) sem2(popRespNotVisResp, 2)];
+cats = categorical({'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+cats = reordercats(cats, {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+data = [nanmean(popRespCoTuned) nanmean(popRespNotCoTuned) nanmean(popRespNotVisResp) nanmean(allRedRespEns)];
+sems = [sem2(popRespCoTuned, 2) sem2(popRespNotCoTuned, 2) sem2(popRespNotVisResp, 2) sem2(allRedRespEns, 2)];
 
 bar(cats, data);
 nbars = 1:numel(data);
@@ -64,25 +63,26 @@ er.Color = [0 0 0];
 er.LineStyle = 'none';
 er.LineWidth = 1;
 
-title('Pop Response To Ensemble, Red Cells')
+title({'Pop Response To Ensemble', 'SST Cells'})
 ylabel('Mean Population Response')
+xtickangle(45)
 
 subplot(1,3,3)
 
-fancyPlotSpread([popRespCoTuned; popRespNotCoTuned; popRespNotVisResp]', {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp'});
-title('Pop Response To Ensemble, Red Cells')
+fancyPlotSpread({popRespCoTuned; popRespNotCoTuned; popRespNotVisResp; allRedRespEns}', {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+title({'Pop Response To Ensemble','SST Cells'})
 ylabel('Mean Population Response')
+xtickangle(45)
 
 
 %%----Not Red Cells----%%
 
 
 ensemblesToUse = outVars.ensemblesToUse;
-% ensOSI = outVars.ensOSI(ensemblesToUse);
 popRespCoTuned = outVars.coTunedOtherEnsResp(ensemblesToUse);
 popRespNotCoTuned = outVars.notCoTunedOtherEnsResp(ensemblesToUse);
 popRespNotVisResp = outVars.notVisRespOtherEnsResp(ensemblesToUse);
-% numCellsEachEns = outVars.numCellsEachEns(ensemblesToUse);
+allOtherEnsResp = outVars.allOtherEnsResp;
 
 switch by
     case 'order'
@@ -110,9 +110,9 @@ s2 = scatter(x, popRespNotCoTuned, 'filled');
 % s2.MarkerEdgeColor = 'k';
 s3 = scatter(x, popRespNotVisResp, 'filled');
 
-title('Mean Population Response of Pyramidal Cells')
+title({'Mean Population Response','Pyramidal Cells'})
 xlabel(xname)
-ylabel('Pyramidal Cell Population Mean Response')
+ylabel({'Pyramidal Cell Population Mean Response'})
 % title('OSIs by Ensemble Size')
 % set(gcf(),'Name','OSIs by Ensemble Size')
 % % cb = colorbar('Ticks', unique(numCellsEachEns));
@@ -124,10 +124,10 @@ legend([s1, s2, s3], {'Co-Tuned', 'Not Co-Tuned', sprintf('Not Vis\nResponsive')
 
 subplot(1,3,2)
 
-cats = categorical({'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp'});
-cats = reordercats(cats, {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp'});
-data = [nanmean(popRespCoTuned) nanmean(popRespNotCoTuned) nanmean(popRespNotVisResp)];
-sems = [sem2(popRespCoTuned, 2) sem2(popRespNotCoTuned, 2) sem2(popRespNotVisResp, 2)];
+cats = categorical({'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+cats = reordercats(cats, {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+data = [nanmean(popRespCoTuned) nanmean(popRespNotCoTuned) nanmean(popRespNotVisResp) nanmean(allOtherEnsResp)];
+sems = [sem2(popRespCoTuned, 2) sem2(popRespNotCoTuned, 2) sem2(popRespNotVisResp, 2) sem2(allOtherEnsResp, 2)];
 
 bar(cats, data);
 nbars = 1:numel(data);
@@ -139,11 +139,13 @@ er.Color = [0 0 0];
 er.LineStyle = 'none';
 er.LineWidth = 1;
 
-title('Pop Response To Ensemble, Pyramidal Cells')
+title({'Pop Response To Ensemble','Pyramidal Cells'})
 ylabel('Mean Population Response')
+xtickangle(45)
 
 subplot(1,3,3)
 
-fancyPlotSpread([popRespCoTuned; popRespNotCoTuned; popRespNotVisResp]', {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp'});
-title('Pop Response To Ensemble, Pyramidal Cells')
+fancyPlotSpread({popRespCoTuned; popRespNotCoTuned; popRespNotVisResp; allOtherEnsResp}', {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+title({'Pop Response To Ensemble','Pyramidal Cells'})
 ylabel('Mean Population Response')
+xtickangle(45)

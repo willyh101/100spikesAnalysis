@@ -8,6 +8,7 @@ popRespRedVR = outVars.popRespEnsRedVisResp(ensemblesToUse);
 popRespRedNVR = outVars.popRespEnsRedNotVisResp(ensemblesToUse);
 % numCellsEachEns = outVars.numCellsEachEns(ensemblesToUse);
 
+
 switch by
     case 'order'
         x = 1:numel(popRespRedVR);

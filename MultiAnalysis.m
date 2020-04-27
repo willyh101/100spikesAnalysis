@@ -295,7 +295,7 @@ opts.visAlpha = 0.05;
 
 [outVars] = plotResponseOfRedCells(All, outVars, opts);
 [All, outVars] = redCellTuningAnalysis(All, outVars, opts);
-[outVars] = makeMeanRespEns(All, outVars);
+[outVars] = makeMeanRespEns2(All, outVars);
 
 %% Within Red Cell Analysis
 
