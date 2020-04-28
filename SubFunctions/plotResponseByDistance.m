@@ -2,7 +2,7 @@ function plotResponseByDistance(outVars,opts);
 
 popResponseDist = outVars.popResponseDist;
 numSpikesEachStim = outVars.numSpikesEachStim;
-popResponseNumCells =outVars.popResponseNumCells;
+popResponseNumCells = outVars.popResponseNumCells;
 
 ensemblesToUse = outVars.ensemblesToUse;
 numCellsEachEns = outVars.numCellsEachEns;

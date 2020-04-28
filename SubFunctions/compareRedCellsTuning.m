@@ -5,7 +5,9 @@ clear coTunedRedResp notCoTunedRedResp coTunedRedEnsResp notCoTunedRedEnsResp te
 
 mRespRed = outVars.mRespRed; % {expt}(cells, ensemble)
 mRespNotRed = outVars.mRespNotRed;
+% mRespEns = outVars.mRespEns;
 umouse = outVars.uMouse; % which mouse/expt each ensemble belongs to
+% umouse = outVars.uExptsEns;
 ensTunings = outVars.ensPO;
 uEnsTunings = rmmissing(unique(outVars.ensPO)); % must have > Matlab2018-ish to nix nans this way
 
@@ -35,7 +37,8 @@ for ind = 1:numel(All)
     otherVisCells = All(ind).out.red.isVisOtherCells;
     otherVisIdx = find(ismember(otherCells, otherVisCells));
     otherCellTuning = All(ind).out.red.notRedTuningOri;
-   
+    
+    clear allEnsResp notVisResp coTunedRedResp notCoTunedRedResp allEnsRespOther notVisRespOther coTunedRedRespOther notcoTunedRedRespOther
     for tune = 1:numel(uEnsTunings)
         % nans will show up as not-co-tuned but are visually responsive
         % but they won't appear as a 'tuning' because they are removed as a

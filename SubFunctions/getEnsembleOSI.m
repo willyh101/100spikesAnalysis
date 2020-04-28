@@ -3,6 +3,8 @@ function [All, outVars] = getEnsembleOSI(All, outVars)
 clear meanEnsOSI meanEnsOri cmeanEnsOri ensCurve ensCurveSEM ensOSI ensPO
 
 for ind = 1:numel(All)
+    
+    clear meanOSI meanOri cmeanOri curve2save curveSEM curve ensPO ensOSI
 
     for h = 1:numel(All(ind).out.exp.holoTargets)
         % ht = holo targets

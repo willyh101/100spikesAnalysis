@@ -167,7 +167,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [98 101];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 3; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -302,9 +302,20 @@ opts.visAlpha = 0.05;
 [All, outVars] = compareRedCellsVisResp(All, outVars);
 [All, outVars] = compareRedCellsTuning(All, outVars);
 
-opts.redCellXaxis = 'osi'; % order, osi, dist, corr... % correlation stuff is below, so might need to run that first if choosing corr
+opts.redCellXaxis = 'dist'; % order, osi, dist, corr, size... % correlation stuff is below, so might need to run that first if choosing corr
 plotCompareRedCellVisResp(outVars, opts);
 plotCompareRedCellVisTuning(outVars, opts);
+
+%% within pyramids cell analysis
+
+opts.visAlpha = 0.05;
+[outVars] = makeMeanRespEnsByCell(All, outVars);
+[All, outVars] = compareAllCellsTuning(All, outVars, opts);
+
+opts.ensXaxis = 'dist'; % order, osi, dist, corr, size...
+plotCompareAllCellsTuning(outVars, opts);
+
+
 %% Red Distance section
 for ind = 1:numExps
     if isfield(All(ind).out.red,'isRed')
