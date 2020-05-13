@@ -9,16 +9,19 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
 
 %%
-% oriLoadList
 % loadList = loadList(15);
 
-% allLoadList;              
-SSTOriLoadList;
+
+% allLoadList;  
+% oriLoadList
+% SSTOriLoadList;
+PVLoadList;
+
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 % loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
-loadPath = 'E:\100spikes-results\outfiles-all';
+loadPath = 'E:\100spikes-results\outfiles-master';
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -306,13 +309,17 @@ opts.redCellXaxis = 'dist'; % order, osi, dist, corr, size... % correlation stuf
 plotCompareRedCellVisResp(outVars, opts);
 plotCompareRedCellVisTuning(outVars, opts);
 
+%% Example cells from above
+
+
+
 %% within pyramids cell analysis
 
 opts.visAlpha = 0.05;
 [outVars] = makeMeanRespEnsByCell(All, outVars);
 [All, outVars] = compareAllCellsTuning(All, outVars, opts);
-
-opts.ensXaxis = 'dist'; % order, osi, dist, corr, size...
+%%
+opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
 
 
