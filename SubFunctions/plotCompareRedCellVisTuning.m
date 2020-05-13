@@ -37,9 +37,9 @@ s2 = scatter(x, popRespNotCoTuned, 'filled');
 % s2.MarkerEdgeColor = 'k';
 s3 = scatter(x, popRespNotVisResp, 'filled');
 
-title({'Mean Population Response','SST Cells'})
+title({'Mean Population Response','PV Cells'})
 xlabel(xname)
-ylabel('SST Cell Population Mean Response')
+ylabel('PV Cell Population Mean Response')
 % title('OSIs by Ensemble Size')
 % set(gcf(),'Name','OSIs by Ensemble Size')
 % % cb = colorbar('Ticks', unique(numCellsEachEns));
@@ -66,14 +66,14 @@ er.Color = [0 0 0];
 er.LineStyle = 'none';
 er.LineWidth = 1;
 
-title({'Pop Response To Ensemble', 'SST Cells'})
+title({'Pop Response To Ensemble', 'PV Cells'})
 ylabel('Mean Population Response')
 xtickangle(45)
 
 subplot(1,3,3)
 
 fancyPlotSpread({popRespCoTuned; popRespNotCoTuned; popRespNotVisResp; allRedRespEns}', {'Co-Tuned', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
-title({'Pop Response To Ensemble','SST Cells'})
+title({'Pop Response To Ensemble','PV Cells'})
 ylabel('Mean Population Response')
 xtickangle(45)
 

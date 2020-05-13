@@ -51,7 +51,7 @@ subplot(1,3,2)
 
 cats = categorical({'Vis Resp', 'Not Vis Resp'});
 cats = reordercats(cats ,{'Vis Resp', 'Not Vis Resp'});
-data = [mean(popRespRedVR) mean(popRespRedNVR)];
+data = [nanmean(popRespRedVR) nanmean(popRespRedNVR)];
 sems = [sem2(popRespRedVR, 2) sem2(popRespRedNVR, 2)];
 
 b = bar(cats, data);

@@ -37,7 +37,7 @@ colormap(f1, 'viridis')
 subplot (1,3,1)
 s1 = scatter(x, popRespIso, 'filled');
 hold on
-s2 = scatter(x, popRespOrtho, 'filled');
+% s2 = scatter(x, popRespOrtho, 'filled');
 s3 = scatter(x, popRespNotCoTuned, 'filled');
 % s4 = scatter(x, popRespNotTuned, 'filled');
 s5 = scatter(x, popRespNotVis, 'filled');
@@ -52,8 +52,8 @@ ylabel('Population Mean Response')
 r = refline(0);
 r.LineStyle =':';
 % legend([s1, s2, s3, s4, s5], {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Tuned', 'Not Vis Resp'})
-legend([s1, s2, s3, s5], {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp'})
-
+% legend([s1, s2, s3, s5], {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp'})
+legend([s1, s3, s5], {'Iso', 'Not Co-Tuned', 'Not Vis Resp'}) % removed Ortho for now
 
 subplot(1,3,2)
 % 
@@ -63,12 +63,20 @@ subplot(1,3,2)
 %         nanmean(popRespNotTuned) nanmean(popRespNotVis) nanmean(popRespAll)];
 % sems = [sem2(popRespIso, 2) sem2(popRespOrtho, 2) sem2(popRespNotCoTuned, 2) ...
 %         sem2(popRespNotTuned, 2) sem2(popRespNotVis, 2) sem2(popRespAll, 2)];
-    
-cats = categorical({'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
-cats = reordercats(cats, {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
-data = [nanmean(popRespIso) nanmean(popRespOrtho) nanmean(popRespNotCoTuned) ...
+
+% temporarily removed Ortho for more direct comparison with other graphs
+% cats = categorical({'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+% cats = reordercats(cats, {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+% data = [nanmean(popRespIso) nanmean(popRespOrtho) nanmean(popRespNotCoTuned) ...
+%        nanmean(popRespNotVis) nanmean(popRespAll)];
+% sems = [sem2(popRespIso, 2) sem2(popRespOrtho, 2) sem2(popRespNotCoTuned, 2) ...
+%         sem2(popRespNotVis, 2) sem2(popRespAll, 2)];
+
+cats = categorical({'Iso', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+cats = reordercats(cats, {'Iso', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+data = [nanmean(popRespIso) nanmean(popRespNotCoTuned) ...
        nanmean(popRespNotVis) nanmean(popRespAll)];
-sems = [sem2(popRespIso, 2) sem2(popRespOrtho, 2) sem2(popRespNotCoTuned, 2) ...
+sems = [sem2(popRespIso, 2) sem2(popRespNotCoTuned, 2) ...
         sem2(popRespNotVis, 2) sem2(popRespAll, 2)];
 
 bar(cats, data);
@@ -89,9 +97,12 @@ subplot(1,3,3)
 
 % fancyPlotSpread({popRespIso; popRespOrtho; popRespNotCoTuned; popRespNotTuned; popRespNotVis; popRespAll}', ...
 %                 {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Tuned', 'Not Vis Resp', 'All'});
-            
-fancyPlotSpread({popRespIso; popRespOrtho; popRespNotCoTuned; popRespNotVis; popRespAll}', ...
-    {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+%             
+% fancyPlotSpread({popRespIso; popRespOrtho; popRespNotCoTuned; popRespNotVis; popRespAll}', ...
+%     {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+fancyPlotSpread({popRespIso; popRespNotCoTuned; popRespNotVis; popRespAll}', ...
+    {'Iso', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+
 title({'Pop Response To Ensemble'})
 ylabel('Mean Population Response')
 xtickangle(45)
