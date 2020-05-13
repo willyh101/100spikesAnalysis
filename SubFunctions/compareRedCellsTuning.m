@@ -38,7 +38,7 @@ for ind = 1:numel(All)
     otherVisIdx = find(ismember(otherCells, otherVisCells));
     otherCellTuning = All(ind).out.red.notRedTuningOri;
     
-    clear allEnsResp notVisResp coTunedRedResp notCoTunedRedResp allEnsRespOther notVisRespOther coTunedRedRespOther notcoTunedRedRespOther
+%     clear allEnsResp notVisResp coTunedRedResp notCoTunedRedResp allEnsRespOther notVisRespOther coTunedRedRespOther notcoTunedRedRespOther
     for tune = 1:numel(uEnsTunings)
         % nans will show up as not-co-tuned but are visually responsive
         % but they won't appear as a 'tuning' because they are removed as a

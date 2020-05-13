@@ -32,7 +32,7 @@ for ind = 1:numel(All)
         
         isIso = isVisCells(ismember(pref, tuning));
         isOrtho = isVisCells(any(ismember(orthos, tuning)));
-        notCoTuned = isVisCells(~ismember(pref, tuning)); % should be excluding cells in the not tuned condition, I think?
+        notCoTuned = isVisCells(~ismember(pref, tuning));
 %         notTuned = ~isTuned;
         notVis = ~isVis;
         

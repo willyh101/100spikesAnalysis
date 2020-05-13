@@ -27,10 +27,11 @@ for ind = 1:numExps
         holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
         c=c+1;
         
-        mRespRed{c} = squeeze(respMat(i, v, :) - ...
-           baseMat(i, v, :));
-        mRespNotRed{c} = squeeze(respMat(i, v, :) - ...
-            baseMat(i, v, :));
+        % upcast to double for compatibility downstream. -wh 5/11/20
+        mRespRed{c} = double(squeeze(respMat(i, v, :) - ...
+           baseMat(i, v, :)));
+        mRespNotRed{c} = double(squeeze(respMat(i, v, :) - ...
+            baseMat(i, v, :)));
         
         if i==1
             mRespRed{c}(ROIinArtifact) = nan;
