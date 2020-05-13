@@ -40,7 +40,7 @@ loadList = {
     '200312_i139_2_outfile.mat'
     '200316_i139_2_outfile.mat'
     '200310_HB95_outfile.mat'
-    }
+    };
 
 
 %% Deliberately Not Included
