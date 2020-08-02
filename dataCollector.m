@@ -43,6 +43,7 @@ exp.allDepth = allDepth;
 exp.stimCoM = stimCoM;
 exp.stimDepth = stimDepth;
 exp.targetedCells = targettedCells;
+exp.uniqueStims = uniqueStims; 
 exp.outputsInfo = outputPatternTranslator(ExpStruct,uniqueStims);
 
 tempOutputOrder = exp.outputsInfo.OutputOrder;
@@ -62,6 +63,9 @@ exp.holoRequest = ExpStruct.Holo.holoRequests{...
     ExpStruct.Holo.Sweeps_holoRequestNumber(ExpStruct.EpochEnterSweep{DAQepoch})};
 
 disp('got exp')
+
+%% save exp to spk: for Spike Curve Support
+spk=exp;
 
 %% orientation/vis epoch
 vis.desc = 'Ori';
@@ -104,6 +108,9 @@ try
 catch
     disp('No Vis2 Data')
 end
+try
+    out.spk=spk;
+catch;end
 % save([basePath info.date '_' info.mouse '_outfile'], 'out')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
 save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')

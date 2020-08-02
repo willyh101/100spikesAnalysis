@@ -20,8 +20,8 @@ load(physfile)
 
 %% Experiment
 
-s2pEpoch = 3 ;
-DAQepoch = 3 ;
+s2pEpoch = 5 ;
+DAQepoch = 5 ;
 
 
 %% Scary Loading Part
@@ -147,7 +147,7 @@ if ~exist('dat')
     load(fullfile(path,[loadList{1} '.mat']),'dat');
 end
 
-additionalOffsets = [0 0];
+additionalOffsets = [0 0 ];
 offsets = offsets + additionalOffsets;
 
 
