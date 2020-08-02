@@ -298,6 +298,7 @@ out.red=red;
 
 info = out.info;
 
-save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+% save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+save(['E:\100spikes-results\outfiles-master\' info.date '_' info.mouse '_outfile'], 'out')
 disp('saved')
 
