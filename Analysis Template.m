@@ -1,11 +1,11 @@
 clear;
-date = '20200309';
-mouse = 'w21_1';%'I138_1';%'I136_1';
-epochs = '2_3_4';
+date = '200730';
+mouse = 'I140_2';%'I138_1';%'I136_1';
+epochs = '1_2_3_4_5_6_7_8';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
-basePath = ['C:\Users\Will\Local Data\Contrast Modulated Ensembles\' mouse '\' date '\'];
-% basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
+% basePath = ['C:\Users\Will\Local Data\Contrast Modulated Ensembles\' mouse '\' date '\'];
+basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
 
 path = fullfile(basePath,epochs);
 
@@ -13,15 +13,15 @@ baseName = [mouse '_' date];%'I118a.2_180504';
 loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc'] };
 
 nDepthsTotal = 3;%Normally 3;
-% physfile = fullfile(basePath,[date '_A' '.mat']);
-physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
+physfile = fullfile(basePath,[date '_A' '.mat']);
+% physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 
 load(physfile)
 
 %% Experiment
 
 s2pEpoch = 3 ;
-DAQepoch = 4 ;
+DAQepoch = 3 ;
 
 
 %% Scary Loading Part

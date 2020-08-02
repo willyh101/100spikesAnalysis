@@ -64,6 +64,7 @@ exp.holoRequest = ExpStruct.Holo.holoRequests{...
 disp('got exp')
 
 %% orientation/vis epoch
+vis.desc = 'Ori';
 vis.zdfData = zdfData;
 vis.allData = allData;
 vis.runVal = runVector;
@@ -74,6 +75,17 @@ vis.visStop = visStop;
 vis.DAQepoch = DAQepoch;
 disp('got vis')
 
+%% if two vis sets
+vis2.desc = 'GMN';
+vis2.zdfData = zdfData;
+vis2.allData = allData;
+vis2.runVal = runVector;
+vis2.lowMotionTrials = lowMotionTrials;
+vis2.visID = visID;
+vis2.visStart = visStart;
+vis2.visStop = visStop; 
+vis2.DAQepoch = DAQepoch;
+disp('got vis2')
 %% run to save
 
 out.info = info;
@@ -87,7 +99,11 @@ try
 catch
     disp('No Vis Data')
 end
-
+try
+    out.vis2 = vis2;
+catch
+    disp('No Vis2 Data')
+end
 % save([basePath info.date '_' info.mouse '_outfile'], 'out')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
 save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
