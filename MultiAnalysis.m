@@ -12,10 +12,10 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 % loadList = loadList(15);
 
 
-% allLoadList;  
-% oriLoadList
+allLoadList;  
+% oriLoadList;
 % SSTOriLoadList;
-PVLoadList;
+% PVLoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'

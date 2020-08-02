@@ -32,7 +32,7 @@ exp.stimID = stimID;
 try
 exp.visID = visID;
 exp.visStart = visStart;
-exp.visStop = visStop; 
+exp.visStop = visStop;
 catch;
 disp('No VisID')
 end
@@ -43,7 +43,7 @@ exp.allDepth = allDepth;
 exp.stimCoM = stimCoM;
 exp.stimDepth = stimDepth;
 exp.targetedCells = targettedCells;
-exp.uniqueStims = uniqueStims; 
+exp.uniqueStims = uniqueStims;
 exp.outputsInfo = outputPatternTranslator(ExpStruct,uniqueStims);
 
 tempOutputOrder = exp.outputsInfo.OutputOrder;
@@ -75,7 +75,7 @@ vis.runVal = runVector;
 vis.lowMotionTrials = lowMotionTrials;
 vis.visID = visID;
 vis.visStart = visStart;
-vis.visStop = visStop; 
+vis.visStop = visStop;
 vis.DAQepoch = DAQepoch;
 disp('got vis')
 
@@ -87,7 +87,7 @@ vis2.runVal = runVector;
 vis2.lowMotionTrials = lowMotionTrials;
 vis2.visID = visID;
 vis2.visStart = visStart;
-vis2.visStop = visStop; 
+vis2.visStop = visStop;
 vis2.DAQepoch = DAQepoch;
 disp('got vis2')
 %% run to save
@@ -103,17 +103,11 @@ try
 catch
     disp('No Vis Data')
 end
-try
-    out.vis2 = vis2;
-catch
-    disp('No Vis2 Data')
-end
-try
-    out.spk=spk;
-catch;end
-% save([basePath info.date '_' info.mouse '_outfile'], 'out')
+
+save([basePath info.date '_' info.mouse '_outfile'], 'out')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
-save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+% save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+% save(['E:\Contrast Modulated Ensembles\'
 
 disp('All data saved!')
 
@@ -137,4 +131,3 @@ ex.visID = cat(2,ex1.visID,ex2.visID);
 ex.DAQepoch = [ex1.DAQepoch ex2.DAQepoch];
 
 exp = ex;
-
