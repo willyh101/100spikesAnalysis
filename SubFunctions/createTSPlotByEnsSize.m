@@ -184,7 +184,7 @@ linkaxes(ax);
 xlim([1 size(meanTSSquareNR,2)]);
 
 %co plot
-figure(26);clf
+figure(29);clf
 
 
 if numel(IndsUsed)>1

@@ -22,6 +22,9 @@ switch by
     case 'corr'
         x = outVars.ensAlCo(ensemblesToUse);
         xname = 'Ensemble All Corr';
+    case 'size'
+        x = outVars.numCellsEachEns(ensemblesToUse);
+        xname = 'Ensemble size';
 end
 
 f = figure(47);
