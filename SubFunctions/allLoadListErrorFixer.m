@@ -139,5 +139,15 @@ if ~isempty(indToUse)
     All(indToUse).out.vis.runVal = All(indToUse).out.vis.runVal(1:sz(3),:);
     All(indToUse).out.vis.visID = All(indToUse).out.vis.visID(1:sz(3));
 end
+%% merge high and low contrasts in vis epoch
+nameToUse = '200728_i140_2_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
 
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    
+    All(indToUse).out.vis.visID(All(indToUse).out.vis.visID > 9) ...
+        = All(indToUse).out.vis.visID(All(indToUse).out.vis.visID > 9) - 9;
+end
+%%
 disp('Done fixing.')

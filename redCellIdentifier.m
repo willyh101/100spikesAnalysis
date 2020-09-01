@@ -1,12 +1,12 @@
 %% Load one Out
 clear
-SSTLoadList
+PVLoadList
 
-loadList = loadList(2);
- loadPath = 'U:\ioldenburg\outputdata1'
+loadList = loadList(4);
+%  loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
-% loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
+loadPath = 'E:\100spikes-results\outfiles-master'
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -298,6 +298,7 @@ out.red=red;
 
 info = out.info;
 
-save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+% save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+save(['E:\100spikes-results\outfiles-master\' info.date '_' info.mouse '_outfile'], 'out')
 disp('saved')
 
