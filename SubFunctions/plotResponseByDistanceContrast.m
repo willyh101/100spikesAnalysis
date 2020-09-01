@@ -16,13 +16,13 @@ figure(11);clf
 
 
     
-popDatNoVis = cell2mat(cellfun(@(x) squeeze(x(2:end,1,:)), popResponseAllDist,'uniformoutput',0)');
+popDatNoVis = cell2mat(cellfun(@(x) permute(x(2:end,1,:),[1 3 2]), popResponseAllDist,'uniformoutput',0)');
 % popDatNoVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,1,:)), popResponseAllDist,'uniformoutput',0)'));
 
-popDatMaxVis = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDist,'uniformoutput',0)');
+popDatMaxVis = cell2mat(cellfun(@(x) permute(x(2:end,end,:),[1 3 2]), popResponseAllDist,'uniformoutput',0)');
 % popDatMaxVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,end,:)), popResponseAllDist,'uniformoutput',0)'));
-popDatMaxVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDistSub,'uniformoutput',0)');
-popDatMaxVisSubVis = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDistSubVis,'uniformoutput',0)');
+popDatMaxVisSubtracted = cell2mat(cellfun(@(x) permute(x(2:end,end,:),[1 3 2]), popResponseAllDistSub,'uniformoutput',0)');
+popDatMaxVisSubVis = cell2mat(cellfun(@(x) permute(x(2:end,end,:),[1 3 2]), popResponseAllDistSubVis,'uniformoutput',0)');
 
 
 divider = 1;
