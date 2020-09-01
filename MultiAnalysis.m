@@ -21,7 +21,8 @@ allLoadList;
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 % loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
-loadPath = 'E:\100spikes-results\outfiles-master';
+loadPath = 'T:\Outfiles';
+% loadPath = 'E:\100spikes-results\outfiles-master';
 %%
 numExps = numel(loadList);
 if numExps ~= 0

@@ -20,8 +20,8 @@ load(physfile)
 
 %% Experiment
 
-s2pEpoch = 2 ;
-DAQepoch = 2 ;
+s2pEpoch = 7 ;
+DAQepoch = 7 ;
 
 
 %% Scary Loading Part

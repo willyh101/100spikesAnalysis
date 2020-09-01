@@ -62,10 +62,19 @@ end
 exp.holoRequest = ExpStruct.Holo.holoRequests{...
     ExpStruct.Holo.Sweeps_holoRequestNumber(ExpStruct.EpochEnterSweep{DAQepoch})};
 
+exp.Tarray = Tarray; %Motion Correct trace;
+exp.dfData = dfData; %non zscored data; 
+
 disp('got exp')
 
 %% save exp to spk: for Spike Curve Support
 spk=exp;
+spk.dfData = dfData;
+spk.Mani = ExpStruct.Mani;
+
+%% save exp to Manifold
+mani = exp;
+mani.mani = ExpStruct.Mani; 
 
 %% orientation/vis epoch
 vis.desc = 'Ori';

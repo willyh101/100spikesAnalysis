@@ -36,11 +36,13 @@ loadList = {
     '200302_W14_1_outfile.mat'
     '200304_W14_1_outfile.mat'
     '200309_w21_1_outfile.mat'
+    '200310_HB95_outfile.mat'
     '200311_i139_2_outfile.mat'
     '200312_i139_2_outfile.mat'
     '200316_i139_2_outfile.mat'
-    '200310_HB95_outfile.mat'
-    '200728_i140_2_outfile.mat'
+%     '200728_i140_2_outfile.mat'
+    '200723_i140_2_outfile.mat'
+    '200729_I140_2_outfile.mat'
     };
 
 
