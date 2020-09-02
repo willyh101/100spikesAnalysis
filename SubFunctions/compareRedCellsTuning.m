@@ -49,6 +49,7 @@ for ind = 1:numel(All)
         
         % red cells
         isCoTuned = redVisIdx(ismember(redCellTuning, tuning));
+        isOrthoTuned = redVisIdx(ismember(mod(redCellTuning-90, 360), tuning));
         isNotCoTuned = redVisIdx(~ismember(redCellTuning, tuning));
         isNotVisResp = ~ismember(redCells, redVisCells);        
 
@@ -61,11 +62,15 @@ for ind = 1:numel(All)
         coTunedRedResp{ind}(tune, :) = nanmean(mRespRed{ind}(isCoTuned, :), 1);
         coTunedRedResp{ind}(tune, ~ensTuned) = nan;
         
+        orthoTunedRedResp{ind}(tune, :) = nanmean(mRespRed{ind}(isOrthoTuned, :), 1);
+        orthoTunedRedResp{ind}(tune, ~ensTuned) = nan;
+        
         notCoTunedRedResp{ind}(tune, :) = nanmean(mRespRed{ind}(isNotCoTuned, :), 1);
         notCoTunedRedResp{ind}(tune, ~ensTuned) = nan;
         
         % other cells
         isCoTunedOther = otherVisIdx(ismember(otherCellTuning, tuning));
+        isOrthoTunedOther = otherVisIdx(ismember(mod(redCellTuning-90, 360), tuning));
         isNotCoTunedOther = otherVisIdx(~ismember(otherCellTuning, tuning));
         isNotVisRespOther = ~ismember(otherCells, otherVisCells);
         
@@ -74,6 +79,9 @@ for ind = 1:numel(All)
 
         notVisRespOther{ind}(tune, :) = nanmean(mRespNotRed{ind}(isNotVisRespOther, :), 1);
         notVisRespOther{ind}(tune, ~ensTuned) = nan;
+        
+        orthoTunedRedRespOther{ind}(tune, :) = nanmean(mRespNotRed{ind}(isOrthoTunedOther, :), 1);
+        orthoTunedRedRespOther{ind}(tune, ~ ensTuned) = nan;
 
         coTunedRedRespOther{ind}(tune, :) = nanmean(mRespNotRed{ind}(isCoTunedOther, :), 1);
         coTunedRedRespOther{ind}(tune, ~ensTuned) = nan;
@@ -86,11 +94,13 @@ for ind = 1:numel(All)
     allEnsResp{ind} = nanmean(allEnsResp{ind}, 1);
     notVisResp{ind} = nanmean(notVisResp{ind}, 1);
     coTunedRedResp{ind} = nanmean(coTunedRedResp{ind}, 1);
+    orthoTunedRedResp{ind} = nanmean(orthoTunedRedResp{ind}, 1);
     notCoTunedRedResp{ind} = nanmean(notCoTunedRedResp{ind}, 1);
     % not red
     allEnsRespOther{ind} = nanmean(allEnsRespOther{ind}, 1);
     notVisRespOther{ind} = nanmean(notVisRespOther{ind}, 1);
     coTunedRedRespOther{ind} = nanmean(coTunedRedRespOther{ind}, 1);
+    orthoTunedRedRespOther{ind} = nanmean(orthoTunedRedRespOther{ind}, 1);
     notcoTunedRedRespOther{ind} = nanmean(notcoTunedRedRespOther{ind}, 1);
    
 end
@@ -99,8 +109,10 @@ outVars.allRedEnsResp = cell2mat(allEnsResp);
 outVars.coTunedRedEnsResp = cell2mat(coTunedRedResp);
 outVars.notCoTunedRedEnsResp = cell2mat(notCoTunedRedResp);
 outVars.notVisRespRedEnsResp = cell2mat(notVisResp);
+outVars.orthoTunedRedEnsResp = cell2mat(orthoTunedRedResp);
 
 outVars.allOtherEnsResp = cell2mat(allEnsRespOther);
 outVars.coTunedOtherEnsResp = cell2mat(coTunedRedRespOther);
 outVars.notCoTunedOtherEnsResp = cell2mat(notcoTunedRedRespOther);
 outVars.notVisRespOtherEnsResp = cell2mat(notVisRespOther);
+outVars.orthoTunedOtherEnsResp = cell2mat(orthoTunedRedRespOther);
