@@ -1,91 +1,26 @@
-function plotResponseByDifferenceinAnglePref(outVars,All, opts)
+function plotResponseByDifferenceinAnglePref(outVars, opts)
 
-ensemblesToUseList = find(outVars.ensemblesToUse );
+mRespByOriDiff = outVars.mRespByOriDiff;
+sortedOSI = outVars.sortedOSI;
+diffRange = -22.5:45:315;
 
-OSIList = outVars.meanEnsOSI(ensemblesToUseList);
-[sortedOSI, sortOrder] = sort(OSIList);
-ensemblesToUseList=ensemblesToUseList(sortOrder); 
-
-diffRange = -22.5:45:315; %0:33.75:315;
-
-% osiToUse = outVars.meanEnsOSI;
-oriToUse = outVars.meanEnsOri;
-
-figure(137);clf;
-mRespByOriDiff=[];
-for i=1:numel(ensemblesToUseList)
-    if mod(i,50)==0
-        disp('.')
-    else
-        fprintf('.')
-    end
-    clf
-    ens = ensemblesToUseList(i);
-    ind = outVars.ensIndNumber(ens);
-    hNum = outVars.ensHNumber(ens);
-    
-    thisOSI = outVars.meanEnsOSI(ens);
-    thisOri = oriToUse(ens);
-    
-    cellToUse = ~All(ind).out.anal.offTargetRisk(hNum-1,:) & ...
-        ~All(ind).out.anal.ROIinArtifact' & ...
-        All(ind).out.anal.pVisR < 0.05 ;
-    
-    oris = outVars.prefOris{ind};
-    oriOptions  = [NaN 0:45:315];
-    oris = oriOptions(oris); 
-    
-   
-    oriDiff = abs(thisOri-oris);
-    oriDiff(oriDiff>180) = abs((thisOri-360)-(oris(oriDiff>180)));
-    oriDiff(oriDiff>180) = abs((thisOri)-(oris(oriDiff>180)-360));
-% oriDiff = (thisOri-oris);
-% oriDiff(oriDiff>180) = ((thisOri-360)-(oris(oriDiff>180)));
-% oriDiff(oriDiff>180) = ((thisOri)-(oris(oriDiff>180)-360));
-% oriDiff(oriDiff<-180) = ((thisOri-360)-(oris(oriDiff<-180)));
-% oriDiff(oriDiff<-180) = ((thisOri)-(oris(oriDiff<-180)-360));
-    
-    respToPlot = outVars.mRespEns{ens}(cellToUse);
-    oriDiffToPlot = oriDiff(cellToUse);
-    
-    plot(oriDiffToPlot,respToPlot,'.')
-    title(['Ens: ' num2str(ens) ' OSI: ' num2str(thisOSI)]);
-    xlim([-5 185]);
-    
-    tempOriDiff =nan([1,numel(diffRange)-1]);
-    for k=1:numel(diffRange)-1
-        tempOriDiff(k) = nanmean(respToPlot(oriDiffToPlot>=diffRange(k) & oriDiffToPlot<diffRange(k+1)));
-    end
-    hold on
-    p=plot(diffRange(1:end-1),tempOriDiff);
-    p.Marker = 'o';
-    p.LineWidth =2;
-    p.Color = 'r';
-    
-%     pause(0.1)
-
-    
-    mRespByOriDiff(i,:) = tempOriDiff;
-    
-end
-%%
 figure(138);clf
 % imagesc(mRespByOriDiff);
 % colormap rdbu
 % caxis([-0.1 0.1])
 subplot(1,2,1)
-meanByOriDIff = (nanmean(mRespByOriDiff));
+meanByOriDiff = (nanmean(mRespByOriDiff));
 semByOriDiff = nanstd(mRespByOriDiff)./sqrt(sum(~isnan(mRespByOriDiff)));
-e1 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDIff,semByOriDiff);
+e1 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e1.LineWidth = 2;
 
 % plot only good OSIs
 hold on
 goodOSIthreshold = opts.goodOSIthresh;
 datToPlot = mRespByOriDiff(sortedOSI>=goodOSIthreshold,:);
-meanByOriDIff = (nanmean(datToPlot));
+meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-e2 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDIff,semByOriDiff);
+e2 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e2.LineWidth = 2;
 
 
@@ -95,7 +30,8 @@ xlim([-5 185])
 xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Response')
 xticks(0:45:135)
-legend({'All OSIs', ['OSI > ' num2str(goodOSIthreshold)]})
+legend({['All OSIs, n= ' num2str(size(mRespByOriDiff,1))], ...
+    ['OSI > ' num2str(goodOSIthreshold) ', n=' num2str(size(datToPlot,1))]})
 
 
 subplot(1,2,2)
@@ -132,19 +68,19 @@ hold on
 
 
 datToPlot = mRespByOriDiff(sortedOSI<0.25,:);
-meanByOriDIff = (nanmean(datToPlot));
+meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDIff,semByOriDiff)
+errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
 
 datToPlot = mRespByOriDiff(sortedOSI>=0.25 & sortedOSI<=0.75,:);
-meanByOriDIff = (nanmean(datToPlot));
+meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDIff,semByOriDiff)
+errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
 
 datToPlot = mRespByOriDiff(sortedOSI>0.75,:);
-meanByOriDIff = (nanmean(datToPlot));
+meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDIff,semByOriDiff)
+errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
 
 
 % ylim([-0.05 0.01])
@@ -153,6 +89,10 @@ xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Response')
 
 legend('Low OSI <0.25','Mid OSI','High OSI >0.75')
+
+figure(145)
+histogram(sortedOSI)
+title('Sorted OSI')
 
 
 

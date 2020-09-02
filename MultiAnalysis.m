@@ -321,12 +321,17 @@ plotCompareRedCellVisTuning(outVars, opts);
 opts.visAlpha = 0.05;
 [outVars] = makeMeanRespEnsByCell(All, outVars);
 [All, outVars] = compareAllCellsTuning(All, outVars, opts);
+[outVars] = getRespByTuningDiff(All, outVars);
+
+
+
 %% plot pyr cells connectivity
 
 opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
-opts.goodOSIthresh = 0.4;
-plotResponseByDifferenceinAnglePref(outVars,All, opts)
+opts.goodOSIthresh = 0.5;
+plotResponseByDifferenceinAnglePref(outVars, opts)
+
 
 
 %% Red Distance section
