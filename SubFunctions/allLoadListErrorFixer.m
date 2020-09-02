@@ -149,5 +149,17 @@ if ~isempty(indToUse)
     All(indToUse).out.vis.visID(All(indToUse).out.vis.visID > 9) ...
         = All(indToUse).out.vis.visID(All(indToUse).out.vis.visID > 9) - 9;
 end
+%% extra lowRunTrial and visID for some reason
+nameToUse = '200807_w26_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    
+    All(indToUse).out.vis.runVal(188,:) = [];
+    All(indToUse).out.vis.visID(188) = [];
+end
+
+
 %%
 disp('Done fixing.')

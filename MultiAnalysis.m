@@ -12,8 +12,8 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 % loadList = loadList(15);
 
 
-allLoadList;  
-% oriLoadList;
+% allLoadList;  
+oriLoadList;
 % SSTOriLoadList;
 % PVLoadList;
 
@@ -21,8 +21,8 @@ allLoadList;
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 % loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
-loadPath = 'T:\Outfiles';
-% loadPath = 'E:\100spikes-results\outfiles-master';
+% loadPath = 'T:\Outfiles';
+loadPath = 'E:\100spikes-results\outfiles-master';
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -158,7 +158,8 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes = {'AAV CamK2' 'Ai203'};
+excludedTypes = {'AAV CamK2'};
+% excludedTypes = {'AAV CamK2' 'Ai203'};
 % excludedTypes = {'Ai203'};
 % excludedTypes = {'AAV Tre'};
 
@@ -293,9 +294,6 @@ opts.ensOSImethod = 'ensOSI';
 plotOSIdists(outVars, opts);
 plotPopResponseEnsOSI(outVars, opts)
 
-%% more plot things (might require an additional outVar Variable created later)
-plotResponseByDifferenceinAnglePref(outVars,All)
-
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
 opts.numExamples = 5;
 opts.osiThreshold4Examples = 0.5;
@@ -323,9 +321,12 @@ plotCompareRedCellVisTuning(outVars, opts);
 opts.visAlpha = 0.05;
 [outVars] = makeMeanRespEnsByCell(All, outVars);
 [All, outVars] = compareAllCellsTuning(All, outVars, opts);
-%%
+%% plot pyr cells connectivity
+
 opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
+opts.goodOSIthresh = 0.4;
+plotResponseByDifferenceinAnglePref(outVars,All, opts)
 
 
 %% Red Distance section

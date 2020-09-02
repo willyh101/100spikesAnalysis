@@ -22,7 +22,9 @@ loadList = {
     '200304_W14_1_outfile.mat' %will excluded
     '200309_w21_1_outfile.mat'
     '200311_i139_2_outfile.mat' %will excluded
-%     '200728_i140_2_outfile.mat' %ian doesn't have right now
+    '200728_i140_2_outfile.mat' %ian doesn't have right now
     '200723_i140_2_outfile.mat'
     '200729_I140_2_outfile.mat'
+    '200807_w26_1_outfile.mat'
+    '200810_i140_2_outfile.mat'
 };

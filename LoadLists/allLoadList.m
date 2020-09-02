@@ -43,6 +43,7 @@ loadList = {
     '200728_i140_2_outfile.mat'
     '200723_i140_2_outfile.mat'
     '200729_I140_2_outfile.mat'
+    '200807_w26_1_outfile.mat'
     '200810_i140_2_outfile.mat'
     };
 

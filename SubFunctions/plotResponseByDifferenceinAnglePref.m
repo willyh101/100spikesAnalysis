@@ -1,4 +1,4 @@
-function plotResponseByDifferenceinAnglePref(outVars,All)
+function plotResponseByDifferenceinAnglePref(outVars,All, opts)
 
 ensemblesToUseList = find(outVars.ensemblesToUse );
 
@@ -76,12 +76,27 @@ figure(138);clf
 subplot(1,2,1)
 meanByOriDIff = (nanmean(mRespByOriDiff));
 semByOriDiff = nanstd(mRespByOriDiff)./sqrt(sum(~isnan(mRespByOriDiff)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDIff,semByOriDiff)
+e1 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDIff,semByOriDiff);
+e1.LineWidth = 2;
+
+% plot only good OSIs
+hold on
+goodOSIthreshold = opts.goodOSIthresh;
+datToPlot = mRespByOriDiff(sortedOSI>=goodOSIthreshold,:);
+meanByOriDIff = (nanmean(datToPlot));
+semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+e2 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDIff,semByOriDiff);
+e2.LineWidth = 2;
+
+
 
 ylim([-0.05 0.01]) 
 xlim([-5 185])
 xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Response')
+xticks(0:45:135)
+legend({'All OSIs', ['OSI > ' num2str(goodOSIthreshold)]})
+
 
 subplot(1,2,2)
 % imToPlot = mRespByOriDiff;
@@ -138,3 +153,6 @@ xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Response')
 
 legend('Low OSI <0.25','Mid OSI','High OSI >0.75')
+
+
+
