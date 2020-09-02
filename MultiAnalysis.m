@@ -160,6 +160,7 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 excludedTypes = {'AAV CamK2' 'Ai203'};
 % excludedTypes = {'Ai203'};
+% excludedTypes = {'AAV Tre'};
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
 excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
@@ -291,6 +292,9 @@ opts.ensOSImethod = 'ensOSI';
 
 plotOSIdists(outVars, opts);
 plotPopResponseEnsOSI(outVars, opts)
+
+%% more plot things (might require an additional outVar Variable created later)
+plotResponseByDifferenceinAnglePref(outVars,All)
 
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
 opts.numExamples = 5;
@@ -446,11 +450,11 @@ title('Cells That go down')
 
 %% 2D Plot Maker Corr vs Distance
 
-opts.CorrSpace =linspace(-0.2,0.3,11); %linspace(-0.2,0.3,41);
+opts.CorrSpace =linspace(-0.2,0.3,21); %linspace(-0.2,0.3,41);
 opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 
 opts.distType = 'min';
-opts.distBins = linspace(0,600,21);% linspace(0,600,91);% [0:25:600];
+opts.distBins = linspace(0,600,41);% linspace(0,600,91);% [0:25:600];
 
 numEns = numel(outVars.posCellbyInd);
 ensIndNumber = outVars.ensIndNumber;

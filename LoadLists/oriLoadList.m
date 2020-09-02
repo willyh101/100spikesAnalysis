@@ -18,9 +18,11 @@ loadList = {
     '191213_W20_1_outfile.mat'
     '191217_mora_tre_outfile.mat'
     '191230_w20_1_outfile.mat'
-%     '200302_W14_1_outfile.mat'
-%     '200304_W14_1_outfile.mat'
+    '200302_W14_1_outfile.mat' %will excluded
+    '200304_W14_1_outfile.mat' %will excluded
     '200309_w21_1_outfile.mat'
-%     '200311_i139_2_outfile.mat'
-    '200728_i140_2_outfile.mat'
+    '200311_i139_2_outfile.mat' %will excluded
+%     '200728_i140_2_outfile.mat' %ian doesn't have right now
+    '200723_i140_2_outfile.mat'
+    '200729_I140_2_outfile.mat'
 };
