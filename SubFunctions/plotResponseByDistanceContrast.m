@@ -16,18 +16,18 @@ figure(11);clf
 
 
     
-popDatNoVis = cell2mat(cellfun(@(x) squeeze(x(2:end,1,:)), popResponseAllDist,'uniformoutput',0)');
+popDatNoVis = cell2mat(cellfun(@(x) permute(x(2:end,1,:),[1 3 2]), popResponseAllDist,'uniformoutput',0)');
 % popDatNoVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,1,:)), popResponseAllDist,'uniformoutput',0)'));
 
-popDatMaxVis = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDist,'uniformoutput',0)');
+popDatMaxVis = cell2mat(cellfun(@(x) permute(x(2:end,end,:),[1 3 2]), popResponseAllDist,'uniformoutput',0)');
 % popDatMaxVisNoStim = squeeze(cell2mat(cellfun(@(x) (x(1,end,:)), popResponseAllDist,'uniformoutput',0)'));
-popDatMaxVisSubtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDistSub,'uniformoutput',0)');
-popDatMaxVisSubVis = cell2mat(cellfun(@(x) squeeze(x(2:end,end,:)), popResponseAllDistSubVis,'uniformoutput',0)');
+popDatMaxVisSubtracted = cell2mat(cellfun(@(x) permute(x(2:end,end,:),[1 3 2]), popResponseAllDistSub,'uniformoutput',0)');
+popDatMaxVisSubVis = cell2mat(cellfun(@(x) permute(x(2:end,end,:),[1 3 2]), popResponseAllDistSubVis,'uniformoutput',0)');
 
 
 divider = 1;
-popDatVis2 = cell2mat(cellfun(@(x) squeeze(x(2:end,round(size(x,2)/divider),:)), popResponseAllDist,'uniformoutput',0)');
-popDatVis2Subtracted = cell2mat(cellfun(@(x) squeeze(x(2:end,round(size(x,2)/divider),:)), popResponseAllDistSub,'uniformoutput',0)');
+popDatVis2 = cell2mat(cellfun(@(x) permute(x(2:end,round(size(x,2)/divider),:),[1 3 2]), popResponseAllDist,'uniformoutput',0)');
+popDatVis2Subtracted = cell2mat(cellfun(@(x) permute(x(2:end,round(size(x,2)/divider),:),[1 3 2]), popResponseAllDistSub,'uniformoutput',0)');
 
 
 ensSizes = unique(numCellsEachEns(ensemblesToUse))   ;
@@ -106,7 +106,7 @@ contrastsToView = [6 3 2 1.5 1.25 1] ;%I know its weird i just wanted to be able
 for c=1:numel(contrastsToView)
 ax(c) = subplot(1,numel(contrastsToView),c);
 divider = contrastsToView(c);
-popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSub,'uniformoutput',0)');
+popDatToPlot = cell2mat(cellfun(@(x) permute(x(2:end,max(round(size(x,2)/divider),1),:),[1 3 2]), popResponseAllDistSub,'uniformoutput',0)');
 % popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDist,'uniformoutput',0)');
 % popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistSubVis,'uniformoutput',0)');
 % popDatToPlot = cell2mat(cellfun(@(x) squeeze(x(2:end,max(round(size(x,2)/divider),1),:)), popResponseAllDistVis,'uniformoutput',0)');
