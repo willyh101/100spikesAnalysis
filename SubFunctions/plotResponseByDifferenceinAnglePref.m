@@ -12,7 +12,7 @@ subplot(1,2,1)
 meanByOriDiff = (nanmean(mRespByOriDiff));
 semByOriDiff = nanstd(mRespByOriDiff)./sqrt(sum(~isnan(mRespByOriDiff)));
 e1 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
-e1.LineWidth = 2;
+e1.LineWidth = 1;
 
 % plot only good OSIs
 hold on
@@ -21,7 +21,7 @@ datToPlot = mRespByOriDiff(sortedOSI>=goodOSIthreshold,:);
 meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
 e2 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
-e2.LineWidth = 2;
+e2.LineWidth = 1;
 
 
 
@@ -29,7 +29,7 @@ ylim([-0.05 0.01])
 xlim([-5 185])
 xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Response')
-xticks(0:45:135)
+xticks(0:45:180)
 legend({['All OSIs, n= ' num2str(size(mRespByOriDiff,1))], ...
     ['OSI > ' num2str(goodOSIthreshold) ', n=' num2str(size(datToPlot,1))]})
 
@@ -70,17 +70,21 @@ hold on
 datToPlot = mRespByOriDiff(sortedOSI<0.25,:);
 meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
+e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
+e.LineWidth = 1;
 
 datToPlot = mRespByOriDiff(sortedOSI>=0.25 & sortedOSI<=0.75,:);
 meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
+e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
+e.LineWidth = 1;
+
 
 datToPlot = mRespByOriDiff(sortedOSI>0.75,:);
 meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
+e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
+e.LineWidth = 1;
 
 
 % ylim([-0.05 0.01])
@@ -93,6 +97,22 @@ legend('Low OSI <0.25','Mid OSI','High OSI >0.75')
 figure(145)
 histogram(sortedOSI)
 title('Sorted OSI')
+
+figure(132)
+clf
+datToPlot = mRespByOriDiff(sortedOSI>=goodOSIthreshold,:);
+meanByOriDiff = (nanmean(datToPlot));
+semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+e1 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
+e1.LineWidth = 1.5;
+xlabel('\Delta Preferred Angle (Deg) from Ensemble')
+ylabel('\Delta Mean Population Response')
+xlim([-5 185])
+% ylim([-0.035 .002])
+
+pVals = anova1(datToPlot, [], 'off');
+disp(['pval red ' num2str(pVals)])
+
 
 
 
