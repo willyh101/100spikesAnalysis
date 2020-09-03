@@ -13,9 +13,9 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 
 
 % allLoadList;  
-oriLoadList;
+% oriLoadList;
 % SSTOriLoadList;
-% PVLoadList;
+PVOriLoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
@@ -294,6 +294,24 @@ opts.ensOSImethod = 'ensOSI';
 plotOSIdists(outVars, opts);
 plotPopResponseEnsOSI(outVars, opts)
 
+%% within pyramids cell analysis
+
+opts.visAlpha = 0.05;
+[outVars] = makeMeanRespEnsByCell(All, outVars);
+[All, outVars] = compareAllCellsTuning(All, outVars, opts);
+[outVars] = getRespByTuningDiff(All, outVars);
+
+
+
+%% plot pyr cells connectivity
+
+opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
+plotCompareAllCellsTuning(outVars, opts);
+opts.goodOSIthresh = 0.6;
+plotResponseByDifferenceinAnglePref(outVars, opts)
+
+
+
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
 opts.numExamples = 5;
 opts.osiThreshold4Examples = 0.5;
@@ -308,29 +326,23 @@ opts.visAlpha = 0.05;
 [All, outVars] = compareRedCellsVisResp(All, outVars);
 [All, outVars] = compareRedCellsTuning(All, outVars);
 
-opts.redCellXaxis = 'dist'; % order, osi, dist, corr, size... % correlation stuff is below, so might need to run that first if choosing corr
+opts.redCellXaxis = 'order'; % order, osi, dist, corr, size... % correlation stuff is below, so might need to run that first if choosing corr
 plotCompareRedCellVisResp(outVars, opts);
 plotCompareRedCellVisTuning(outVars, opts);
 
-%% Example cells from above
+%% Red cell connectivity
+[outVars] = getRespByTuningDiffNotRed(All, outVars);
+[outVars] = getRespByTuningDiffRed(All, outVars);
+%%
+opts.goodOSIthresh = 0.6;
+plotResponseByDifferenceinAnglePrefRed(outVars, opts)
+%%
+opts.goodOSIthresh = 0;
+opts.redCellName = 'PV Cells';
+
+plotRedandPyrConnTogether(outVars, opts)
 
 
-
-%% within pyramids cell analysis
-
-opts.visAlpha = 0.05;
-[outVars] = makeMeanRespEnsByCell(All, outVars);
-[All, outVars] = compareAllCellsTuning(All, outVars, opts);
-[outVars] = getRespByTuningDiff(All, outVars);
-
-
-
-%% plot pyr cells connectivity
-
-opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
-plotCompareAllCellsTuning(outVars, opts);
-opts.goodOSIthresh = 0.5;
-plotResponseByDifferenceinAnglePref(outVars, opts)
 
 
 
