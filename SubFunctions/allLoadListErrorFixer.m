@@ -61,6 +61,24 @@ if ~isempty(indToUse)
     All(indToUse).out.exp.stimParams.numCells([2 3])=[];
     All(indToUse).out.exp.holoTargets([2 3])=[];
 end
+
+%%
+nameToUse = '190415_I127_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    All(indToUse).out.exp.stimParams.Hz=[30 30 30 30];
+end
+
+%%
+nameToUse = '200224_w14_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+    All(indToUse).out.exp.stimParams.Hz(1)=[];
+end
+
 %% fix Exp10; ignoring intermediate contrasts
 nameToUse = '191017_I136_1_outfile.mat';
 indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));

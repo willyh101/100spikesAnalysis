@@ -260,6 +260,10 @@ for ind = 1:numExps
     numCellsEachEns{ind} = All(ind).out.exp.stimParams.numCells;
     hzEachEns{ind} = All(ind).out.exp.stimParams.Hz;
     
+    if numel( All(ind).out.exp.stimParams.numCells) ~= numel(All(ind).out.exp.stimParams.Hz)
+       disp(['Error on the number of items ind: ' num2str(ind)]) 
+    end
+    
 end
 numSpikesEachStim=cell2mat(numSpikesEachStim(:)');
 numSpikesEachEns = numSpikesEachStim;

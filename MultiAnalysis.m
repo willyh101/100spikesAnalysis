@@ -25,6 +25,7 @@ loadPath = 'T:\Outfiles';
 % loadPath = 'E:\100spikes-results\outfiles-master';
 %%
 numExps = numel(loadList);
+disp(['There are ' num2str(numExps) ' Exps in this LoadList'])
 if numExps ~= 0
     clear All
     if ~iscell(loadList)
@@ -166,12 +167,14 @@ excludedTypes = {'AAV CamK2' 'Ai203'};
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
 excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 
+% only include times where rate == numpulses aka the stim period is 1s.
+ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars.hzEachEns;
 
 %spot to add additional Exclusions
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [98 301];
+opts.numSpikeToUseRange = [98 101];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -189,6 +192,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
+    ... & ensembleOneSecond ... %cuts off a lot of the earlier
     ;
 %& numCellsEachEns>10 ;
 
@@ -217,6 +221,7 @@ disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpression
 disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
+disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
 
 %% Set Default Trials to Use
 for ind=1:numExps
@@ -438,7 +443,7 @@ opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'Sig
 [All, outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
 plotEnsembleCorrelationResponse(outVars,300,1)
 
-opts.CorrSpace = linspace(-0.5,0.5,40);
+opts.CorrSpace = linspace(-0.2,0.2,40);
 opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 [outVars] = plotCorrelationResponse(All,outVars,opts);
 
