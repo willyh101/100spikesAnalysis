@@ -67,9 +67,15 @@ for i=1:numel(osisToUse)
     pValNotRed = anova1(datToPlot, [], 'off');
     disp(['pval red ' num2str(pValNotRed)])
     
-    title(['OSI > ' num2str(osiToPlot) ', n=' num2str(nEns)])
+    title(['OSI > ' num2str(osiToPlot) ' (n=' num2str(nEns) ' ensembles)'])
     xticks(0:45:180)
-%     ylim([-.22 .4])
+    if i ==1 || i==5
+        ylabel('\Delta Mean Population Response')
+    end
+    if i > 4
+        xlabel('\Delta Preferred Angle (Deg)')
+    end
+    
     
 
     

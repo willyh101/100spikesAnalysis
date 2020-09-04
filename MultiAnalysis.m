@@ -13,9 +13,9 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 
 
 % allLoadList;  
-% oriLoadList;
+oriLoadList;
 % SSTOriLoadList;
-PVOriLoadList;
+% PVOriLoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
@@ -171,7 +171,7 @@ excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [98 101];
+opts.numSpikeToUseRange = [98 301];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -307,7 +307,7 @@ opts.visAlpha = 0.05;
 
 opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
-opts.goodOSIthresh = 0.6;
+opts.goodOSIthresh = 0.3;
 plotResponseByDifferenceinAnglePref(outVars, opts)
 
 
@@ -342,8 +342,21 @@ opts.redCellName = 'PV Cells';
 
 plotRedandPyrConnTogether(outVars, opts)
 
+%% ensemble tuning curve examples
 
+OSImin = 0.3;
 
+goodOSIens = outVars.ensCurve(2:9,outVars.ensOSI > OSImin);
+goodOSIensSEM = outVars.ensCurveSEM(2:9,outVars.ensOSI > OSImin);
+
+r = randi(size(goodOSIens,2));
+figure(222)
+e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
+e.LineWidth = 1.5;
+e.Color = 'k';
+ylabel('ZDF')
+xlabel('Orientation')
+xticklabels([0:45:315])
 
 
 %% Red Distance section
