@@ -2,11 +2,12 @@
 clear
 PVLoadList
 
-loadList = loadList(4);
+loadList = loadList(6);
 %  loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 loadPath = 'E:\100spikes-results\outfiles-master'
+loadPath = 'T:\Outfiles';
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -31,6 +32,7 @@ out = All.out;
 out.info
 nDepthsTotal=3;
 %% Identify Red Cells from another image (INTERNEURON)
+%get the 830nm Image
 [redImageFN redImagePath] = uigetfile('*.tif');
 % rawRedImg = bigread3([redImagePath redImageFN]);
 rawRedImg = ScanImageTiffReader([redImagePath redImageFN]).data;
@@ -225,11 +227,11 @@ additionalOffsets = zeros([nDepthsTotal 2]);
 % additionalOffsets(1,:)=[0 0];
 % additionalOffsets(2,:)=[0 0];
 % additionalOffsets(3,:)=[0 0];
-additionalOffsets(1,:)=[0 1];
-additionalOffsets(2,:)=[0 1];
+additionalOffsets(1,:)=[0 2];
+additionalOffsets(2,:)=[0 2];
 additionalOffsets(3,:)=[0 0];
 
-%% match red cell locations
+%%match red cell locations
 figure(7);clf
 redDepth = RedCellLocations(:,3); 
 RedCellLoc = nan(size(RedCellLocations));
@@ -262,7 +264,7 @@ for s = 1:numRed
 end
 
 
-targetDistanceThresholdRed =15; %has been 15 
+targetDistanceThresholdRed =30;15; %has been 15 
 RedCells = RedMapping(:,2); 
 RedCells(RedMapping(:,3)>targetDistanceThresholdRed)=nan;
 isRed = ismember(cellList,RedCells);
@@ -290,6 +292,8 @@ red.isRed = isRed;
 % red.redVal = redVal; 
 red.RedCells = RedCells;
 
+red.targetDistanceThresholdRed = targetDistanceThresholdRed;
+
 try 
     red.redIMs = {IMTOUSE1 IMTOUSE2};
 end
@@ -298,7 +302,9 @@ out.red=red;
 
 info = out.info;
 
-% save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
-save(['E:\100spikes-results\outfiles-master\' info.date '_' info.mouse '_outfile'], 'out')
+save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+% save(['E:\100spikes-results\outfiles-master\' info.date '_' info.mouse '_outfile'], 'out')
+save(['T:\Outfiles' info.date '_' info.mouse '_outfile'], 'out')
+
 disp('saved')
 
