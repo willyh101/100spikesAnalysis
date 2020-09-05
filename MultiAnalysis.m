@@ -582,3 +582,7 @@ set(get(h,'label'),'string','Avg. \Delta Z-Score dF/F');
 %% Sparsity
 
 plotSparsityBySize(All,outVars)
+
+
+%% Stim Rate vs Pop Response
+ plotPopRespByStimRate(outVars)
