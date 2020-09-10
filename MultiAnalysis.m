@@ -282,7 +282,7 @@ disp('done')
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
 %% Contrast Response Functions
 
-opts.distBinCRF = [50:25:350]; %split Contrast Response Fun by distance
+opts.distBinCRF = [50:50:350]; %split Contrast Response Fun by distance
 opts.visAlphaCRF = 10.05; %visAlpha for looking just at vis responsive cells;
 
 [outVars] = plotContrastResponseFunction(All,outVars,opts);
@@ -312,10 +312,14 @@ opts.visAlpha = 0.05;
 
 opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
-opts.goodOSIthresh = 0.3;
+opts.goodOSIthresh = 0.5;
 plotResponseByDifferenceinAnglePref(outVars, opts)
 
-
+%% seperate by posNeg
+[All outVars] = posNegIdentifiers(All,outVars,opts);
+outVars = getRespByTuningDiffPosNeg(All, outVars);
+%%
+plotResponseByDiffAnglePrefPosNeg(outVars,opts);
 
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
 opts.numExamples = 5;
