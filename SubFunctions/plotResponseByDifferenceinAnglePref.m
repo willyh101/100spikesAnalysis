@@ -8,7 +8,7 @@ figure(138);clf
 % imagesc(mRespByOriDiff);
 % colormap rdbu
 % caxis([-0.1 0.1])
-subplot(1,2,1)
+subplot(2,2,1)
 meanByOriDiff = (nanmean(mRespByOriDiff));
 semByOriDiff = nanstd(mRespByOriDiff)./sqrt(sum(~isnan(mRespByOriDiff)));
 e1 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
@@ -34,7 +34,7 @@ legend({['All OSIs, n= ' num2str(size(mRespByOriDiff,1))], ...
     ['OSI > ' num2str(goodOSIthreshold) ', n=' num2str(size(datToPlot,1))]})
 
 
-subplot(1,2,2)
+subplot(2,2,2)
 % imToPlot = mRespByOriDiff;
 % imToPlot(isnan(imToPlot))=0;
 % imagesc(imToPlot)
@@ -93,6 +93,59 @@ xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Response')
 
 legend('Low OSI <0.25','Mid OSI','High OSI >0.75')
+
+
+subplot(2,2,3)
+ensList = find(outVars.ensemblesToUse);
+ensSizes = outVars.numCellsEachEns(ensList);
+uEnsSizes = unique(ensSizes);
+
+clist = colorMapPicker(numel(uEnsSizes),'viridis');
+for i=1:numel(uEnsSizes);
+    
+    datToPlot = mRespByOriDiff(ensSizes==uEnsSizes(i),:);
+    meanByOriDiff = (nanmean(datToPlot));
+    semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+    e=errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
+    e.Color = clist{i};
+    e.LineWidth=2;
+    legendName{i} = [num2str(uEnsSizes(i)) ' n=' num2str(sum(ensSizes==uEnsSizes(i)))];
+    hold on
+end
+legend(legendName);
+ xlim([-5 185])
+xlabel('\Delta Preferred Angle (Deg)')
+ylabel('\Delta Response')
+title('All Ens')
+
+subplot(2,2,4)
+ensList = find(outVars.ensemblesToUse);
+ensSizes = outVars.numCellsEachEns(ensList);
+uEnsSizes = unique(ensSizes);
+
+clear legendName2
+c=0;
+clist = colorMapPicker(numel(uEnsSizes),'viridis');
+for i=1:numel(uEnsSizes);
+    condToUse = ensSizes==uEnsSizes(i) & sortedOSI>=goodOSIthreshold;
+    disp([num2str(uEnsSizes(i)) ' n=' num2str(sum(condToUse))]);
+    if sum(condToUse)>2
+        datToPlot = mRespByOriDiff(condToUse,:);
+        meanByOriDiff = (nanmean(datToPlot));
+        semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+        e=errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
+        e.Color = clist{i};
+        e.LineWidth=2;
+        c=c+1;
+        legendName2{c} = [num2str(uEnsSizes(i)) ' n=' num2str(sum(condToUse))];
+        hold on
+    end
+end
+legend(legendName2);
+ xlim([-5 185])
+xlabel('\Delta Preferred Angle (Deg)')
+ylabel('\Delta Response')
+title('Ens over OSI threshold')
 
 figure(145)
 histogram(sortedOSI)

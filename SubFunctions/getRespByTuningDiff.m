@@ -2,8 +2,8 @@ function outVars = getRespByTuningDiff(All, outVars)
 ensemblesToUseList = find(outVars.ensemblesToUse );
 
 OSIList = outVars.meanEnsOSI(ensemblesToUseList);
-[sortedOSI, sortOrder] = sort(OSIList);
-ensemblesToUseList=ensemblesToUseList(sortOrder); 
+% [sortedOSI, sortOrder] = sort(OSIList);
+% ensemblesToUseList=ensemblesToUseList(sortOrder); 
 
 diffRange = -22.5:45:315; %0:33.75:315;
 
@@ -68,5 +68,6 @@ for i=1:numel(ensemblesToUseList)
     
 end
 
-outVars.sortedOSI = sortedOSI;
+outVars.sortedOSI = OSIList; %sortedOSI;
+% outVars.OSIsortOrder = sortOrder; 
 outVars.mRespByOriDiff = mRespByOriDiff;

@@ -124,7 +124,8 @@ for i=1:numEns
     %     err(i) = sem(popResponseEns(ens2plot));
     %     ns(i) = numel(popResponseEns(ens2plot));
 end
-xlim([-0.4 0.4])
+
+xlim([min(opts.CorrSpace) max(opts.CorrSpace)])
 legend(cellfun(@(x) num2str(x),num2cell(uniqueEns),'uniformoutput',0))
 % legend('small', 'medium', 'large')
 
