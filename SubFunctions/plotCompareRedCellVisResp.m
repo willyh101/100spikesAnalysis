@@ -19,6 +19,12 @@ switch by
     case 'dist'
         x = outVars.ensMeaD(ensemblesToUse);
         xname = 'Ensemble Mean Distance';
+    case 'maxdist'
+        x = outVars.ensMaxD(ensemblesToUse);
+        xname = 'Ensemble Max Distance';
+    case 'mindist'
+        x = outVars.ensMinD(ensemblesToUse);
+        xname = 'Ensemble Min Distance';
     case 'corr'
         x = outVars.ensAlCo(ensemblesToUse);
         xname = 'Ensemble All Corr';
