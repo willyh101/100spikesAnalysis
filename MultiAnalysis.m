@@ -312,7 +312,7 @@ opts.visAlpha = 0.05;
 
 opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
-opts.goodOSIthresh = 0.5;
+opts.goodOSIthresh = 0.75;
 plotResponseByDifferenceinAnglePref(outVars, opts)
 
 %% seperate by posNeg
