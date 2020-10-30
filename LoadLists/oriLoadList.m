@@ -27,4 +27,6 @@ loadList = {
     '200729_I140_2_outfile.mat'
     '200807_w26_1_outfile.mat'
     '200810_i140_2_outfile.mat'
+    '200902_w18_3_outfile.mat'
+    '200901_w19_1_outfile.mat'
 };

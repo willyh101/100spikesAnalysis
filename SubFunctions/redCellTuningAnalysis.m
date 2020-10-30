@@ -12,22 +12,21 @@ otherCurvesPlot = [];
 alpha = opts.visAlpha;
 
 for ind = 1:numel(All)
-    
     oris = [nan 0:45:315];
     isRed = All(ind).out.red.isRed;
     isVisRed = All(ind).out.anal.pVisR < alpha & isRed;
     isVisRedCells = find(isVisRed);
     isVisOther = All(ind).out.anal.pVisR < alpha & ~isRed;
     isVisOtherCells = find(isVisOther);
-    
+
     All(ind).out.red.isVis = isVisRed;
     All(ind).out.red.isVisCells = isVisRedCells;
     All(ind).out.red.isVisOther = isVisOther;
     All(ind).out.red.isVisOtherCells = isVisOtherCells;
-    
+
     disp(['Found ' num2str(numel(isVisOtherCells)) 'visually responsive and not red cells.'])
     disp(['Found ' num2str(numel(isVisRedCells)) ' visually responsive and red cells.'])
-    
+
     % red cells first
     % tuning idx
     redTuningIdx = All(ind).out.anal.prefOri(isVisRed);
@@ -43,7 +42,7 @@ for ind = 1:numel(All)
     All(ind).out.red.redCurves = redCurves;
     redCurvesSEM = All(ind).out.anal.oriCurveSEM(:, isVisRed);
     All(ind).out.red.redCurvesSEM = redCurvesSEM;
-    
+
     % other cells
     % pref cond
     notRedTuningIdx = All(ind).out.anal.prefOri(isVisOther);
@@ -59,7 +58,7 @@ for ind = 1:numel(All)
     All(ind).out.red.otherCurves = otherCurves;
     otherCurvesSEM = All(ind).out.anal.oriCurveSEM(:, isVisOther);
     All(ind).out.red.otherCurvesSEM = otherCurvesSEM;
-    
+
     % for plotting...
     redTuningPlot = [redTuningPlot redTuningOri];
     redOSIplot = [redOSIplot redOSI];
@@ -67,7 +66,7 @@ for ind = 1:numel(All)
     notRedOSIplot = [notRedOSIplot notRedOSI];
     isVisRedPlot = [isVisRedPlot isVisRed];
     isVisOtherPlot = [isVisOtherPlot isVisOther];
-    
+
     % save into outVars
     outVars.redCellTuning{ind} = redTuningOri;
     outVars.redOSI{ind} = redOSI;
@@ -77,7 +76,6 @@ for ind = 1:numel(All)
     outVars.redCurvesSEM{ind} = redCurvesSEM;
     outVars.otherCurves{ind} = otherCurves;
     outVars.otherCurvesSEM{ind} = otherCurvesSEM;
-    
 end
 
 %% comparison of pref ori and OSI for red and not red
@@ -188,4 +186,5 @@ for i = 1:nplts
     e.LineWidth = 1;
     ylabel('zdf')
     xlabel('ori')
+end
 end
