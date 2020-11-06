@@ -3,7 +3,7 @@ ensemblesToUseList = find(outVars.ensemblesToUse...
     & outVars.meanEnsOSI > 0.5...
     );
 
-disp([num2str(numel(ensemblesToUseList)) 'Ensembles Included'])
+disp([num2str(numel(ensemblesToUseList)) ' Ensembles Included'])
 
 for E = 1:numel(ensemblesToUseList);
 ens = ensemblesToUseList(E);
