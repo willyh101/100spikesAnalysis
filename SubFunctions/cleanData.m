@@ -270,18 +270,19 @@ numSpikesEachEns = numSpikesEachStim;
 numSpikesEachEns(numSpikesEachStim==0)=[];
 
 numCellsEachEns=cell2mat(numCellsEachEns(:)');
-    
 hzEachEns = cell2mat(hzEachEns(:)');
+numSpikesEachCell = numSpikesEachEns/numCellsEachEns;
 
 ensStimScore=cell2mat(ensStimScore(:)');
 ensStimScore(numSpikesEachStim==0)=[];
 
-outVars.ensStimScore=ensStimScore;
-outVars.hzEachEns=hzEachEns;
-outVars.numCellsEachEns=numCellsEachEns;
-outVars.numSpikesEachStim=numSpikesEachStim;
+outVars.ensStimScore = ensStimScore;
+outVars.hzEachEns = hzEachEns;
+outVars.numCellsEachEns = numCellsEachEns;
+outVars.numSpikesEachStim = numSpikesEachStim;
 outVars.numSpikesEachEns = numSpikesEachEns;
-outVars.percentLowRunTrials=percentLowRunTrials;
+outVars.percentLowRunTrials = percentLowRunTrials;
+outVars.numSpikesEachCell = numSpikesEachCell;
 
 %% catch some errors in viscode
 disp('Running Additional corrections...')

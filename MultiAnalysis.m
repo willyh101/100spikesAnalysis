@@ -13,16 +13,17 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 
 
 % allLoadList;  
-oriLoadList;
+% oriLoadList;
 % SSTOriLoadList;
 % PVOriLoadList;
+u19LoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 % loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
-loadPath = 'T:\Outfiles';
-% loadPath = 'E:\100spikes-results\outfiles-master';
+% loadPath = 'T:\Outfiles';
+loadPath = 'E:\100spikes-results\outfiles-master';
 %%
 numExps = numel(loadList);
 disp(['There are ' num2str(numExps) ' Exps in this LoadList'])
@@ -72,6 +73,7 @@ numCellsEachEns     = outVars.numCellsEachEns;
 numSpikesEachStim   = outVars.numSpikesEachStim;
 percentLowRunTrials = outVars.percentLowRunTrials;
 numSpikesEachEns    = outVars.numSpikesEachEns;
+numSpikesEachCell   = outVars.numSpikesEachCell;
 
 outVars.numCellsEachEnsBackup = outVars.numCellsEachEns;
 
@@ -174,7 +176,7 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [98 101];
+opts.numSpikeToUseRange = [0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -210,7 +212,7 @@ outVars.lowRunInds           = lowRunInds;
 
 %%Optional: Where are the losses comming from
 
-disp(['Fraction of Ens correct Size: ' num2str(mean(numSpikesEachEns > 75 & numSpikesEachEns <110))]);
+disp(['Fraction of Ens correct Size: ' num2str(mean(numSpikesEachEns > opts.numSpikeToUseRange(1) & numSpikesEachEns < opts.numSpikeToUseRange(2)))]);
 disp(['Fraction of Ens highVis: ' num2str(mean(highVisPercentInd))]);
 disp(['Fraction of Ens lowRun: ' num2str(mean(lowRunInds))]);
 disp(['Fraction of Ens high stimScore: ' num2str(mean(ensStimScore>opts.ensStimScoreThreshold))]);
@@ -227,12 +229,15 @@ disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
 for ind=1:numExps
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
         All(ind).out.exp.lowRunTrials &...
-        All(ind).out.exp.stimSuccessTrial;
+        All(ind).out.exp.stimSuccessTrial;% & ...
+%         All(ind).out.exp.visID == 1 | ...
+%         All(ind).out.exp.visID == 0;
     All(ind).out.anal.defaultTrialsToUse = trialsToUse;
 end
 %% Create time series plot
 
 [All, outVars] = createTSPlot(All,outVars);
+[All, outVars] = createTSPlotAllVis(All,outVars);
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
@@ -256,6 +261,8 @@ plotResponseBySize(outVars)
 plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
 [All, outVars] = createTSPlotByEnsSize(All,outVars);
+[All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
+
 %% Distance Response Plots
  plotResponseByDistance(outVars,opts);
 
@@ -312,7 +319,7 @@ opts.visAlpha = 0.05;
 
 opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
-opts.goodOSIthresh = 0.75;
+opts.goodOSIthresh = 0.5;
 plotResponseByDifferenceinAnglePref(outVars, opts)
 
 %% seperate by posNeg
@@ -335,7 +342,8 @@ opts.visAlpha = 0.05;
 [All, outVars] = compareRedCellsVisResp(All, outVars);
 [All, outVars] = compareRedCellsTuning(All, outVars);
 
-opts.redCellXaxis = 'order'; % order, osi, dist, corr, size... % correlation stuff is below, so might need to run that first if choosing corr
+opts.redCellName = 'SST';
+opts.redCellXaxis = 'size'; % order, osi, dist, corr, size... % correlation stuff is below, so might need to run that first if choosing corr
 plotCompareRedCellVisResp(outVars, opts);
 plotCompareRedCellVisTuning(outVars, opts);
 
@@ -343,17 +351,17 @@ plotCompareRedCellVisTuning(outVars, opts);
 [outVars] = getRespByTuningDiffNotRed(All, outVars);
 [outVars] = getRespByTuningDiffRed(All, outVars);
 %%
-opts.goodOSIthresh = 0.6;
+opts.goodOSIthresh = 0.5;
 plotResponseByDifferenceinAnglePrefRed(outVars, opts)
 %%
 opts.goodOSIthresh = 0;
-opts.redCellName = 'PV Cells';
+opts.redCellName = 'SST Cells';
 
 plotRedandPyrConnTogether(outVars, opts)
 
 %% ensemble tuning curve examples
 
-OSImin = 0.3;
+OSImin = 0.5;
 
 goodOSIens = outVars.ensCurve(2:9,outVars.ensOSI > OSImin);
 goodOSIensSEM = outVars.ensCurveSEM(2:9,outVars.ensOSI > OSImin);

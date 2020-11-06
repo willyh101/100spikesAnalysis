@@ -148,7 +148,7 @@ popRespNotRed(isControl)=[];
      popTSNotRed = popTSNotRed - mean(popTSNotRed(:,1:minStrtFrame),2);
  end
  
- colorLim = [-0.15 0.15];
+ colorLim = [-0.5 0.5];
  figure(22);clf
  ax1(1) = subplot(2,2,1);
  imagesc(popTSRed(ensToPlot,:))

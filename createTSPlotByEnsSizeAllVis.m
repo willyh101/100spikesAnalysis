@@ -1,4 +1,4 @@
-function [All outVars] = createTSPlotByEnsSize(All,outVars)
+function [All outVars] = createTSPlotByEnsSizeAllVis(All,outVars)
 
 %% Create time series plot
 
@@ -45,38 +45,27 @@ for ind=1:numExps
                 ~offTargetRisk(h,:) &...
                 ~ismember(cellList,tg);% & pVisR<0.05;
         end
-        
-        for k=1:numel(vs)
-            v=vs(k);
-            
-            dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
-                All(ind).out.exp.stimID==s &...
-                All(ind).out.exp.visID==v );
-            
-            mDat = mean(dat,3);
-            mmDat = mean(mDat,1); %pop Average
-            sdDat = std(mDat);
-            nDat = size(mDat,1);
-            
-            
-            mRespTS(i,:,k) = mmDat; % mean response time series
-            sRespTS(i,:,k) = sdDat; % std response time series (by cell);
-            nResp(i,k) = nDat;
-        end
+
+        dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
+            All(ind).out.exp.stimID==s);
+
+        mDat = mean(dat,3);
+        mmDat = mean(mDat,1); %pop Average
+        sdDat = std(mDat);
+        nDat = size(mDat,1);
+
+
+        mRespTS(i,:) = mmDat; % mean response time series
+        sRespTS(i,:) = sdDat; % std response time series (by cell);
+        nResp(i) = nDat;
         
     end
-    All(ind).out.anal.mRespTS= mRespTS;
-    All(ind).out.anal.sRespTS= sRespTS;
-    All(ind).out.anal.nResp = nResp;
-    
-    
-    allMeanTS{ind} = mRespTS(:,:,1);
-    allStdTS{ind} = sRespTS(:,:,1);
-    allnumTS{ind} = nResp(:,1);
-    
-    allMeanTSVis{ind} = mRespTS;
-    allStdTSVis{ind} = sRespTS;
-    allnumTSVis{ind} = nResp;
+
+
+    allMeanTS{ind} = mRespTS;
+    allStdTS{ind} = sRespTS;
+    allnumTS{ind} = nResp;
+
     
 end
 
@@ -99,13 +88,13 @@ meanTSSquareNR = cat(1,temp{:});
 temp = cellfun(@(x) x(2:end,1:shortestRec),allStdTS,'uniformoutput',0);
 stdTSSquare = cat(1,temp{:});
 
-clim = [-0.4 0.4];
+clim = [-0.3 0.3];
 
 numCellsEachEns = outVars.numCellsEachEns;
 uniqueNumCells = unique(numCellsEachEns(ensemblesToUse));
 numSizes = numel(uniqueNumCells);
 
-figure(25);clf
+figure(252);clf
 
 clear ix ax
 ix(1) =subplot(2,numSizes+1,1);
@@ -184,7 +173,7 @@ linkaxes(ax);
 xlim([1 size(meanTSSquareNR,2)]);
 
 %co plot
-figure(29);clf
+figure(292);clf
 
 
 if numel(IndsUsed)>1

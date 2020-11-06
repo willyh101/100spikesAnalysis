@@ -1,4 +1,4 @@
-function [All outVars] = createTSPlot(All,outVars)
+function [All outVars] = createTSPlotAllVis(All,outVars)
 
 %% Create time series plot
 
@@ -46,37 +46,28 @@ for ind=1:numExps
                 ~ismember(cellList,tg);% & pVisR<0.05;
         end
         
-        for k=1:numel(vs)
-            v=vs(k);
-            
-            dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
-                All(ind).out.exp.stimID==s &...
-                All(ind).out.exp.visID==v );
-            
-            mDat = mean(dat,3);
-            mmDat = mean(mDat,1); %pop Average
-            sdDat = std(mDat);
-            nDat = size(mDat,1);
-            
-            
-            mRespTS(i,:,k) = mmDat; % mean response time series
-            sRespTS(i,:,k) = sdDat; % std response time series (by cell);
-            nResp(i,k) = nDat;
-        end
+        dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
+            All(ind).out.exp.stimID==s);
+
+        mDat = mean(dat,3);
+        mmDat = mean(mDat,1); %pop Average
+        sdDat = std(mDat);
+        nDat = size(mDat,1);
+
+
+        mRespTS(i,:) = mmDat; % mean response time series
+        sRespTS(i,:) = sdDat; % std response time series (by cell);
+        nResp(i) = nDat;
         
     end
-    All(ind).out.anal.mRespTS= mRespTS;
-    All(ind).out.anal.sRespTS= sRespTS;
-    All(ind).out.anal.nResp = nResp;
+    All(ind).out.anal.mRespTSAllVis= mRespTS;
+    All(ind).out.anal.sRespTSAllVis= sRespTS;
+    All(ind).out.anal.nRespAllVis = nResp;
     
     
-    allMeanTS{ind} = mRespTS(:,:,1);
-    allStdTS{ind} = sRespTS(:,:,1);
-    allnumTS{ind} = nResp(:,1);
-    
-    allMeanTSVis{ind} = mRespTS;
-    allStdTSVis{ind} = sRespTS;
-    allnumTSVis{ind} = nResp;
+    allMeanTS{ind} = mRespTS;
+    allStdTS{ind} = sRespTS;
+    allnumTS{ind} = nResp;
     
 end
 
@@ -101,7 +92,7 @@ stdTSSquare = cat(1,temp{:});
 
 clim = [-0.15 0.15];
 
-figure(26);clf
+figure(251);clf
 ix(1) =subplot(2,2,2);
 imagesc(meanTSSquare(ensemblesToUse,:))
 ylabel('Ensemble')
