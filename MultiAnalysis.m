@@ -322,6 +322,9 @@ plotCompareAllCellsTuning(outVars, opts);
 opts.goodOSIthresh = 0.5;
 plotResponseByDifferenceinAnglePref(outVars, opts)
 
+%% ensemble Plots to look at
+
+
 %% seperate by posNeg
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 outVars = getRespByTuningDiffPosNeg(All, outVars);
