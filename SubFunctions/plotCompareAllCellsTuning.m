@@ -21,6 +21,12 @@ switch by
     case 'dist'
         x = outVars.ensGeoD(ensemblesToUse);
         xname = 'Ensemble Mean Distance';
+    case 'maxdist'
+        x = outVars.ensMaxD(ensemblesToUse);
+        xname = 'Ensemble Max Distance';
+    case 'mindist'
+        x = outVars.ensMinD(ensemblesToUse);
+        xname = 'Ensemble Min Distance';
     case 'corr'
         x = outVars.ensAlCo(ensemblesToUse);
         xname = 'Ensemble All Corr';
@@ -35,12 +41,12 @@ colormap(f1, 'viridis')
 
 
 subplot (1,3,1)
-s1 = scatter(x, popRespIso, 'filled');
+s1 = scatter(x, popRespIso, 'filled', 'MarkerFaceAlpha', 0.7);
 hold on
 % s2 = scatter(x, popRespOrtho, 'filled');
-s3 = scatter(x, popRespNotCoTuned, 'filled');
+s3 = scatter(x, popRespNotCoTuned, 'filled', 'MarkerFaceAlpha', 0.7, 'MarkerFaceColor', 'red');
 % s4 = scatter(x, popRespNotTuned, 'filled');
-s5 = scatter(x, popRespNotVis, 'filled');
+% s5 = scatter(x, popRespNotVis, 'filled');
 
 title({'Mean Population Response','Pyramidal Cells'})
 xlabel(xname)
@@ -53,7 +59,8 @@ r = refline(0);
 r.LineStyle =':';
 % legend([s1, s2, s3, s4, s5], {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Tuned', 'Not Vis Resp'})
 % legend([s1, s2, s3, s5], {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp'})
-legend([s1, s3, s5], {'Iso', 'Not Co-Tuned', 'Not Vis Resp'}) % removed Ortho for now
+% legend([s1, s3, s5], {'Iso', 'Not Co-Tuned', 'Not Vis Resp'}) % removed Ortho for now
+legend([s1, s3], {'Iso', 'Not Co-Tuned'})
 
 subplot(1,3,2)
 % 
@@ -72,12 +79,10 @@ subplot(1,3,2)
 % sems = [sem2(popRespIso, 2) sem2(popRespOrtho, 2) sem2(popRespNotCoTuned, 2) ...
 %         sem2(popRespNotVis, 2) sem2(popRespAll, 2)];
 
-cats = categorical({'Iso', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
-cats = reordercats(cats, {'Iso', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
-data = [nanmean(popRespIso) nanmean(popRespNotCoTuned) ...
-       nanmean(popRespNotVis) nanmean(popRespAll)];
-sems = [sem2(popRespIso, 2) sem2(popRespNotCoTuned, 2) ...
-        sem2(popRespNotVis, 2) sem2(popRespAll, 2)];
+cats = categorical({'Iso', 'Not Co-Tuned', 'All'});
+cats = reordercats(cats, {'Iso', 'Not Co-Tuned', 'All'});
+data = [nanmean(popRespIso) nanmean(popRespNotCoTuned) nanmean(popRespAll)];
+sems = [sem2(popRespIso, 2) sem2(popRespNotCoTuned, 2) sem2(popRespAll, 2)];
 
 bar(cats, data);
 nbars = 1:numel(data);
@@ -100,8 +105,8 @@ subplot(1,3,3)
 %             
 % fancyPlotSpread({popRespIso; popRespOrtho; popRespNotCoTuned; popRespNotVis; popRespAll}', ...
 %     {'Iso', 'Ortho', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
-fancyPlotSpread({popRespIso; popRespNotCoTuned; popRespNotVis; popRespAll}', ...
-    {'Iso', 'Not Co-Tuned', 'Not Vis Resp', 'All'});
+fancyPlotSpread({popRespIso; popRespNotCoTuned; popRespAll}', ...
+    {'Iso', 'Not Co-Tuned',  'All'});
 
 title({'Pop Response To Ensemble'})
 ylabel('Mean Population Response')

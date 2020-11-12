@@ -1,4 +1,4 @@
-function [All outVars] = createTSPlotByEnsSizeAllVis(All,outVars)
+function [All outVars] = plotTSsubset(All,outVars)
 
 %% Create time series plot
 
@@ -11,10 +11,7 @@ minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
 clear allMeanTS allStdTS allnumTS allMeanTSVis allStdTSVis allnumTSVis
 for ind=1:numExps
     us = unique(All(ind).out.exp.stimID);
-    vs = unique(All(ind).out.exp.visID);
-    vs(vs==0)=[];
 
-    
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
     
@@ -39,22 +36,37 @@ for ind=1:numExps
         cellList = 1:numel(ROIinArtifact);
         
         if i==1
-            cellsToUse = ~ROIinArtifact' & pVisR<0.05 ;
+            cellsToUse = ~ROIinArtifact' & pVisR<0.05;
+            dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
+                All(ind).out.exp.stimID==s);
+            mDat = mean(dat,3);
+            mmDat = mean(mDat,1);
+            meanVis = mmDat;
+            sdDat = std(mDat);
+            nDat = size(mDat,1);
+            
         else
+            exptEns = outVars.uExptsEns == ind;
+            ensTuning = outVars.ensPO(exptEns);
+            thisEnsTuning = ensTuning(i-1);
+            
+            cellsTuning = idx2ori(outVars.prefOris{ind}, [nan 0:45:315]);
+%             coTunedCellsToEns = (mod(cellsTuning-90, 315) == thisEnsTuning);
+            coTunedCellsToEns = (cellsTuning == thisEnsTuning);
+        
             cellsToUse = ~ROIinArtifact' &...
                 ~offTargetRisk(h,:) &...
                 ~ismember(cellList,tg) &...
-                pVisR<0.05;
+                pVisR<0.05 &...
+                coTunedCellsToEns;
+            
+            dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
+                All(ind).out.exp.stimID==s);
+            mDat = mean(dat,3);
+            mmDat = mean(mDat,1)-meanVis;
+            sdDat = std(mDat);
+            nDat = size(mDat,1);
         end
-
-        dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
-            All(ind).out.exp.stimID==s);
-
-        mDat = mean(dat,3);
-        mmDat = mean(mDat,1); %pop Average
-        sdDat = std(mDat);
-        nDat = size(mDat,1);
-
 
         mRespTS(i,:) = mmDat; % mean response time series
         sRespTS(i,:) = sdDat; % std response time series (by cell);
@@ -62,11 +74,13 @@ for ind=1:numExps
         
     end
 
-
     allMeanTS{ind} = mRespTS;
     allStdTS{ind} = sRespTS;
     allnumTS{ind} = nResp;
-
+    
+    allMeanTSVis{ind} = mRespTS;
+    allStdTSVis{ind} = sRespTS;
+    allnumTSVis{ind} = nResp;
     
 end
 
@@ -89,18 +103,18 @@ meanTSSquareNR = cat(1,temp{:});
 temp = cellfun(@(x) x(2:end,1:shortestRec),allStdTS,'uniformoutput',0);
 stdTSSquare = cat(1,temp{:});
 
-clim = [-0.3 0.3];
+clim = [-0.4 0.4];
 
 numCellsEachEns = outVars.numCellsEachEns;
 uniqueNumCells = unique(numCellsEachEns(ensemblesToUse));
 numSizes = numel(uniqueNumCells);
 
-figure(252);clf
+figure(255);clf
 
 clear ix ax
 ix(1) =subplot(2,numSizes+1,1);
 imagesc(meanTSSquareNR(IndsUsed,:))
-title('NoStim')
+title('Visual Response')
 ylabel('Mouse')
 xlabel('Frame')
 
@@ -172,9 +186,10 @@ end
 linkaxes([ix ax],'x')
 linkaxes(ax);
 xlim([1 size(meanTSSquareNR,2)]);
+sgtitle('Iso Oriented Pyramidal Cells')
 
 %co plot
-figure(292);clf
+figure(299);clf
 
 
 if numel(IndsUsed)>1
