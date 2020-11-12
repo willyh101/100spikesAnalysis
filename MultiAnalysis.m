@@ -154,7 +154,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.05; %default 0.05
+opts.IndsVisThreshold = 0.10; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -241,7 +241,7 @@ end
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
-numCellsEachEns(numCellsEachEns <= 5) = 5;
+numCellsEachEns(numCellsEachEns < 10) = 5;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
 outVars.numCellsEachEns= numCellsEachEns;
