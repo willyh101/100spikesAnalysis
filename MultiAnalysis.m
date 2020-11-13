@@ -154,7 +154,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.10; %default 0.05
+opts.IndsVisThreshold = 0.20; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -176,7 +176,7 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [0 1001];
+opts.numSpikeToUseRange = [80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -331,6 +331,22 @@ outVars = getRespByTuningDiffPosNeg(All, outVars);
 %%
 plotResponseByDiffAnglePrefPosNeg(outVars,opts);
 
+%% ensemble tuning curve examples
+
+OSImin = 0.5;
+
+goodOSIens = outVars.ensCurve(2:9,outVars.ensOSI > OSImin);
+goodOSIensSEM = outVars.ensCurveSEM(2:9,outVars.ensOSI > OSImin);
+
+r = randi(size(goodOSIens,2));
+figure(222)
+e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
+e.LineWidth = 1.5;
+e.Color = 'k';
+ylabel('ZDF')
+xlabel('Orientation')
+xticklabels([0:45:315])
+
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
 opts.numExamples = 5;
 opts.osiThreshold4Examples = 0.5;
@@ -361,23 +377,6 @@ opts.goodOSIthresh = 0;
 opts.redCellName = 'SST Cells';
 
 plotRedandPyrConnTogether(outVars, opts)
-
-%% ensemble tuning curve examples
-
-OSImin = 0.5;
-
-goodOSIens = outVars.ensCurve(2:9,outVars.ensOSI > OSImin);
-goodOSIensSEM = outVars.ensCurveSEM(2:9,outVars.ensOSI > OSImin);
-
-r = randi(size(goodOSIens,2));
-figure(222)
-e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
-e.LineWidth = 1.5;
-e.Color = 'k';
-ylabel('ZDF')
-xlabel('Orientation')
-xticklabels([0:45:315])
-
 
 %% Red Distance section
 for ind = 1:numExps
@@ -464,8 +463,8 @@ opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'Sig
 
 %% Seperate Correlation by Pos and Neg
 
-opts.CorrSpace = linspace(-0.5,0.5,40);
-opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+opts.CorrSpace = linspace(-0.5,0.5,40);linspace(-1,1,40);%
+opts.CorrToPlot = 'NoiseCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 
 numEns = numel(outVars.posCellbyInd);
 
