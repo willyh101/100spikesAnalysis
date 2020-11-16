@@ -1,7 +1,7 @@
 function outVars = getRespByTuningDiff(All, outVars)
 ensemblesToUseList = find(outVars.ensemblesToUse );
 
-OSIList = outVars.meanEnsOSI(ensemblesToUseList);
+OSIList = outVars.ensOSI(ensemblesToUseList);%   outVars.meanEnsOSI(ensemblesToUseList);
 % [sortedOSI, sortOrder] = sort(OSIList);
 % ensemblesToUseList=ensemblesToUseList(sortOrder); 
 

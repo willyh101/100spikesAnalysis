@@ -176,7 +176,7 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [80 120];%[0 1001];
+opts.numSpikeToUseRange = [1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 

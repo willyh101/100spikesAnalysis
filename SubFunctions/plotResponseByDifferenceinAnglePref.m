@@ -68,21 +68,21 @@ hold on
 
 
 datToPlot = mRespByOriDiff(sortedOSI<0.25,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+meanByOriDiff = (nanmean(datToPlot,1));
+semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot),1));
 e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e.LineWidth = 1;
 
 datToPlot = mRespByOriDiff(sortedOSI>=0.25 & sortedOSI<=0.75,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+meanByOriDiff = (nanmean(datToPlot,1));
+semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot),1));
 e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e.LineWidth = 1;
 
 
 datToPlot = mRespByOriDiff(sortedOSI>0.75,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+meanByOriDiff = (nanmean(datToPlot,1));
+semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot),1));
 e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e.LineWidth = 1;
 
