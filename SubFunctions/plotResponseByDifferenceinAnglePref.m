@@ -139,6 +139,15 @@ for i=1:numel(uEnsSizes);
         c=c+1;
         legendName2{c} = [num2str(uEnsSizes(i)) ' n=' num2str(sum(condToUse))];
         hold on
+    elseif sum(condToUse)>0
+         datToPlot = mRespByOriDiff(condToUse,:);
+        meanByOriDiff = (nanmean(datToPlot,1));
+        e = plot(diffRange(1:end-1)-diffRange(1),meanByOriDiff);
+        e.Color = clist{i};
+        e.LineWidth=2;
+        c=c+1;
+        legendName2{c} = [num2str(uEnsSizes(i)) ' n=' num2str(sum(condToUse))];
+        hold on
     end
 end
 legend(legendName2);
@@ -164,7 +173,7 @@ xlim([-5 185])
 % ylim([-0.035 .002])
 
 pVals = anova1(datToPlot, [], 'off');
-disp(['pval red ' num2str(pVals)])
+disp(['pval ' num2str(pVals)])
 
 
 
