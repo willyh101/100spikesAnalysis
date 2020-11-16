@@ -8,7 +8,7 @@ OSIList = outVars.ensOSI(ensemblesToUseList);%   outVars.meanEnsOSI(ensemblesToU
 diffRange = -22.5:45:315; %0:33.75:315;
 
 % osiToUse = outVars.meanEnsOSI;
-oriToUse = outVars.meanEnsOri;
+oriToUse = outVars.ensPO;% outVars.meanEnsOri;
 
 figure(137);clf;
 mRespByOriDiff=[];
@@ -23,7 +23,7 @@ for i=1:numel(ensemblesToUseList)
     ind = outVars.ensIndNumber(ens);
     hNum = outVars.ensHNumber(ens);
     
-    thisOSI = outVars.meanEnsOSI(ens);
+    thisOSI = outVars.ensOSI(ens); %outVars.meanEnsOSI(ens);
     thisOri = oriToUse(ens);
     
     cellToUse = ~All(ind).out.anal.offTargetRisk(hNum-1,:) & ...
