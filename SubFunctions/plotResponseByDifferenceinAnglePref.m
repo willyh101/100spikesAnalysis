@@ -104,8 +104,8 @@ clist = colorMapPicker(numel(uEnsSizes),'viridis');
 for i=1:numel(uEnsSizes);
     
     datToPlot = mRespByOriDiff(ensSizes==uEnsSizes(i),:);
-    meanByOriDiff = (nanmean(datToPlot));
-    semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+    meanByOriDiff = (nanmean(datToPlot,1));
+    semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot),1));
     e=errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
     e.Color = clist{i};
     e.LineWidth=2;
