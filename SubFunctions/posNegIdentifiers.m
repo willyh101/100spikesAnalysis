@@ -1,5 +1,9 @@
 function [All outVars] = posNegIdentifiers(All,outVars,opts)
-Threshold = opts.posNegThreshold ;
+if ~isfield(opts,'posNegThreshold')
+    Threshold =0;
+else
+    Threshold = opts.posNegThreshold ;
+end
 
 numExps = numel(All);
 
@@ -12,8 +16,8 @@ for ind=1:numExps
     numEns = size(respMat,1);
     clear posCells negCells
     for i=1:numEns;
-    posCells(i,:)= (respMat(i,1,:)-baseMat(i,1,:)) >0;
-    negCells(i,:)= (respMat(i,1,:)-baseMat(i,1,:)) <0;
+    posCells(i,:)= (respMat(i,1,:)-baseMat(i,1,:)) >Threshold;
+    negCells(i,:)= (respMat(i,1,:)-baseMat(i,1,:)) <Threshold*-1;
     
     if i>1
        posCellbyInd{end+1} = squeeze( posCells(i,:));
