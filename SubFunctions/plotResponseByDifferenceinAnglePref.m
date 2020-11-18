@@ -68,21 +68,21 @@ hold on
 
 
 datToPlot = mRespByOriDiff(sortedOSI<0.25,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+meanByOriDiff = (nanmean(datToPlot,1));
+semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot),1));
 e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e.LineWidth = 1;
 
 datToPlot = mRespByOriDiff(sortedOSI>=0.25 & sortedOSI<=0.75,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+meanByOriDiff = (nanmean(datToPlot,1));
+semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot),1));
 e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e.LineWidth = 1;
 
 
 datToPlot = mRespByOriDiff(sortedOSI>0.75,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+meanByOriDiff = (nanmean(datToPlot,1));
+semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot),1));
 e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e.LineWidth = 1;
 
@@ -104,8 +104,8 @@ clist = colorMapPicker(numel(uEnsSizes),'viridis');
 for i=1:numel(uEnsSizes);
     
     datToPlot = mRespByOriDiff(ensSizes==uEnsSizes(i),:);
-    meanByOriDiff = (nanmean(datToPlot));
-    semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+    meanByOriDiff = (nanmean(datToPlot,1));
+    semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot),1));
     e=errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
     e.Color = clist{i};
     e.LineWidth=2;
@@ -139,6 +139,15 @@ for i=1:numel(uEnsSizes);
         c=c+1;
         legendName2{c} = [num2str(uEnsSizes(i)) ' n=' num2str(sum(condToUse))];
         hold on
+    elseif sum(condToUse)>0
+         datToPlot = mRespByOriDiff(condToUse,:);
+        meanByOriDiff = (nanmean(datToPlot,1));
+        e = plot(diffRange(1:end-1)-diffRange(1),meanByOriDiff);
+        e.Color = clist{i};
+        e.LineWidth=2;
+        c=c+1;
+        legendName2{c} = [num2str(uEnsSizes(i)) ' n=' num2str(sum(condToUse))];
+        hold on
     end
 end
 legend(legendName2);
@@ -164,7 +173,7 @@ xlim([-5 185])
 % ylim([-0.035 .002])
 
 pVals = anova1(datToPlot, [], 'off');
-disp(['pval red ' num2str(pVals)])
+disp(['pval ' num2str(pVals)])
 
 
 

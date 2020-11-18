@@ -1,18 +1,18 @@
 clear;
-date = '20200807';
-mouse = 'w26_1';%'I138_1';%'I136_1';
-epochs = '1_2_3_4';
+date = '201111';
+mouse = 'w29_1';%'I138_1';%'I136_1';
+epochs = '3_4_5';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
-basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
-% basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
+% basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
+basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
 
 path = fullfile(basePath,epochs);
 
 baseName = [mouse '_' date];%'I118a.2_180504';
-loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc'] };
+loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc'] ['F_' baseName '_plane4_proc']};
 
-nDepthsTotal = 3;%Normally 3;
+nDepthsTotal = 4;%Normally 3;
 physfile = fullfile(basePath,[date '_A' '.mat']);
 % physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 try
@@ -24,7 +24,7 @@ end
 %% Experiment
 
 s2pEpoch = 3 ;
-DAQepoch = 3 ;
+DAQepoch = 5 ;
 
 
 %% Scary Loading Part
@@ -184,7 +184,7 @@ targettedCells(ismember(targettedCells,CellstToExclude))=nan;
 
 figure(1);clf
 for i = 1:nDepthsTotal
-    subplot(1,3,i)
+    subplot(1,nDepthsTotal,i)
     plot(allCoM(allDepth==i,1),allCoM(allDepth==i,2),'o')
     hold on
     plot(stimCoM(stimDepth==i,1),stimCoM(stimDepth==i,2),'.')

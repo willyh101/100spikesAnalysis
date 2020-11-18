@@ -12,7 +12,7 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 % loadList = loadList(15);
 
 
-% allLoadList;  
+% allLoadList;
 % oriLoadList;
 % SSTOriLoadList;
 % PVOriLoadList;
@@ -51,7 +51,7 @@ end
 
 
 
-%% clean Data, and create fields. 
+%% clean Data, and create fields.
 
 opts.FRDefault=6;
 opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
@@ -133,28 +133,28 @@ ensMissedTarget = outVars.ensMissedTarget; %Ensemble is unuseable
 numTrialsPerEns =[];numTrialsPerEnsTotal=[]; numTrialsNoStimEns=[];
 for ind=1:numExps
     us=unique(All(ind).out.exp.stimID);
-    
+
     for i=1:numel(us)
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
             All(ind).out.exp.lowRunTrials &...
             All(ind).out.exp.stimSuccessTrial &...
             All(ind).out.exp.stimID == us(i) ;
-        
+
         numTrialsPerEns(end+1)=sum(trialsToUse);
         numTrialsPerEnsTotal(end+1) = sum(All(ind).out.exp.stimID == us(i));
-        
+
         if i==1
             numTrialsNoStimEns(ind) = sum(trialsToUse);
         end
     end
-    
-    
+
+
 end
 numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.05; %default 0.05
+opts.IndsVisThreshold = 0.20; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -177,7 +177,7 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [1 2001];
+opts.numSpikeToUseRange = [80 120];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -332,6 +332,22 @@ outVars = getRespByTuningDiffPosNeg(All, outVars);
 %%
 plotResponseByDiffAnglePrefPosNeg(outVars,opts);
 
+%% ensemble tuning curve examples
+
+OSImin = 0.5;
+
+goodOSIens = outVars.ensCurve(2:9,outVars.ensOSI > OSImin);
+goodOSIensSEM = outVars.ensCurveSEM(2:9,outVars.ensOSI > OSImin);
+
+r = randi(size(goodOSIens,2));
+figure(222)
+e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
+e.LineWidth = 1.5;
+e.Color = 'k';
+ylabel('ZDF')
+xlabel('Orientation')
+xticklabels([0:45:315])
+
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
 opts.numExamples = 5;
 opts.osiThreshold4Examples = 0.5;
@@ -362,23 +378,6 @@ opts.goodOSIthresh = 0;
 opts.redCellName = 'SST Cells';
 
 plotRedandPyrConnTogether(outVars, opts)
-
-%% ensemble tuning curve examples
-
-OSImin = 0.5;
-
-goodOSIens = outVars.ensCurve(2:9,outVars.ensOSI > OSImin);
-goodOSIensSEM = outVars.ensCurveSEM(2:9,outVars.ensOSI > OSImin);
-
-r = randi(size(goodOSIens,2));
-figure(222)
-e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
-e.LineWidth = 1.5;
-e.Color = 'k';
-ylabel('ZDF')
-xlabel('Orientation')
-xticklabels([0:45:315])
-
 
 %% Red Distance section
 for ind = 1:numExps
@@ -465,8 +464,8 @@ opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'Sig
 
 %% Seperate Correlation by Pos and Neg
 
-opts.CorrSpace = linspace(-0.5,0.5,40);
-opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+opts.CorrSpace = linspace(-0.5,0.5,40);linspace(-1,1,40);%
+opts.CorrToPlot = 'NoiseCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 
 numEns = numel(outVars.posCellbyInd);
 
@@ -533,7 +532,7 @@ disp('done')
 colormaptouse = 'rdbu';
 climTouse = [-0.2 0.2];%[-0.25 0];%[-0.2 0.2]; %color to use, set this or below to [] to skip.
 cprctile = [5 95]; %or both to 0 to auto
-xSpcing = 3;12; 
+xSpcing = 3;12;
 ySpcing = 2;4;
 
 numCellsEachEns = outVars.numCellsEachEns;
@@ -588,7 +587,7 @@ for i=1:numSzs
     xticklabels(opts.distBins(1:xSpcing:end))
     yticks(1:ySpcing:numel(opts.CorrSpace))
     yticklabels(opts.CorrSpace(1:ySpcing:end))
-    
+
     title(['Ensemble of Size ' num2str(szs(i))]);
 end
     linkaxes(ax)

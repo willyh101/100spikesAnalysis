@@ -37,8 +37,9 @@ for ind = 1:numExp;
         All(ind).out.anal.pVisR = pVisR;
         All(ind).out.anal.visPercent = sum(pVisR<visAlpha) / numel(pVisR);
         visPercent(ind) =  All(ind).out.anal.visPercent;
+        
+        outVars.pVisR{ind} = pVisR;
     end
-    
 end
 outVars.visPercent = visPercent;
 disp('Calculated pVisR from out.vis')

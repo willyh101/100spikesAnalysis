@@ -1,4 +1,4 @@
-function [All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
+ function [All, outVars] = meanMatrixVisandCorr(All,opts,outVars);
 %% Make all dataPlots into matrixes of mean responses
  %%Determine Vis Responsive and Process Correlation
 visAlpha =  opts.visAlpha;% 0.05;
