@@ -19,6 +19,7 @@ for ind=1:numExps
     newStart = strtFrame-minStrtFrame+1;
     
     pVisR = All(ind).out.anal.pVisR;
+    osis = All(ind).out.anal.osi;
     
     trialsToUse = All(ind).out.anal.defaultTrialsToUse; 
     
@@ -58,7 +59,9 @@ for ind=1:numExps
                 ~offTargetRisk(h,:) &...
                 ~ismember(cellList,tg) &...
                 pVisR<0.05 &...
+                osis>0.5 &...
                 coTunedCellsToEns;
+
             
             dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
                 All(ind).out.exp.stimID==s);
@@ -109,7 +112,7 @@ numCellsEachEns = outVars.numCellsEachEns;
 uniqueNumCells = unique(numCellsEachEns(ensemblesToUse));
 numSizes = numel(uniqueNumCells);
 
-figure(255);clf
+figure(2552);clf
 
 clear ix ax
 ix(1) =subplot(2,numSizes+1,1);
@@ -186,10 +189,10 @@ end
 linkaxes([ix ax],'x')
 linkaxes(ax);
 xlim([1 size(meanTSSquareNR,2)]);
-sgtitle('Iso Oriented Pyramidal Cells')
+sgtitle('Pyramidal Cells Iso to Stimulus')
 
 %co plot
-figure(299);clf
+figure(2992);clf
 
 
 if numel(IndsUsed)>1

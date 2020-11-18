@@ -12,7 +12,7 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 % loadList = loadList(15);
 
 
-% allLoadList;  
+% allLoadList;
 % oriLoadList;
 % SSTOriLoadList;
 % PVOriLoadList;
@@ -51,7 +51,7 @@ end
 
 
 
-%% clean Data, and create fields. 
+%% clean Data, and create fields.
 
 opts.FRDefault=6;
 opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
@@ -133,22 +133,22 @@ numMatchedTargets = outVars.numMatchedTargets;
 numTrialsPerEns =[];numTrialsPerEnsTotal=[]; numTrialsNoStimEns=[];
 for ind=1:numExps
     us=unique(All(ind).out.exp.stimID);
-    
+
     for i=1:numel(us)
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
             All(ind).out.exp.lowRunTrials &...
             All(ind).out.exp.stimSuccessTrial &...
             All(ind).out.exp.stimID == us(i) ;
-        
+
         numTrialsPerEns(end+1)=sum(trialsToUse);
         numTrialsPerEnsTotal(end+1) = sum(All(ind).out.exp.stimID == us(i));
-        
+
         if i==1
             numTrialsNoStimEns(ind) = sum(trialsToUse);
         end
     end
-    
-    
+
+
 end
 numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
@@ -162,9 +162,10 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 % excludedTypes = {'AAV CamK2'};
-excludedTypes = {'AAV CamK2' 'Ai203'};
+% excludedTypes = {'AAV CamK2' 'Ai203'};
 % excludedTypes = {'Ai203'};
 % excludedTypes = {'AAV Tre'};
+excludedTypes = {};
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
 excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
@@ -451,7 +452,7 @@ plotEnsembleDistanceResponse(outVars,100,1)
 plotEnsembleCorrelationResponse(outVars,200,1);
 
 opts.CorrSpace = linspace(-0.5,0.5,40);
-opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+opts.CorrToPlot = 'SpontCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 [outVars] = plotCorrelationResponse(All,outVars,opts);
 %% Correlation Pick One. Option B. Vis Activity from out.vis epoch
 [All, outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
@@ -548,7 +549,7 @@ disp('done')
 colormaptouse = 'rdbu';
 climTouse = [-0.2 0.2];%[-0.25 0];%[-0.2 0.2]; %color to use, set this or below to [] to skip.
 cprctile = [5 95]; %or both to 0 to auto
-xSpcing = 3;12; 
+xSpcing = 3;12;
 ySpcing = 2;4;
 
 numCellsEachEns = outVars.numCellsEachEns;
@@ -603,7 +604,7 @@ for i=1:numSzs
     xticklabels(opts.distBins(1:xSpcing:end))
     yticks(1:ySpcing:numel(opts.CorrSpace))
     yticklabels(opts.CorrSpace(1:ySpcing:end))
-    
+
     title(['Ensemble of Size ' num2str(szs(i))]);
 end
     linkaxes(ax)
