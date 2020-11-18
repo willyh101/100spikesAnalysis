@@ -126,7 +126,7 @@ opts.FractionMissable = 0.33; %what percent of targets are missable before you e
 
 ensMissedTargetF = outVars.ensMissedTargetF; %Fraction of targets per ensemble Missed
 ensMissedTarget = outVars.ensMissedTarget; %Ensemble is unuseable
-
+numMatchedTargets = outVars.numMatchedTargets;
 %% main Ensembles to Use section
 % ensemblesToUse = numSpikesEachEns > 75 & numSpikesEachEns <125 & highVisPercentInd & ensIndNumber~=15 & ensIndNumber~=16; %& numCellsEachEns>10 ;
 
@@ -154,7 +154,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.20; %default 0.05
+opts.IndsVisThreshold = 0.10; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -497,6 +497,23 @@ title('Cells that go up')
 ax2 =subplot(1,2,2);
 plotRespGeneric(popToPlotCorrNeg,opts.CorrSpace,outVars,opts,ax2);
 title('Cells That go down')
+
+%% 2D Ensemble Response Plot
+
+responseToPlot = outVars.popResponseEns; %outVars.mRespEns;
+yToPlot = outVars.ensOSI;
+xToPlot = outVars.ensMaxD;
+
+ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>3;
+
+figure(142);clf
+scatter(xToPlot(ensemblesToUse),yToPlot(ensemblesToUse),100,responseToPlot(ensemblesToUse),'filled');
+colormap(rdbu)
+colorbar
+caxis([-0.1 0.1])
+xlabel('Span of Ensemble (\mum)')
+ylabel('Ensemble OSI')
+
 
 %% 2D Plot Maker Corr vs Distance
 

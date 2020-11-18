@@ -1,4 +1,5 @@
 function [All outVars] = posNegIdentifiers(All,outVars,opts)
+Threshold = opts.posNegThreshold ;
 
 numExps = numel(All);
 

@@ -26,6 +26,7 @@ for ind = 1:numExps
             F = 1- (numel(htg)/numel(rtg));
             ensMissedTargetF(c) = F; %Fraction of targets not detected by s2p
             ensMissedTarget(c)  = F > opts.FractionMissable;
+            numMatchedTargets(c) = numel(htg);
             
         end
     end
@@ -35,5 +36,6 @@ end
 
 outVars.ensMissedTargetF    = ensMissedTargetF;
 outVars.ensMissedTarget     = ensMissedTarget;
+outVars.numMatchedTargets   = numMatchedTargets;
 
 disp([num2str(sum(ensMissedTarget)) ' Ensembles Failed. ' num2str(mean(ensMissedTarget)*100) ' %'])
