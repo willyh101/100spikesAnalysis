@@ -162,9 +162,10 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 % excludedTypes = {'AAV CamK2'};
-excludedTypes = {'AAV CamK2' 'Ai203'};
+% excludedTypes = {'AAV CamK2' 'Ai203'};
 % excludedTypes = {'Ai203'};
 % excludedTypes = {'AAV Tre'};
+excludedTypes = {};
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
 excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
@@ -176,7 +177,7 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [0 1001];
+opts.numSpikeToUseRange = [1 2001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -241,7 +242,7 @@ end
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
-numCellsEachEns(numCellsEachEns <= 5) = 5;
+numCellsEachEns(numCellsEachEns < 10) = 5;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
 outVars.numCellsEachEns= numCellsEachEns;
@@ -452,7 +453,7 @@ plotEnsembleDistanceResponse(outVars,100,1)
 plotEnsembleCorrelationResponse(outVars,200,1);
 
 opts.CorrSpace = linspace(-0.5,0.5,40);
-opts.CorrToPlot = 'AllCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
+opts.CorrToPlot = 'SpontCorr'; % Options are: 'SpontCorr' 'AllCorr' AllMCorr' 'SignalCorr' and 'NoiseCorr'
 [outVars] = plotCorrelationResponse(All,outVars,opts);
 %% Correlation Pick One. Option B. Vis Activity from out.vis epoch
 [All, outVars] = defineCorrelationTypesOnVis(All, outVars); %Caution this and above are mutually exclusive
