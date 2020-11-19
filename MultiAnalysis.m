@@ -162,10 +162,10 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 % excludedTypes = {'AAV CamK2'};
-% excludedTypes = {'AAV CamK2' 'Ai203'};
+excludedTypes = {'AAV CamK2' 'Ai203'};
 % excludedTypes = {'Ai203'};
 % excludedTypes = {'AAV Tre'};
-excludedTypes = {};
+% excludedTypes = {};
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
 excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
@@ -179,7 +179,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [80 120];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 10; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -303,7 +303,7 @@ opts.visAlphaCRF = 10.05; %visAlpha for looking just at vis responsive cells;
 [All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
 [All, outVars] = getEnsembleOSI(All, outVars); % for ensembles specifically
 %% plot vis things
-opts.ensOSImethod = 'ensOSI';
+opts.ensOSImethod = 'ensOSI';% 'ensOSI'; 'meanEnsOSI'
 
 plotOSIdists(outVars, opts);
 plotPopResponseEnsOSI(outVars, opts)
@@ -520,12 +520,58 @@ ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>5 ;%& outVar
 
 figure(142);clf
 scatter(xToPlot(ensemblesToUse),yToPlot(ensemblesToUse),100,responseToPlot(ensemblesToUse),'filled');
-colormap(rdbu)
+colormap(puor)
 colorbar
 caxis([-0.1 0.1])
 xlabel({'Span of Ensemble (\mum)' ' (i.e. max distance between targets)'})
 ylabel('Ensemble OSI')
 
+
+%% Plot Sorted Cell Response
+
+ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3 & outVars.numCellsEachEns==10 & outVars.ensOSI>0.5 ;
+yToPlot = outVars.ensMinD; %outVars.ensOSI; outVars.numCellsEachEns;outVars.ensOSI;
+
+numpts =1000;
+
+distRange = [0 inf];[0 inf];[0 50];%[50 150];
+sortedCellResp = [];
+for i = 1:numEns
+    fprintf('.');
+    if mod(i,100)==0;
+        disp(' ')
+    end
+    cellsToUse =         outVars.distToEnsemble{i}>=distRange(1) & ...
+        outVars.distToEnsemble{i}<distRange(2) & ...
+        ~outVars.offTargetRiskEns{i};
+    if sum(cellsToUse)<2
+        temp = [NaN NaN];
+    else
+        temp = outVars.mRespEns{i}(cellsToUse);
+        temp = sort(temp);
+    end
+    sortedCellResp(i,:) = interp1(1:numel(temp),temp,linspace(numel(temp),1,numpts));
+end
+disp('done')
+
+ensemblesToUseList = find(ensemblesToUse);
+
+[s sidx] = sort(yToPlot(ensemblesToUse)) ;
+sortedEnsList = ensemblesToUseList(sidx); 
+
+datToPlot = sortedCellResp(sortedEnsList,:);
+figure(143);clf
+imagesc(datToPlot')
+colormap(rdbu)
+caxis([-1 1])
+
+xticks([1 numel(s)])
+xticklabels({'Close' 'Far'})
+yticks([])
+ylabel('Cell Response Sorted')
+xlabel('Span of Ensemble')
+colorbar
+box off
 
 %% 2D Plot Maker Corr vs Distance
 
