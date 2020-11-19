@@ -505,7 +505,7 @@ title('Cells That go down')
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 
-distRange = [0 inf];%[50 150];
+distRange = [50 150];%[50 150];
 for i = 1:numEns
     responseToPlot(i) = nanmean(outVars.mRespEns{i}(...
         outVars.distToEnsemble{i}>=distRange(1) & ...
@@ -516,7 +516,7 @@ end
 yToPlot = outVars.ensOSI;
 xToPlot = outVars.ensMaxD;
 
-ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>3;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>5 ;%& outVars.numMatchedTargets<12;
 
 figure(142);clf
 scatter(xToPlot(ensemblesToUse),yToPlot(ensemblesToUse),100,responseToPlot(ensemblesToUse),'filled');
