@@ -195,6 +195,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
+    & numMatchedTargets >= 3 ...
     ... & ensembleOneSecond ... %cuts off a lot of the earlier
     ;
 %& numCellsEachEns>10 ;
@@ -403,6 +404,7 @@ title('Not Red Cells')
 linkaxes([ax ax2])
 
 %% Pos vs Neg by Distance
+opts.posNegThreshold = 0.1; 
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
 opts.distBins = [0:25:1000];
@@ -500,8 +502,17 @@ plotRespGeneric(popToPlotCorrNeg,opts.CorrSpace,outVars,opts,ax2);
 title('Cells That go down')
 
 %% 2D Ensemble Response Plot
+opts.distType = 'min';
+[outVars] = grandDistanceMaker(opts,All,outVars);
 
-responseToPlot = outVars.popResponseEns; %outVars.mRespEns;
+distRange = [0 inf];%[50 150];
+for i = 1:numEns
+    responseToPlot(i) = nanmean(outVars.mRespEns{i}(...
+        outVars.distToEnsemble{i}>=distRange(1) & ...
+        outVars.distToEnsemble{i}<distRange(2) & ...
+        ~outVars.offTargetRiskEns{i} ));
+end
+% responseToPlot = outVars.popResponseEns; %outVars.mRespEns;
 yToPlot = outVars.ensOSI;
 xToPlot = outVars.ensMaxD;
 
@@ -512,7 +523,7 @@ scatter(xToPlot(ensemblesToUse),yToPlot(ensemblesToUse),100,responseToPlot(ensem
 colormap(rdbu)
 colorbar
 caxis([-0.1 0.1])
-xlabel('Span of Ensemble (\mum)')
+xlabel({'Span of Ensemble (\mum)' ' (i.e. max distance between targets)'})
 ylabel('Ensemble OSI')
 
 
