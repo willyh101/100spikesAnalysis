@@ -1,9 +1,13 @@
-function plotResponseBySize(outVars)
+function plotResponseBySize(outVars,plotAllNoStim)
 ensemblesToUse = outVars.ensemblesToUse;
 numCellsEachEns = outVars.numCellsEachEns;
 popResponseEns = outVars.popResponseEns;
-noStimPopResp = outVars.noStimPopResp;
 
+    if plotAllNoStim
+noStimPopResp = outVars.noStimPopResp;
+    else
+       noStimPopResp =  outVars.noStimPopResp(outVars.IndsUsed);
+    end
 
 %% more simple, take the means, population response by ensemble size
 clear avg err ns ens2plt

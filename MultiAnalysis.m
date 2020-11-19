@@ -138,7 +138,8 @@ for ind=1:numExps
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
             All(ind).out.exp.lowRunTrials &...
             All(ind).out.exp.stimSuccessTrial &...
-            All(ind).out.exp.stimID == us(i) ;
+            All(ind).out.exp.stimID == us(i) & ...
+            (All(ind).out.exp.visID == 1 | All(ind).out.exp.visID == 0); %restrict just to no vis stim conditions
 
         numTrialsPerEns(end+1)=sum(trialsToUse);
         numTrialsPerEnsTotal(end+1) = sum(All(ind).out.exp.stimID == us(i));
@@ -259,7 +260,7 @@ outVars.numCellsEachEns= numCellsEachEns;
 %% Basic Response Plots
 outVars.defaultColorMap = 'viridis';
 plotAllEnsResponse(outVars)
-plotResponseBySize(outVars)
+plotResponseBySize(outVars,0)
 plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
 [All, outVars] = createTSPlotByEnsSize(All,outVars);
@@ -529,8 +530,8 @@ ylabel('Ensemble OSI')
 
 %% Plot Sorted Cell Response
 
-ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3 & outVars.numCellsEachEns==10 & outVars.ensOSI>0.5 ;
-yToPlot = outVars.ensMinD; %outVars.ensOSI; outVars.numCellsEachEns;outVars.ensOSI;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3;% & outVars.numCellsEachEns==10 & outVars.ensOSI>0.5 ;
+yToPlot = outVars.ensMaxD; %outVars.ensOSI; outVars.numCellsEachEns;outVars.ensOSI;
 
 numpts =1000;
 
