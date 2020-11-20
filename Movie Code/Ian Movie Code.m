@@ -42,7 +42,15 @@
 
 
 % I think thats it. Good Luck...
-
+%%
+oldLocalFiles = localFiles;
+%%
+for i=1:numel(localFiles);
+%     localFiles{i} = ['Z:\holography\Data\ian\180523\' oldLocalFiles{i}(57:end)];
+%     localFiles{i} = ['Z:\holography\Data\ian\180522\' oldLocalFiles{i}(59:end)];
+%     localFiles{i} = ['Z:\holography\Data\ian\180522\' oldLocalFiles{i}(59:end)];
+localFiles{i} = ['T:\Will\20201103\w29_1\'  oldLocalFiles{i}(42:end)];
+end
 %% Find and Motion Correct Raw data (very Slow)
 
 d1Mov=[];
@@ -121,13 +129,14 @@ superimposeIMs = 0; %collapse all planes into a single one
 maxFrameDisplay = inf; 18; %Cut off Movie early if you want, default inf
 oneFrameAtATime = 0; % this will pause after each frame if you're trying to pull out a single image
 
-stimToUseList=[2:7];% The StimIDs that you want to cycle through
+stimToUseList=[19 26 8] ; %[8 26 ];% 17 35 44];%[1:9];% The StimIDs that you want to cycle through
 
 aF = 1; %average Factor; How many frames do you want average. default 1
 
 useVisStimMarker = 1; %display a marker when the visual stimulus is on.
 useVisStimMarkerText =1;% display text describing that visual stimulus
-stimMarkerText = {'Movie Broken' '0 Contrast' '0.01 Contrast' '0.04 Contrast' '0.1 Contrast' '0.4 Contrast' '1 Contrast'};
+% stimMarkerText = {'Movie Broken' '0 Contrast' '0.01 Contrast' '0.04 Contrast' '0.1 Contrast' '0.4 Contrast' '1 Contrast'};
+stimMarkerText = {'No Vis' '0\circ' '45\circ' '90\circ' '135\circ' '180\circ' '225\circ' '270\circ' '315\circ'};
 visMarkerSize = 25;
 visMarkerColor =  rgb('Magenta');
 
@@ -149,7 +158,7 @@ playSpeed = 2;%2.5; %Playback faster? only matters for watching not for saving. 
 displayTitle = 1; %display title of stimulus (stimID)
 
 depthString = {'-60\mum' '-30\mum' '0\mum'}; % Title of each plane
-clim =[0 2.5];[-4 4]; % default colormap
+clim =[0 2];[-4 4]; % default colormap
 asymetricCLIM = 0; % sometimes you want a colormap that isn't smooth, but has different movement <0 and >0 this allows that
 
 % clim = [-100 200];[0 2.5];

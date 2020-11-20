@@ -35,7 +35,11 @@ numEnsembles = numel(ensSizes);
 %         colorList{end+1} =  cl(ncs(i),:);
 %     end
 % end
+if numEnsembles ==1
+    colorList{1} = rgb('black');
+else
 colorList = colorMapPicker(numEnsembles,outVars.defaultColorMap);
+end
 figure(9);clf
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)

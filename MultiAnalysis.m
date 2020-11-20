@@ -267,7 +267,8 @@ plotPopResponseByExpressionType(All,outVars);
 [All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
 
 %% Distance Response Plots
- plotResponseByDistance(outVars,opts);
+opts.distBins = 0:25:1000; 
+plotResponseByDistance(outVars,opts);
 
 %% Second more flexible way to make Distance Plots
 
@@ -578,7 +579,7 @@ box off
 opts.posNegThreshold = 0.1; 
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
-opts.distBins = [0:25:1000];
+opts.distBins = [0:50:400];
 
 ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3 & outVars.ensOSI>0.5;% & outVars.numCellsEachEns==10   ;
 
@@ -623,14 +624,18 @@ disp('Done')
 figure(10);clf
 opts.distAxisRang = [0 350];
 
-ax =subplot(1,1,1);
-% hold on
+% ax =subplot(1,1,1);
+%  hold on
+clear ax
 for k = 1:5
-    ax =subplot(2,3,k);
-
-plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax);
+    ax(k) =subplot(1,5,k);
+title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
+plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
 end
-title('Cells by Tuning')
+linkaxes(ax)
+xlim([0 400])
+ylim([-0.1 0.1])
+% title('Cells by Tuning')
 % ax2 =subplot(1,2,2);
 % plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
 % title('Cells That go down')
