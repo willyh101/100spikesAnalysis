@@ -49,7 +49,11 @@ end
 %CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
 
-
+%% Scary hack to overwrite zdf with df data, use with caution!
+% you must run allLoadListErrorFixer first because this will mess up
+% indexing into the loadList
+All = intentionallyOverwriteZDFWithDF(All);
+numExps = numel(All);
 
 %% clean Data, and create fields.
 
