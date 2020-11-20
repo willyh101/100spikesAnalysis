@@ -517,7 +517,7 @@ end
 yToPlot = outVars.ensOSI;
 xToPlot = outVars.ensMaxD;
 
-ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>5 ;%& outVars.numMatchedTargets<12;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>2 ;%& outVars.numMatchedTargets<12;
 
 figure(142);clf
 scatter(xToPlot(ensemblesToUse),yToPlot(ensemblesToUse),100,responseToPlot(ensemblesToUse),'filled');
@@ -530,12 +530,12 @@ ylabel('Ensemble OSI')
 
 %% Plot Sorted Cell Response
 
-ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3;% & outVars.numCellsEachEns==10 & outVars.ensOSI>0.5 ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3;% & outVars.numCellsEachEns==10  & outVars.ensOSI>0.5 ;
 yToPlot = outVars.ensMaxD; %outVars.ensOSI; outVars.numCellsEachEns;outVars.ensOSI;
 
 numpts =1000;
 
-distRange = [0 inf];[0 inf];[0 50];%[50 150];
+distRange = [50 150];[0 inf];[0 50];%[50 150];
 sortedCellResp = [];
 for i = 1:numEns
     fprintf('.');
@@ -573,6 +573,67 @@ ylabel('Cell Response Sorted')
 xlabel('Span of Ensemble')
 colorbar
 box off
+%% Plot Distance Curves in different Ori Bands
+
+opts.posNegThreshold = 0.1; 
+[All outVars] = posNegIdentifiers(All,outVars,opts);
+opts.distType = 'min';
+opts.distBins = [0:25:1000];
+
+ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3 & outVars.ensOSI>0.5;% & outVars.numCellsEachEns==10   ;
+
+oriVals = [NaN 0:45:315];
+% numEns = numel(outVars.posCellbyInd);
+
+ensIndNumber = outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber;
+
+clear popToPlot
+for i=1:numEns %i know its slow, but All is big so don't parfor it
+    if mod(i,round(numEns/10))==1
+        fprintf('.')
+    end
+    if ensemblesToUse(i)
+        ind = ensIndNumber(i);
+        
+       cellOris = oriVals(outVars.prefOris{ind});
+       cellOrisDiff = cellOris-outVars.ensPO(i);
+       
+       diffsPossible = [0 45 90 135 180];
+       
+    cellToUseVar = ~outVars.offTargetRiskEns{i}...
+        & outVars.pVisR{ind} <0.05 ...
+        & outVars.osi{ind} > 0.5;
+    
+    for k=1:numel(diffsPossible)
+        popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar & abs(cellOrisDiff)==diffsPossible(k),0,ensHNumber(i));
+    end
+    
+    
+
+
+
+    else
+        popToPlot(i,:,:) = nan([numel(opts.distBins)-1 1 5]);
+    end
+end
+disp('Done')
+
+%%Plot Dist REsp
+figure(10);clf
+opts.distAxisRang = [0 350];
+
+ax =subplot(1,1,1);
+% hold on
+for k = 1:5
+    ax =subplot(2,3,k);
+
+plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax);
+end
+title('Cells by Tuning')
+% ax2 =subplot(1,2,2);
+% plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
+% title('Cells That go down')
 
 %% 2D Plot Maker Corr vs Distance
 
