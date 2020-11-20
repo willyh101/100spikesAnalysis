@@ -271,7 +271,8 @@ plotPopResponseByExpressionType(All,outVars);
 [All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
 
 %% Distance Response Plots
- plotResponseByDistance(outVars,opts);
+opts.distBins = 0:25:1000; 
+plotResponseByDistance(outVars,opts);
 
 %% Second more flexible way to make Distance Plots
 
@@ -582,7 +583,7 @@ box off
 opts.posNegThreshold = 0.1; 
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
-opts.distBins = [0:25:1000];
+opts.distBins = [0:25:400];
 
 ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3 & outVars.ensOSI>0.5;% & outVars.numCellsEachEns==10   ;
 
@@ -607,7 +608,8 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
        
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
         & outVars.pVisR{ind} <0.05 ...
-        & outVars.osi{ind} > 0.5;
+        & outVars.osi{ind} > 0.5 ...
+        ;
     
     for k=1:numel(diffsPossible)
         popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar & abs(cellOrisDiff)==diffsPossible(k),0,ensHNumber(i));
@@ -627,14 +629,18 @@ disp('Done')
 figure(10);clf
 opts.distAxisRang = [0 350];
 
-ax =subplot(1,1,1);
-% hold on
+% ax =subplot(1,1,1);
+%  hold on
+clear ax
 for k = 1:5
-    ax =subplot(2,3,k);
-
-plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax);
+    ax(k) =subplot(1,5,k);
+title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
+plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
 end
-title('Cells by Tuning')
+linkaxes(ax)
+xlim([0 400])
+ylim([-0.1 0.15])
+% title('Cells by Tuning')
 % ax2 =subplot(1,2,2);
 % plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
 % title('Cells That go down')

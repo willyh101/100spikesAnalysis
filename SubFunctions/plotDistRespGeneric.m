@@ -24,8 +24,11 @@ popDist =RespToPlot;% popDistAll(numSpikesEachStim~=0,:);
 ensSizes = unique(numCellsEachEns(ensemblesToUse))   ;
 
 numEnsembles = numel(ensSizes);
-
+if numEnsembles == 1
+    colorList{1} = rgb('black');
+else
 colorList = colorMapPicker(numEnsembles,outVars.defaultColorMap);
+end
 % if numEnsembles==3
 %     colorList = {rgb('DarkBlue') rgb('steelblue') rgb('gold')};
 % else

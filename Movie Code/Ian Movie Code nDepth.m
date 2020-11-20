@@ -134,7 +134,7 @@ superimposeIMs = 0; %collapse all planes into a single one
 maxFrameDisplay = inf; 18; %Cut off Movie early if you want, default inf
 oneFrameAtATime = 0; % this will pause after each frame if you're trying to pull out a single image
 
-stimToUseList=[1 4 10 2 5 11];% 1:15% 2  4 5 8];%[7 13] ;[1 2 3]; %[4 7 10 13] ;[7 8 9]; %[4 5 6]; %[1 2 3];% The StimIDs that you want to cycle through
+stimToUseList=[19 8 26 ];%[1 4 10 2 5 11];% 1:15% 2  4 5 8];%[7 13] ;[1 2 3]; %[4 7 10 13] ;[7 8 9]; %[4 5 6]; %[1 2 3];% The StimIDs that you want to cycle through
 
 aF = 1; %average Factor; How many frames do you want average. default 1
 
@@ -142,6 +142,7 @@ useVisStimMarker = 1; %display a marker when the visual stimulus is on.
 useVisStimMarkerText =1;% display text describing that visual stimulus
 % stimMarkerText = {'Movie Broken' '0 Contrast' '0.01 Contrast' '0.04 Contrast' '0.1 Contrast' '0.4 Contrast' '1 Contrast'};
 stimMarkerText = { 'No Grating' '90\circ Grating' '135\circ Grating'};
+stimMarkerText = {'No Vis' '0\circ' '45\circ' '90\circ' '135\circ' '180\circ' '225\circ' '270\circ' '315\circ'};
 
 useHoloStimMarkerText = 1; %write the holo number onto it
 
@@ -165,14 +166,16 @@ playSpeed = 2;%2.5; %Playback faster? only matters for watching not for saving. 
 
 displayTitle = 1; %display title of stimulus (stimID)
 
-depthString = {'-390\mum' '-350\mum' '-193\mum' '-150\mum'};%-60\mum' '-30\mum' '0\mum'}; % Title of each plane
+%depthString = {'-390\mum' '-350\mum' '-193\mum' '-150\mum'};%-60\mum' '-30\mum' '0\mum'}; % Title of each plane
+depthString = {'-188\mum' '-158\mum' '-128\mum'};%-60\mum' '-30\mum' '0\mum'}; % Title of each plane
 clim =[0 2];[-4 4]; % default colormap
 asymetricCLIM = 0; % sometimes you want a colormap that isn't smooth, but has different movement <0 and >0 this allows that
 
-labelLayers = 1; %cludgey to label the first two plots L4 and the second L23
+labelLayers = 0; %cludgey to label the first two plots L4 and the second L23
 %set subplots
 co = 2;
-ro = 2;
+ro = 1;
+nDepthsTotal = 2;
 % clim = [-100 200];[0 2.5];
 
 % clim = [0 4];%4];%2.5];
@@ -206,7 +209,7 @@ if saveVid
     savePath = 'C:\Users\ian\Documents\DATA\AnalysisOutput';
     %         savePath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data To Play With';
     
-    name = '201119_L4toL23';
+    name = '201119_w29_3_L23toL23';
     
     vid = VideoWriter(fullfile(savePath,[name '.avi']));
     vid.FrameRate =FR*playSpeed;  % Default 30
@@ -218,7 +221,7 @@ end
 movFrames = size(d1Mov{stimToUseList(1)},3);
 
 
-
+clear h1
 for M=1:numel(stimToUseList)
     stimToUse = stimToUseList(M);
     
