@@ -90,7 +90,7 @@ for ind = 1:numel(All)
     visCode
     All(ind).out.anal.visCode = visCode;
 end
-temp = arrayfun(@(x) x.out.anal.visCode,All(IndsUsed),'uniformoutput',0)
+% temp = arrayfun(@(x) x.out.anal.visCode,All(IndsUsed),'uniformoutput',0)
 
 %% The Auto Detect approach worked but I checked it anyways
 % All(9).out.anal.visCode = [1 4];

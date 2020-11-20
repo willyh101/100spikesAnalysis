@@ -750,4 +750,76 @@ plotSparsityBySize(All,outVars)
  
  
  %% Section to determine holo/vis interaction
-[All] = autodetectVisCondionsInEpoch(All)
+[All] = autodetectVisCondionsInEpoch(All);
+
+temp = arrayfun(@(x) numel(x.out.anal.visCode),All(outVars.IndsUsed),'uniformoutput',1);
+indsWithVis = outVars.IndsUsed(temp>1);
+ensemblesWithVis = ismember(outVars.ensIndNumber,indsWithVis) & outVars.ensemblesToUse;
+ensemblesWithVisList = find(ensemblesWithVis); 
+colorList = {rgb('black') rgb('firebrick')};
+titleString = {'No Vis' '\Delta0\circ' '\Delta45\circ' '\Delta90\circ' '\Delta135\circ'...
+    '\Delta180\circ' '\Delta225\circ' '\Delta270\circ' '\Delta315\circ' };
+oriList = [NaN 0:45:315];
+
+ro = 15;
+co = 9;
+figure(5);clf
+
+for i =1:numel(ensemblesWithVisList)
+    ens = ensemblesWithVisList(i);
+    
+    ind = outVars.ensIndNumber(ens);
+    hNum = outVars.ensHNumber(ens);
+    
+    thisEnsOSI = outVars.ensOSI(ens);
+    thisEnsPO = outVars.ensPO(ens);
+    
+    vs = unique(All(ind).out.exp.visID);
+    vs(vs==0)=[];
+    us = unique(All(ind).out.exp.stimID);
+    
+    subplot(ro,co,1+(i-1)*co)
+    
+    trialsToUse = All(ind).out.exp.lowMotionTrials & All(ind).out.exp.lowRunTrials;
+    cellsToUse = ~All(ind).out.anal.ROIinArtifact'...
+        & ~outVars.offTargetRiskEns{ens}...
+        & outVars.isVisR{ind}...
+        & outVars.osi{ind} >0.5 ...
+        & ~(oriList(outVars.prefOris{ind})==thisEnsPO)... | oriList(outVars.prefOris{ind})==thisEnsPO+180 | oriList(outVars.prefOris{ind})==thisEnsPO-180)...
+        ;
+    
+    datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(1) & All(ind).out.exp.visID == vs(1));
+    datToPlot = mean(datToPlot,3);
+    fillPlot(datToPlot,[],'ci',colorList{1},'none',colorList{1},0.5);
+    datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(hNum) & All(ind).out.exp.visID == vs(1));
+    datToPlot = mean(datToPlot,3);
+    fillPlot(datToPlot,[],'ci',colorList{2},'none',colorList{2},0.5);
+    
+    for k = 2:numel(vs)
+        if ~isnan(thisEnsPO)
+        visCond = All(ind).out.anal.visCode(k);
+        v = vs(k);
+        
+        visOri = oriList(visCond);
+        dif = abs(visOri-thisEnsPO);
+        
+        subplot(ro,co,dif/45+2+(i-1)*co)
+        datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(1) & All(ind).out.exp.visID == vs(k));
+        datToPlot = mean(datToPlot,3);
+        fillPlot(datToPlot,[],'ci',colorList{1},'none',colorList{1},0.5);
+        datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(hNum) & All(ind).out.exp.visID == vs(k));
+        datToPlot = mean(datToPlot,3);
+        fillPlot(datToPlot,[],'ci',colorList{2},'none',colorList{2},0.5);
+        end
+    end
+    if i == 1;
+        for k=1:co
+            subplot(ro,co,k)
+            title(titleString{k})
+        end
+    end
+    
+drawnow
+end
+
+
