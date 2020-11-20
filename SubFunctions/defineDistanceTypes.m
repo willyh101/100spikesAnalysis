@@ -70,7 +70,11 @@ for ind = 1:numExps
             
             ensembleMeanDist(c)     = nanmean(distMat(:));
             tempDist = distMat(~isnan(distMat));
-            ensembleGeoMeanDist(c)  = geomean(tempDist(:));
+            try
+                ensembleGeoMeanDist(c)  = geo_mean(tempDist(:));
+            catch
+                ensembleGeoMeanDist(c)  = geomean(tempDist(:));
+            end
             ensembleMaxDist(c)      = max(distMat(:));
             ensembleMinDist(c)      = min(distMat(:));
             
