@@ -743,3 +743,7 @@ plotSparsityBySize(All,outVars)
 
 %% Stim Rate vs Pop Response
  plotPopRespByStimRate(outVars)
+ 
+ 
+ %% Section to determine holo/vis interaction
+[All] = autodetectVisCondionsInEpoch(All)
