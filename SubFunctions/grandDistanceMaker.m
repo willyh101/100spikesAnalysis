@@ -54,6 +54,9 @@ for ind = 1:numExps
                 case 'min'
                     minDist = min(dists,[],1);
                     distToUse = minDist;
+                case 'max'
+                    maxDist = max(dists,[],1);
+                    distToUse = maxDist;
                 case 'geo'
                     try
                         geoDist = geo_mean(dists,1);
