@@ -20,8 +20,9 @@ for ind = 1:numel(All)
     catch
         isTuned = isVis;
     end
-    isVisCells = find(isVis);
-    isTunedCells = find(isTuned);
+    
+    isVisCells = find(isVis & outVars.osi{ind}>opts.restrictToHighOSICells);
+    isTunedCells = find(isTuned & outVars.osi{ind}>opts.restrictToHighOSICells);
     pref = idx2ori(All(ind).out.anal.prefOri(isVisCells), [nan 0:45:315]);
     orthos = idx2ori(All(ind).out.anal.orthoOri(:, isVisCells), [nan 0:45:315]);
     

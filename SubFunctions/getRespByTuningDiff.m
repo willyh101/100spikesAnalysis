@@ -1,4 +1,4 @@
-function outVars = getRespByTuningDiff(All, outVars)
+function outVars = getRespByTuningDiff(All, outVars, opts)
 ensemblesToUseList = find(outVars.ensemblesToUse );
 
 OSIList = outVars.ensOSI(ensemblesToUseList);%   outVars.meanEnsOSI(ensemblesToUseList);
@@ -25,10 +25,13 @@ for i=1:numel(ensemblesToUseList)
     
     thisOSI = outVars.ensOSI(ens); %outVars.meanEnsOSI(ens);
     thisOri = oriToUse(ens);
-    
     cellToUse = ~All(ind).out.anal.offTargetRisk(hNum-1,:) & ...
         ~All(ind).out.anal.ROIinArtifact' & ...
         All(ind).out.anal.pVisR < 0.05 ;
+    if opts.restrictToHighOSICells >0
+        cellToUse = cellToUse & outVars.osi{ind} > opts.restrictToHighOSICells;
+    end
+        
     
     oris = outVars.prefOris{ind};
     oriOptions  = [NaN 0:45:315];

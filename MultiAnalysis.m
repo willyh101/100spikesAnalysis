@@ -159,7 +159,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.10; %default 0.05
+opts.IndsVisThreshold = 0.20; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -182,9 +182,9 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [80 120];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [75 150];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 10; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -318,8 +318,9 @@ plotPopResponseEnsOSI(outVars, opts)
 
 opts.visAlpha = 0.05;
 [outVars] = makeMeanRespEnsByCell(All, outVars);
+opts.restrictToHighOSICells = 0; %0 or 0.5 typical; threshold to restrict tuning analysis to high OSI cells the number is the OSI threshold. set 0 or negative for no restrict
 [All, outVars] = compareAllCellsTuning(All, outVars, opts);
-[outVars] = getRespByTuningDiff(All, outVars);
+[outVars] = getRespByTuningDiff(All, outVars, opts);
 
 
 
@@ -415,7 +416,7 @@ opts.posNegThreshold = 0.1;
 opts.distType = 'min';
 opts.distBins = [0:25:1000];
 
-numEns = numel(outVars.posCellbyInd);
+numEns = numel(outVars.ensStimScore);
 
 ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
@@ -510,6 +511,7 @@ title('Cells That go down')
 %% 2D Ensemble Response Plot
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
+numEns = numel(outVars.ensStimScore);
 
 distRange = [50 150];%[50 150];
 for i = 1:numEns
@@ -754,14 +756,14 @@ plotSparsityBySize(All,outVars)
 
 temp = arrayfun(@(x) numel(x.out.anal.visCode),All(outVars.IndsUsed),'uniformoutput',1);
 indsWithVis = outVars.IndsUsed(temp>1);
-ensemblesWithVis = ismember(outVars.ensIndNumber,indsWithVis) & outVars.ensemblesToUse;
+ensemblesWithVis = ismember(outVars.ensIndNumber,indsWithVis) & outVars.ensemblesToUse & outVars.ensOSI>0.3;
 ensemblesWithVisList = find(ensemblesWithVis); 
 colorList = {rgb('black') rgb('firebrick')};
 titleString = {'No Vis' '\Delta0\circ' '\Delta45\circ' '\Delta90\circ' '\Delta135\circ'...
     '\Delta180\circ' '\Delta225\circ' '\Delta270\circ' '\Delta315\circ' };
 oriList = [NaN 0:45:315];
 
-ro = 15;
+ro = numel(ensemblesWithVisList);
 co = 9;
 figure(5);clf
 
@@ -783,9 +785,9 @@ for i =1:numel(ensemblesWithVisList)
     trialsToUse = All(ind).out.exp.lowMotionTrials & All(ind).out.exp.lowRunTrials;
     cellsToUse = ~All(ind).out.anal.ROIinArtifact'...
         & ~outVars.offTargetRiskEns{ens}...
-        & outVars.isVisR{ind}...
-        & outVars.osi{ind} >0.5 ...
-        & ~(oriList(outVars.prefOris{ind})==thisEnsPO)... | oriList(outVars.prefOris{ind})==thisEnsPO+180 | oriList(outVars.prefOris{ind})==thisEnsPO-180)...
+       & outVars.isVisR{ind}...
+       & outVars.osi{ind} >0.3 ...
+        ...& ~(oriList(outVars.prefOris{ind})==thisEnsPO)... | oriList(outVars.prefOris{ind})==thisEnsPO+180 | oriList(outVars.prefOris{ind})==thisEnsPO-180)...
         ;
     
     datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(1) & All(ind).out.exp.visID == vs(1));
@@ -795,19 +797,25 @@ for i =1:numel(ensemblesWithVisList)
     datToPlot = mean(datToPlot,3);
     fillPlot(datToPlot,[],'ci',colorList{2},'none',colorList{2},0.5);
     
+    ylabel(['Ens: ' num2str(ens)]);
+    
     for k = 2:numel(vs)
         if ~isnan(thisEnsPO)
         visCond = All(ind).out.anal.visCode(k);
         v = vs(k);
         
+        
         visOri = oriList(visCond);
-        dif = abs(visOri-thisEnsPO);
+        dif = abs(mod(visOri,180)-mod(thisEnsPO,180));
+        
+        cellsToUse2 = cellsToUse & mod(oriList(outVars.prefOris{ind}),180)==mod(visOri,180);
+
         
         subplot(ro,co,dif/45+2+(i-1)*co)
-        datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(1) & All(ind).out.exp.visID == vs(k));
+        datToPlot = All(ind).out.exp.zdfData(cellsToUse2,:,trialsToUse & All(ind).out.exp.stimID ==us(1) & All(ind).out.exp.visID == vs(k));
         datToPlot = mean(datToPlot,3);
         fillPlot(datToPlot,[],'ci',colorList{1},'none',colorList{1},0.5);
-        datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(hNum) & All(ind).out.exp.visID == vs(k));
+        datToPlot = All(ind).out.exp.zdfData(cellsToUse2,:,trialsToUse & All(ind).out.exp.stimID ==us(hNum) & All(ind).out.exp.visID == vs(k));
         datToPlot = mean(datToPlot,3);
         fillPlot(datToPlot,[],'ci',colorList{2},'none',colorList{2},0.5);
         end
