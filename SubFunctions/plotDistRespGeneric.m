@@ -65,6 +65,8 @@ ylabel('Population Response (mean of ensembles'' pop response)')
 xlim(xaxisrange)
 if numEnsembles ==3;
     legend('Small', 'Medium', 'Big')
+elseif numEnsembles
+    %don't display any legend
 else
     legend(cellfun(@num2str,num2cell(ensSizes),'uniformoutput',0))
 end

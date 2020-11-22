@@ -587,7 +587,8 @@ opts.posNegThreshold = 0.1;
 opts.distType = 'min';
 opts.distBins = [0:25:400];
 
-ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3 & outVars.ensOSI>0.5;% & outVars.numCellsEachEns==10   ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup>=3 &  outVars.ensOSI>0.5 & outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
+sum(ensemblesToUse)
 
 oriVals = [NaN 0:45:315];
 % numEns = numel(outVars.posCellbyInd);
@@ -600,29 +601,34 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
         fprintf('.')
     end
+    
+    diffsPossible = [0 45 90 135 180];
+%     diffsPossible = [0:45:315];
+    
     if ensemblesToUse(i)
         ind = ensIndNumber(i);
         
        cellOris = oriVals(outVars.prefOris{ind});
-       cellOrisDiff = cellOris-outVars.ensPO(i);
+       cellOrisDiff = abs(cellOris-outVars.ensPO(i));
+       cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
        
-       diffsPossible = [0 45 90 135 180];
+%        diffsPossible = unique(cellOrisDiff);
+%        diffsPossible(isnan(diffsPossible))=[];
+       
+%        diffsPossible = [0 45 90 135 180];
        
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
-        & outVars.pVisR{ind} <0.05 ...
+        ...& outVars.pVisR{ind} <0.05 ...
         & outVars.osi{ind} > 0.5 ...
         ;
     
     for k=1:numel(diffsPossible)
         popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar & abs(cellOrisDiff)==diffsPossible(k),0,ensHNumber(i));
     end
-    
-    
-
 
 
     else
-        popToPlot(i,:,:) = nan([numel(opts.distBins)-1 1 5]);
+        popToPlot(i,:,:) = nan([numel(opts.distBins)-1 1 numel(diffsPossible)]);
     end
 end
 disp('Done')
@@ -634,10 +640,10 @@ opts.distAxisRang = [0 350];
 figure(11);clf;hold on
 % ax =subplot(1,1,1);
 %  hold on
-colorListOri = colorMapPicker(5,'plasma');
+colorListOri = colorMapPicker(numel(diffsPossible),'plasma');
 clear ax
-for k = 1:5
-    figure(10);ax(k) =subplot(1,5,k);
+for k = 1:numel(diffsPossible)
+    figure(10);ax(k) =subplot(1,numel(diffsPossible),k);
     title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
     [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
     if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
