@@ -318,7 +318,7 @@ plotPopResponseEnsOSI(outVars, opts)
 
 opts.visAlpha = 0.05;
 [outVars] = makeMeanRespEnsByCell(All, outVars);
-opts.restrictToHighOSICells = 0; %0 or 0.5 typical; threshold to restrict tuning analysis to high OSI cells the number is the OSI threshold. set 0 or negative for no restrict
+opts.restrictToHighOSICells = 0.5; %0 or 0.5 typical; threshold to restrict tuning analysis to high OSI cells the number is the OSI threshold. set 0 or negative for no restrict
 [All, outVars] = compareAllCellsTuning(All, outVars, opts);
 [outVars] = getRespByTuningDiff(All, outVars, opts);
 
@@ -328,7 +328,7 @@ opts.restrictToHighOSICells = 0; %0 or 0.5 typical; threshold to restrict tuning
 
 opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
-opts.goodOSIthresh = 0.5;
+opts.goodOSIthresh = 0.5; %ensemble OSI threshold
 plotResponseByDifferenceinAnglePref(outVars, opts)
 
 %% ensemble Plots to look at
