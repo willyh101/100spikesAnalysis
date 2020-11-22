@@ -631,17 +631,26 @@ disp('Done')
 figure(10);clf
 opts.distAxisRang = [0 350];
 
+figure(11);clf;hold on
 % ax =subplot(1,1,1);
 %  hold on
+colorListOri = colorMapPicker(5,'plasma');
 clear ax
 for k = 1:5
-    ax(k) =subplot(1,5,k);
-title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
-plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
+    figure(10);ax(k) =subplot(1,5,k);
+    title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
+    [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
+    if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
+        eHandle{1}.Color = colorListOri{k};
+    end
+    
+    figure(11); tempax = subplot(1,1,1);
+    [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
+    eHandle{1}.Color = colorListOri{k};
 end
 linkaxes(ax)
 xlim([0 400])
-ylim([-0.1 0.15])
+ylim([-0.1 0.3])
 % title('Cells by Tuning')
 % ax2 =subplot(1,2,2);
 % plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);

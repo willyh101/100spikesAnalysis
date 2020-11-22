@@ -1,4 +1,4 @@
-function plotDistRespGeneric(RespToPlot,outVars,opts,axesHandle);
+function [eHandle] = plotDistRespGeneric(RespToPlot,outVars,opts,axesHandle);
 
 % popResponseDist = outVars.popResponseDist;
 % numSpikesEachStim = outVars.numSpikesEachStim;
@@ -54,7 +54,7 @@ semDat = stdDat./sqrt(numpDat);
 
 hold on
 distBinSize = distBins(2)-distBins(1);
-errorbar(distBins(2:end)-distBinSize/2,meanDat,semDat,'linewidth',2,'color',colorList{i})
+eHandle{i} = errorbar(distBins(2:end)-distBinSize/2,meanDat,semDat,'linewidth',2,'color',colorList{i});
 end
 r = refline(0);
 r.LineStyle=':';
