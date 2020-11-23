@@ -52,8 +52,8 @@ end
 %% Scary hack to overwrite zdf with df data, use with caution!
 % you must run allLoadListErrorFixer first because this will mess up
 % indexing into the loadList
-All = intentionallyOverwriteZDFWithDF(All);
-numExps = numel(All);
+% All = intentionallyOverwriteZDFWithDF(All);
+% numExps = numel(All);
 
 %% clean Data, and create fields.
 
