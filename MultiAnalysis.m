@@ -543,8 +543,16 @@ yToPlot = outVars.ensMaxD; %outVars.ensOSI; outVars.numCellsEachEns;outVars.ensO
 
 numpts =1000;
 
-distRange = [50 150];[0 inf];[0 50];%[50 150];
+distRanges = [0 30; 31 60; 61 inf];
+
+% distRange = [0 inf];[0 inf];[0 50];%[50 150];
 sortedCellResp = [];
+
+figure(1245)
+clf
+for i=1:3
+    subplot(1,3,i)
+distRange = distRanges(i,:);
 for i = 1:numEns
     fprintf('.');
     if mod(i,100)==0;
@@ -569,18 +577,22 @@ ensemblesToUseList = find(ensemblesToUse);
 sortedEnsList = ensemblesToUseList(sidx); 
 
 datToPlot = sortedCellResp(sortedEnsList,:);
-figure(143);clf
+% figure(143);clf
 imagesc(datToPlot')
 colormap(rdbu)
-caxis([-1 1])
+caxis([-.4 .4])
+title(['Distances ' num2str(distRange)])
 
 xticks([1 numel(s)])
 xticklabels({'Close' 'Far'})
 yticks([])
 ylabel('Cell Response Sorted')
 xlabel('Span of Ensemble')
-colorbar
+
 box off
+end
+% colorbar
+axis tight
 %% Plot Distance Curves in different Ori Bands
 
 opts.posNegThreshold = 0.1; 
@@ -662,6 +674,166 @@ ylim([-0.1 0.3])
 % ax2 =subplot(1,2,2);
 % plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
 % title('Cells That go down')
+
+%% OSI stuff
+% click to see more examples in subplot 2
+ind = 1;
+stimNum = 3; % for that expt
+
+% get no stim OSI first
+uVisID = unique(All(ind).out.exp.visID);
+uVisID(uVisID==0)=[];
+
+uStimID = unique(All(ind).out.exp.stimID);
+hNum = uStimID(1);
+
+oriCurveNoStim=[];
+oriCurveNoStimSEM = [];
+oriTrialNoStimCount =[];
+osiNoStim = [];
+
+
+hNum = uStimID(stimNum);
+ensID = find(outVars.ensHNumber == stimNum & outVars.ensIndNumber == ind);
+ensPO = outVars.ensPO(ensID);
+ensOSI = outVars.ensOSI(ensID);
+
+h = All(ind).out.exp.stimParams.roi{stimNum};
+tg = All(ind).out.exp.holoTargets{h};
+tg(isnan(tg))=[];
+cellList = 1:numel(All(ind).out.anal.ROIinArtifact);
+
+cells2use = All(ind).out.anal.pVisR < 0.05 &...
+            ~All(ind).out.anal.ROIinArtifact' &...
+            ~All(ind).out.anal.offTargetRisk(h,:) &...
+            ~ismember(cellList,tg);
+
+controlStim = uStimID(1);
+for i=1:numel(uVisID)
+    v= uVisID(i);
+
+    trialsToUse = All(ind).out.exp.visID==v &...
+        All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimID==controlStim;
+    
+%     disp(sum(trialsToUse))
+%    
+    oriCurveNoStim(i,:) = mean(All(ind).out.exp.rdData(cells2use,trialsToUse), 2);
+    oriCurveNoStimSEM(i,:) = sem2(All(ind).out.exp.rdData(cells2use,trialsToUse), 2);
+    oriTrialNoStimCount(i) = sum(trialsToUse); 
+end
+
+oriCurveNoStim = oriCurveNoStim(2:end,:);
+
+oriCurveNoStim = oriCurveNoStim - min(oriCurveNoStim);
+
+% get PO
+[~, prefOriNoStim]= max(oriCurveNoStim);
+
+% get OOs
+orthoOriNoStim = prefOriNoStim-2;
+orthoOriNoStim(orthoOriNoStim<1)=orthoOriNoStim(orthoOriNoStim<1)+8;
+orthoOri2NoStim = orthoOriNoStim+4;
+orthoOri2NoStim(orthoOri2NoStim>8) = orthoOri2NoStim(orthoOri2NoStim>8)-8;
+orthoOriNoStim = cat(1,orthoOriNoStim, orthoOri2NoStim);
+
+for i=1:numel(prefOriNoStim)
+    osiNoStim(i) = (oriCurveNoStim(prefOriNoStim(i),i) - mean(oriCurveNoStim(orthoOriNoStim(:,i),i))) / ...
+                (oriCurveNoStim(prefOriNoStim(i),i) + mean(oriCurveNoStim(orthoOriNoStim(:,i),i)));
+end
+
+% do with stim 
+oriCurveStim=[];
+oriCurveStimSEM = [];
+oriTrialStimCount =[];
+osiStim = [];
+
+
+for i=1:numel(uVisID)
+    v= uVisID(i);
+
+    trialsToUse = All(ind).out.exp.visID==v &...
+        All(ind).out.exp.lowMotionTrials &...
+        All(ind).out.exp.lowRunTrials &...
+        All(ind).out.exp.stimID==hNum;
+    
+%     disp(sum(trialsToUse))
+%    
+    oriCurveStim(i,:) = mean(All(ind).out.exp.rdData(cells2use,trialsToUse), 2);
+    oriCurveStimSEM(i,:) = sem2(All(ind).out.exp.rdData(cells2use,trialsToUse), 2);
+    oriTrialStimCount(i) = sum(trialsToUse); 
+end
+
+oriCurveStim = oriCurveStim(2:end,:);
+
+oriCurveStim = oriCurveStim - min(oriCurveStim);
+
+% get PO
+[~, prefOriStim]= max(oriCurveStim);
+
+% get OOs
+orthoOriStim = prefOriStim-2;
+orthoOriStim(orthoOriStim<1)=orthoOriStim(orthoOriStim<1)+8;
+orthoOri2Stim = orthoOriStim+4;
+orthoOri2Stim(orthoOri2Stim>8) = orthoOri2Stim(orthoOri2Stim>8)-8;
+orthoOriStim = cat(1,orthoOriStim, orthoOri2Stim);
+
+for i=1:numel(prefOriNoStim)
+    osiStim(i) = (oriCurveStim(prefOriStim(i),i) - mean(oriCurveStim(orthoOriStim(:,i),i))) / ...
+                (oriCurveStim(prefOriStim(i),i) + mean(oriCurveStim(orthoOriStim(:,i),i)));
+end
+
+ensPO = find(ensPO == 0:45:315);
+coTunedCellsToEns = prefOriStim == ensPO;
+
+
+figure(4141)
+clf
+
+
+% ensemble TC
+subplot(1,3,1)
+e = errorbar(outVars.ensCurve(2:9,ensID), outVars.ensCurveSEM(2:9,ensID));
+e.LineWidth = 1.5;
+e.Color = 'k';
+ylabel('ZDF')
+xlabel('Orientation')
+% xticklabels(0:45:315)
+title('Stimulated Ensemble')
+xlim([1 8])
+
+
+% rand co-tuned cell TC
+subplot(1,3,2)
+% cellIDs = find(coTunedCellsToEns);
+cellIDs = find(osiNoStim > 0.5);
+r = randi(numel(cellIDs));
+c = cellIDs(r);
+e = errorbar(oriCurveNoStim(:,c), oriCurveNoStim(:,c));
+e.LineWidth = 1.5;
+e.Color = 'blue';
+hold on
+e2 = errorbar(oriCurveStim(:,c), oriCurveNoStim(:,c));
+e2.LineWidth = 1.5;
+e2.Color = 'red';
+ylabel('ZDF')
+xlabel('Orientation')
+% xticklabels(0:45:315)
+title('Cell Co-Tuned To Ensemble')
+legend('No Stim', 'Stim')
+xlim([1 8])
+
+
+
+% OSI comparison
+subplot(1,3,3)
+scatter(osiNoStim, osiStim, 'filled')
+hold on
+scatter(osiNoStim(coTunedCellsToEns), osiStim(coTunedCellsToEns), 'filled')
+ylabel('OSI')
+xlabel('OSI with stim')
+refline(1,0)
 
 %% 2D Plot Maker Corr vs Distance
 
