@@ -13,10 +13,10 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 
 
 % allLoadList;
-oriLoadList;
+% oriLoadList;
 % SSTOriLoadList;
 % PVOriLoadList;
-% u19LoadList;
+u19LoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
@@ -52,8 +52,8 @@ end
 %% Scary hack to overwrite zdf with df data, use with caution!
 % you must run allLoadListErrorFixer first because this will mess up
 % indexing into the loadList
-% All = intentionallyOverwriteZDFWithDF(All);
-% numExps = numel(All);
+All = intentionallyOverwriteZDFWithDF(All);
+numExps = numel(All);
 
 %% clean Data, and create fields.
 
@@ -191,7 +191,7 @@ lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTr
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    & highVisPercentInd ...
+    ...& highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
@@ -201,8 +201,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    & hzEachEns < 40 ...
-    & ensembleOneSecond ... %cuts off a lot of the earlier
+    ... & ensembleOneSecond ... %cuts off a lot of the earlier
     ;
 %& numCellsEachEns>10 ;
 
@@ -245,7 +244,7 @@ end
 %% Create time series plot
 
 [All, outVars] = createTSPlot(All,outVars);
-% [All, outVars] = createTSPlotAllVis(All,outVars);
+[All, outVars] = createTSPlotAllVis(All,outVars);
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
@@ -269,7 +268,7 @@ plotResponseBySize(outVars,0)
 plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
 [All, outVars] = createTSPlotByEnsSize(All,outVars);
-% [All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
+[All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
 
 %% Distance Response Plots
 opts.distBins = 0:25:1000; 
@@ -939,7 +938,10 @@ plotSparsityBySize(All,outVars)
  plotPopRespByStimRate(outVars)
  
  plotPopRespByNumSpikes(outVars)
- 
+ %%
+ opts.ensemblesToUseSpikePlot = outVars.ensemblesToUse & outVars.numCellsEachEns ==10;
+ opts.plotMeansOnly = 1;
+ plotPopRespByNumSpikes2(outVars,opts)
  %% Section to determine holo/vis interaction
 [All] = autodetectVisCondionsInEpoch(All);
 
