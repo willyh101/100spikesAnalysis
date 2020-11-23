@@ -191,7 +191,7 @@ lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTr
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    & highVisPercentInd ...
+    ...& highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
@@ -766,7 +766,10 @@ plotSparsityBySize(All,outVars)
  plotPopRespByStimRate(outVars)
  
  plotPopRespByNumSpikes(outVars)
- 
+ %%
+ opts.ensemblesToUseSpikePlot = outVars.ensemblesToUse & outVars.numCellsEachEns ==10;
+ opts.plotMeansOnly = 1;
+ plotPopRespByNumSpikes2(outVars,opts)
  %% Section to determine holo/vis interaction
 [All] = autodetectVisCondionsInEpoch(All);
 
