@@ -13,10 +13,10 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 
 
 % allLoadList;
-% oriLoadList;
+oriLoadList;
 % SSTOriLoadList;
 % PVOriLoadList;
-u19LoadList;
+% u19LoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
@@ -201,7 +201,8 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    ... & ensembleOneSecond ... %cuts off a lot of the earlier
+    & hzEachEns < 40 ...
+    & ensembleOneSecond ... %cuts off a lot of the earlier
     ;
 %& numCellsEachEns>10 ;
 
@@ -244,7 +245,7 @@ end
 %% Create time series plot
 
 [All, outVars] = createTSPlot(All,outVars);
-[All, outVars] = createTSPlotAllVis(All,outVars);
+% [All, outVars] = createTSPlotAllVis(All,outVars);
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
@@ -268,7 +269,7 @@ plotResponseBySize(outVars,0)
 plotPopResponseBySession(All,outVars)
 plotPopResponseByExpressionType(All,outVars);
 [All, outVars] = createTSPlotByEnsSize(All,outVars);
-[All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
+% [All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
 
 %% Distance Response Plots
 opts.distBins = 0:25:1000; 
