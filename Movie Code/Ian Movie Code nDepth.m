@@ -119,7 +119,7 @@ disp('done')
 
 %% Play Mov
 
-saveVid = 0; %save or do not save, there is no try
+saveVid = 1; %save or do not save, there is no try
 zScoreIt=0; %trialwise zscore, faster but less accurate
 preZScore =1; %Can Take a long time, not to be used with zScoreIt
 gausfilt = 1; %its helpful to gausian fliter it to reduce noise
@@ -178,6 +178,13 @@ ro = 1;2
 nDepthsTotal = 2;4;
 % clim = [-100 200];[0 2.5];
 
+
+circleTunedCells = 1; %circle tuned cells
+circleCriteria = find(pVisR<0.05 & prefVR==8);
+circleDiameter = 8;
+circleColor = rgb('cyan');
+circleLineWidth =1;
+
 % clim = [0 4];%4];%2.5];
 %  clim = [-3 3];
 if superimposeIMs
@@ -209,7 +216,7 @@ if saveVid
     savePath = 'C:\Users\ian\Documents\DATA\AnalysisOutput';
     %         savePath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data To Play With';
     
-    name = '201123_w29_1_L4toL23';
+    name = '201123_w29_3_L23toL23wInd';
     
     vid = VideoWriter(fullfile(savePath,[name '.avi']));
     vid.FrameRate =FR*playSpeed;  % Default 30
@@ -557,6 +564,20 @@ for M=1:numel(stimToUseList)
                                 temp.LineStyle = ':';
                                 hold on
                             end
+                        end
+                    end
+                end
+                
+                if circleTunedCells 
+                     cells = circleCriteria;
+                    for k=1:numel(cells)
+                        cell = cells(k);
+                        
+                        if allDepth2(cell)==j
+                            temp = circle(allCoM2(cell,2),allCoM2(cell,1),circleDiameter,circleColor);
+                            temp.LineWidth = circleLineWidth;
+                            temp.LineStyle = ':';
+                            hold on 
                         end
                     end
                 end

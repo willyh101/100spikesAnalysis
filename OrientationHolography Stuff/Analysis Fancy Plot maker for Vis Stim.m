@@ -10,7 +10,7 @@ clear X
 for i = 1:numel(uniqueVisStim)
     v = uniqueVisStim(i);
     if v~=0
-        for k = 1:numel(uniqueStims)
+        for k = 1;%:numel(uniqueStims)
             c=c+1;
             s=uniqueStims(k);
             x = data(:,:,visID==v & stimID == s);
