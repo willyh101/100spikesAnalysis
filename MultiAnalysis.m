@@ -191,7 +191,7 @@ lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTr
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    ...& highVisPercentInd ...
+    & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
@@ -244,11 +244,11 @@ end
 %% Create time series plot
 
 [All, outVars] = createTSPlot(All,outVars);
-[All, outVars] = createTSPlotAllVis(All,outVars);
+% [All, outVars] = createTSPlotAllVis(All,outVars);
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
-numCellsEachEns(numCellsEachEns < 10) = 5;
+numCellsEachEns(numCellsEachEns < 10) = 3;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
 outVars.numCellsEachEns= numCellsEachEns;
@@ -344,20 +344,58 @@ plotResponseByDiffAnglePrefPosNeg(outVars,opts);
 
 OSImin = 0.5;
 
-goodOSIens = outVars.ensCurve(2:9,outVars.ensOSI > OSImin);
-goodOSIensSEM = outVars.ensCurveSEM(2:9,outVars.ensOSI > OSImin);
+goodOSIensIdxs = find(outVars.ensOSI > OSImin);
 
-r = randi(size(goodOSIens,2));
+
+goodOSIens = outVars.ensCurve(2:9,:);
+goodOSIensSEM = outVars.ensCurveSEM(2:9,:);
+r=5;
+r=505;
+r=573;
+% r = randi(numel(goodOSIensIdxs));
+% r = goodOSIensIdxs(r);
 figure(222)
 e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
-e.LineWidth = 1.5;
-e.Color = 'k';
+e.LineWidth = 3;
+% e.Color = 'blue';
 ylabel('ZDF')
 xlabel('Orientation')
 xticklabels([0:45:315])
+xlim([0.5 8.5])
+box off
+title('Ensemble Tuning Curve')
 
+
+ind = outVars.ensIndNumber(r);
+hNum = outVars.ensHNumber(r);
+% ind=1;
+% hNum = 2;
+h = All(ind).out.exp.stimParams.roi{hNum};
+tg = All(ind).out.exp.holoTargets{h};
+tg(isnan(tg))=[];
+
+figure(1222)
+clf
+nTg = numel(tg);
+% [w, h] = splitPretty(nTg, 5, 5);
+w=1;h=3;
+for i=1:numel(tg)
+    c = tg(i);
+    subplot(w, h, i)
+    curve = All(ind).out.anal.oriCurve(2:9,c);
+    curveSEM = All(ind).out.anal.oriCurveSEM(2:9,c);
+    e = errorbar(curve, curveSEM);
+    e.LineWidth = 2;
+    box off
+    xlim([0.5 8.5])
+    xticklabels([])
+    yticklabels([])
+    axis off
+    title(['Cell ' num2str(i)])
+end
+  
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
-opts.numExamples = 5;
+opts.numExamples = 3;
 opts.osiThreshold4Examples = 0.5;
 opts.visAlpha = 0.05;
 
@@ -384,6 +422,7 @@ plotResponseByDifferenceinAnglePrefRed(outVars, opts)
 %%
 opts.goodOSIthresh = 0;
 opts.redCellName = 'SST Cells';
+opts.goodOSIthresh = 0.001;
 
 plotRedandPyrConnTogether(outVars, opts)
 
@@ -667,7 +706,7 @@ for k = 1:numel(diffsPossible)
     eHandle{1}.Color = colorListOri{k};
 end
 linkaxes(ax)
-xlim([0 400])
+xlim([0 300])
 ylim([-0.1 0.3])
 % title('Cells by Tuning')
 % ax2 =subplot(1,2,2);
