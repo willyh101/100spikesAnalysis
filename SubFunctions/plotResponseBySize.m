@@ -33,7 +33,11 @@ names{end+1} = 'No Stim';
 % cmap = colormap(outVars.defaultColorMap);
 % cmap=cmap(numEns,:);
 % cmap(end+1,:)=rgb('grey');
+if numEns==1
+    cmap{1} = rgb('Firebrick');
+else
 cmap = colorMapPicker(numEns,outVars.defaultColorMap);
+end
 cmap{end+1} = rgb('grey');
 
 p = plotSpread(data, 'xNames', names, 'showMM', 4, 'distributionColors',cmap);

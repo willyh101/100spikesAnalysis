@@ -271,9 +271,14 @@ plotPopResponseByExpressionType(All,outVars);
 [All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
 
 %% Distance Response Plots
-opts.distBins = 0:25:1000; 
+opts.distBins = 0:25:1000;
 plotResponseByDistance(outVars,opts);
 
+
+%%
+ylabel('Pop Response (Mean \Delta Z-dF/F)')
+xlabel('Distance From Nearest Target (\mum)')
+legend off
 %% Second more flexible way to make Distance Plots
 
 
@@ -450,7 +455,7 @@ title('Not Red Cells')
 linkaxes([ax ax2])
 
 %% Pos vs Neg by Distance
-opts.posNegThreshold = 0.1; 
+opts.posNegThreshold = 0.1;
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
 opts.distBins = [0:25:1000];
@@ -576,7 +581,7 @@ ylabel('Ensemble OSI')
 
 %% Plot Sorted Cell Response
 
-ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3;% & outVars.numCellsEachEns==10  & outVars.ensOSI>0.5 ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEns==10;% & outVars.numMatchedTargets>=3;%   & outVars.ensOSI>0.5 ;
 yToPlot = outVars.ensMaxD; %outVars.ensOSI; outVars.numCellsEachEns;outVars.ensOSI;
 
 numpts =1000;
@@ -612,7 +617,7 @@ disp('done')
 ensemblesToUseList = find(ensemblesToUse);
 
 [s sidx] = sort(yToPlot(ensemblesToUse)) ;
-sortedEnsList = ensemblesToUseList(sidx); 
+sortedEnsList = ensemblesToUseList(sidx);
 
 datToPlot = sortedCellResp(sortedEnsList,:);
 % figure(143);clf
@@ -633,7 +638,7 @@ end
 axis tight
 %% Plot Distance Curves in different Ori Bands
 
-opts.posNegThreshold = 0.1; 
+opts.posNegThreshold = 0.1;
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
 opts.distBins = [0:25:400];
@@ -652,27 +657,27 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
         fprintf('.')
     end
-    
+
     diffsPossible = [0 45 90 135 180];
 %     diffsPossible = [0:45:315];
-    
+
     if ensemblesToUse(i)
         ind = ensIndNumber(i);
-        
+
        cellOris = oriVals(outVars.prefOris{ind});
        cellOrisDiff = abs(cellOris-outVars.ensPO(i));
        cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
-       
+
 %        diffsPossible = unique(cellOrisDiff);
 %        diffsPossible(isnan(diffsPossible))=[];
-       
+
 %        diffsPossible = [0 45 90 135 180];
-       
+
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
         ...& outVars.pVisR{ind} <0.05 ...
         & outVars.osi{ind} > 0.5 ...
         ;
-    
+
     for k=1:numel(diffsPossible)
         popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar & abs(cellOrisDiff)==diffsPossible(k),0,ensHNumber(i));
     end
@@ -700,7 +705,7 @@ for k = 1:numel(diffsPossible)
     if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
         eHandle{1}.Color = colorListOri{k};
     end
-    
+
     figure(11); tempax = subplot(1,1,1);
     [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
     eHandle{1}.Color = colorListOri{k};
@@ -754,12 +759,12 @@ for i=1:numel(uVisID)
         All(ind).out.exp.lowMotionTrials &...
         All(ind).out.exp.lowRunTrials &...
         All(ind).out.exp.stimID==controlStim;
-    
+
 %     disp(sum(trialsToUse))
-%    
+%
     oriCurveNoStim(i,:) = mean(All(ind).out.exp.rdData(cells2use,trialsToUse), 2);
     oriCurveNoStimSEM(i,:) = sem2(All(ind).out.exp.rdData(cells2use,trialsToUse), 2);
-    oriTrialNoStimCount(i) = sum(trialsToUse); 
+    oriTrialNoStimCount(i) = sum(trialsToUse);
 end
 
 oriCurveNoStim = oriCurveNoStim(2:end,:);
@@ -781,7 +786,7 @@ for i=1:numel(prefOriNoStim)
                 (oriCurveNoStim(prefOriNoStim(i),i) + mean(oriCurveNoStim(orthoOriNoStim(:,i),i)));
 end
 
-% do with stim 
+% do with stim
 oriCurveStim=[];
 oriCurveStimSEM = [];
 oriTrialStimCount =[];
@@ -795,12 +800,12 @@ for i=1:numel(uVisID)
         All(ind).out.exp.lowMotionTrials &...
         All(ind).out.exp.lowRunTrials &...
         All(ind).out.exp.stimID==hNum;
-    
+
 %     disp(sum(trialsToUse))
-%    
+%
     oriCurveStim(i,:) = mean(All(ind).out.exp.rdData(cells2use,trialsToUse), 2);
     oriCurveStimSEM(i,:) = sem2(All(ind).out.exp.rdData(cells2use,trialsToUse), 2);
-    oriTrialStimCount(i) = sum(trialsToUse); 
+    oriTrialStimCount(i) = sum(trialsToUse);
 end
 
 oriCurveStim = oriCurveStim(2:end,:);
@@ -975,7 +980,7 @@ plotSparsityBySize(All,outVars)
 
 %% Stim Rate vs Pop Response
  plotPopRespByStimRate(outVars)
- 
+
  plotPopRespByNumSpikes(outVars)
  %%
  opts.ensemblesToUseSpikePlot = outVars.ensemblesToUse & outVars.numCellsEachEns ==10;
@@ -987,7 +992,7 @@ plotSparsityBySize(All,outVars)
 temp = arrayfun(@(x) numel(x.out.anal.visCode),All(outVars.IndsUsed),'uniformoutput',1);
 indsWithVis = outVars.IndsUsed(temp>1);
 ensemblesWithVis = ismember(outVars.ensIndNumber,indsWithVis) & outVars.ensemblesToUse & outVars.ensOSI>0.3;
-ensemblesWithVisList = find(ensemblesWithVis); 
+ensemblesWithVisList = find(ensemblesWithVis);
 colorList = {rgb('black') rgb('firebrick')};
 titleString = {'No Vis' '\Delta0\circ' '\Delta45\circ' '\Delta90\circ' '\Delta135\circ'...
     '\Delta180\circ' '\Delta225\circ' '\Delta270\circ' '\Delta315\circ' };
@@ -999,19 +1004,19 @@ figure(5);clf
 
 for i =1:numel(ensemblesWithVisList)
     ens = ensemblesWithVisList(i);
-    
+
     ind = outVars.ensIndNumber(ens);
     hNum = outVars.ensHNumber(ens);
-    
+
     thisEnsOSI = outVars.ensOSI(ens);
     thisEnsPO = outVars.ensPO(ens);
-    
+
     vs = unique(All(ind).out.exp.visID);
     vs(vs==0)=[];
     us = unique(All(ind).out.exp.stimID);
-    
+
     subplot(ro,co,1+(i-1)*co)
-    
+
     trialsToUse = All(ind).out.exp.lowMotionTrials & All(ind).out.exp.lowRunTrials;
     cellsToUse = ~All(ind).out.anal.ROIinArtifact'...
         & ~outVars.offTargetRiskEns{ens}...
@@ -1019,28 +1024,28 @@ for i =1:numel(ensemblesWithVisList)
        & outVars.osi{ind} >0.3 ...
         ...& ~(oriList(outVars.prefOris{ind})==thisEnsPO)... | oriList(outVars.prefOris{ind})==thisEnsPO+180 | oriList(outVars.prefOris{ind})==thisEnsPO-180)...
         ;
-    
+
     datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(1) & All(ind).out.exp.visID == vs(1));
     datToPlot = mean(datToPlot,3);
     fillPlot(datToPlot,[],'ci',colorList{1},'none',colorList{1},0.5);
     datToPlot = All(ind).out.exp.zdfData(cellsToUse,:,trialsToUse & All(ind).out.exp.stimID ==us(hNum) & All(ind).out.exp.visID == vs(1));
     datToPlot = mean(datToPlot,3);
     fillPlot(datToPlot,[],'ci',colorList{2},'none',colorList{2},0.5);
-    
+
     ylabel(['Ens: ' num2str(ens)]);
-    
+
     for k = 2:numel(vs)
         if ~isnan(thisEnsPO)
         visCond = All(ind).out.anal.visCode(k);
         v = vs(k);
-        
-        
+
+
         visOri = oriList(visCond);
         dif = abs(mod(visOri,180)-mod(thisEnsPO,180));
-        
+
         cellsToUse2 = cellsToUse & mod(oriList(outVars.prefOris{ind}),180)==mod(visOri,180);
 
-        
+
         subplot(ro,co,dif/45+2+(i-1)*co)
         datToPlot = All(ind).out.exp.zdfData(cellsToUse2,:,trialsToUse & All(ind).out.exp.stimID ==us(1) & All(ind).out.exp.visID == vs(k));
         datToPlot = mean(datToPlot,3);
@@ -1056,8 +1061,6 @@ for i =1:numel(ensemblesWithVisList)
             title(titleString{k})
         end
     end
-    
+
 drawnow
 end
-
-
