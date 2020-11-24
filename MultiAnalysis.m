@@ -274,6 +274,11 @@ plotPopResponseByExpressionType(All,outVars);
 opts.distBins = 0:25:1000; 
 plotResponseByDistance(outVars,opts);
 
+
+%%
+ylabel('Pop Response (Mean \Delta Z-dF/F)')
+xlabel('Distance From Nearest Target (\mum)')
+legend off
 %% Second more flexible way to make Distance Plots
 
 
@@ -537,12 +542,12 @@ ylabel('Ensemble OSI')
 
 %% Plot Sorted Cell Response
 
-ensemblesToUse = outVars.ensemblesToUse & outVars.numMatchedTargets>=3;% & outVars.numCellsEachEns==10  & outVars.ensOSI>0.5 ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEns==10;% & outVars.numMatchedTargets>=3;%   & outVars.ensOSI>0.5 ;
 yToPlot = outVars.ensMaxD; %outVars.ensOSI; outVars.numCellsEachEns;outVars.ensOSI;
 
 numpts =1000;
 
-distRange = [50 150];[0 inf];[0 50];%[50 150];
+distRange = [0 30];[0 inf];[0 50];%[50 150];
 sortedCellResp = [];
 for i = 1:numEns
     fprintf('.');
@@ -571,7 +576,7 @@ datToPlot = sortedCellResp(sortedEnsList,:);
 figure(143);clf
 imagesc(datToPlot')
 colormap(rdbu)
-caxis([-1 1])
+caxis([-.35 .35])
 
 xticks([1 numel(s)])
 xticklabels({'Close' 'Far'})

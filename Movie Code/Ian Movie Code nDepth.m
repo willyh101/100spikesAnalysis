@@ -119,7 +119,7 @@ disp('done')
 
 %% Play Mov
 
-saveVid = 1; %save or do not save, there is no try
+saveVid = 0; %save or do not save, there is no try
 zScoreIt=0; %trialwise zscore, faster but less accurate
 preZScore =1; %Can Take a long time, not to be used with zScoreIt
 gausfilt = 1; %its helpful to gausian fliter it to reduce noise
@@ -134,7 +134,7 @@ superimposeIMs = 0; %collapse all planes into a single one
 maxFrameDisplay = inf; 18; %Cut off Movie early if you want, default inf
 oneFrameAtATime = 0; % this will pause after each frame if you're trying to pull out a single image
 
-stimToUseList=[19 8 26 ];%[1 4 10 2 5 11];% 1:15% 2  4 5 8];%[7 13] ;[1 2 3]; %[4 7 10 13] ;[7 8 9]; %[4 5 6]; %[1 2 3];% The StimIDs that you want to cycle through
+stimToUseList=[ 8 26  ];%[2 5 4]; %[1 4 10 2 5 11];%[1 4 10 2 5 11];% 1:15% 2  4 5 8];%[7 13] ;[1 2 3]; %[4 7 10 13] ;[7 8 9]; %[4 5 6]; %[1 2 3];% The StimIDs that you want to cycle through
 
 aF = 1; %average Factor; How many frames do you want average. default 1
 
@@ -166,16 +166,16 @@ playSpeed = 2;%2.5; %Playback faster? only matters for watching not for saving. 
 
 displayTitle = 1; %display title of stimulus (stimID)
 
-%depthString = {'-390\mum' '-350\mum' '-193\mum' '-150\mum'};%-60\mum' '-30\mum' '0\mum'}; % Title of each plane
-depthString = {'-188\mum' '-158\mum' '-128\mum'};%-60\mum' '-30\mum' '0\mum'}; % Title of each plane
+depthString = {'-390\mum' '-350\mum' '-193\mum' '-150\mum'};%-60\mum' '-30\mum' '0\mum'}; % Title of each plane
+% depthString = {'-188\mum' '-158\mum' '-128\mum'};%-60\mum' '-30\mum' '0\mum'}; % Title of each plane
 clim =[0 2];[-4 4]; % default colormap
 asymetricCLIM = 0; % sometimes you want a colormap that isn't smooth, but has different movement <0 and >0 this allows that
 
 labelLayers = 0; %cludgey to label the first two plots L4 and the second L23
 %set subplots
 co = 2;
-ro = 1;
-nDepthsTotal = 2;
+ro = 1;2
+nDepthsTotal = 2;4;
 % clim = [-100 200];[0 2.5];
 
 % clim = [0 4];%4];%2.5];
@@ -209,7 +209,7 @@ if saveVid
     savePath = 'C:\Users\ian\Documents\DATA\AnalysisOutput';
     %         savePath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data To Play With';
     
-    name = '201119_w29_3_L23toL23';
+    name = '201123_w29_1_L4toL23';
     
     vid = VideoWriter(fullfile(savePath,[name '.avi']));
     vid.FrameRate =FR*playSpeed;  % Default 30
@@ -593,8 +593,9 @@ for M=1:numel(stimToUseList)
             set(h.Label,'rotation',-90);
             h.Label.FontSize = 11;
             
-            
-            h.Position= max(colorbarPos+[0.03 .125 0 -.25],0);
+%                         h.Position= max(colorbarPos+[0.03 .125 0 -.25],0);
+
+            h.Position= max(colorbarPos+[0.06 .00 0 0],0);
             h.Label.Position = [2.5 mean(clim) 0];
             set(h1{end},'position',origPos);
             axis equal

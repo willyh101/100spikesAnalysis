@@ -6,6 +6,8 @@ numExps = numel(All);
 ensemblesToUse = outVars.ensemblesToUse; 
 IndsUsed = outVars.IndsUsed;
 
+clim = [-0.15 0.15];
+
 minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
 
 clear allMeanTS allStdTS allnumTS allMeanTSVis allStdTSVis allnumTSVis
@@ -99,7 +101,6 @@ meanTSSquareNR = cat(1,temp{:});
 temp = cellfun(@(x) x(2:end,1:shortestRec),allStdTS,'uniformoutput',0);
 stdTSSquare = cat(1,temp{:});
 
-clim = [-0.4 0.4];
 
 numCellsEachEns = outVars.numCellsEachEns;
 uniqueNumCells = unique(numCellsEachEns(ensemblesToUse));
@@ -140,7 +141,11 @@ r.LineWidth=2;
 ylabel('\DeltaZ-Scored dF/F')
 xlabel('Frame')
 
+if numSizes==1
+    colorList{1} = rgb('FireBrick')
+else
 colorList = colorMapPicker(numSizes,outVars.defaultColorMap);
+end
 
 for i = 1:numSizes
     ix(end+1) =subplot(2,numSizes+1,1+i);
