@@ -60,9 +60,9 @@ r = refline(0);
 r.LineStyle=':';
 r.Color = rgb('grey');
 r.LineWidth = 2;
-xlabel('Distance from a target')
-ylabel('Population Response (mean of ensembles'' pop response)')
-xlim(xaxisrange)
+xlabel('Distance from Ensemble')
+ylabel('Population Response')
+xlim([0 300])
 if numEnsembles ==3;
     legend('Small', 'Medium', 'Big')
 elseif numEnsembles

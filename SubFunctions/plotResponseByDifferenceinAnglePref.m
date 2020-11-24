@@ -162,11 +162,12 @@ title('Sorted OSI')
 
 figure(132)
 clf
-datToPlot = mRespByOriDiff(sortedOSI>=goodOSIthreshold,:);
+datToPlot = mRespByOriDiff;%(sortedOSI>=goodOSIthreshold,:);
 meanByOriDiff = (nanmean(datToPlot));
 semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
 e1 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
-e1.LineWidth = 1.5;
+e1.LineWidth = 3;
+e1.Color = 'k';
 xlabel('\Delta Preferred Angle (Deg) from Ensemble')
 ylabel('\Delta Mean Population Response')
 xlim([-5 185])
@@ -174,6 +175,7 @@ xlim([-5 185])
 
 pVals = anova1(datToPlot, [], 'off');
 disp(['pval ' num2str(pVals)])
+box off
 
 
 
