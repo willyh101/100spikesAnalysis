@@ -115,7 +115,7 @@ figure(233);clf
 % e32.LineWidth = 2;
 % e32.Color = 'k';
 % xlim([0.5 2.5])
-p = fancyPlotSpread([popRespRed(ensToPlot); popRespNotRed(ensToPlot)]', {'PV Cells', 'Pyramidal Cells'});
+p = fancyPlotSpread([popRespRed(ensToPlot); popRespNotRed(ensToPlot)]', {opts.redCellName, 'Pyramidal Cells'});
 ylabel('Mean Population Response')
 % xlim([0.7 2.3])
 
@@ -163,7 +163,7 @@ sp2.MarkerFaceColor = rgb('tomato');
  e.Color =rgb('tomato');
  
 %  legend([sp(1) sp2(1)],'Red Cells', 'Not Red Cells')
- legend([sp(1) sp2(1)],'PV Cells', 'Pyramidal Cells')
+ legend([sp(1) sp2(1)], opts.redCellName, 'Pyramidal Cells')
 
  %TS Section
  popTSRed(isControl,:)=[];
@@ -217,7 +217,7 @@ edgeCol = 'none';
 faceCol = rgb('DimGray');
 faceAlpha = 0.5;
  fp2 = fillPlot(popTSNotRed(ensToPlot,:),[],'ci',lineCol,edgeCol,faceCol,faceAlpha);
- legend([fp1(1) fp2(1)],'PV Cells','Pyramidal Cells')
+ legend([fp1(1) fp2(1)], opts.redCellName,'Pyramidal Cells')
  
  xlabel('Frame')
  ylabel('\DeltaZ-Score dF/F')

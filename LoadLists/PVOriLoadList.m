@@ -1,4 +1,4 @@
-loadListName = 'PVLoadList'; 
+loadListName = 'PVOriLoadList'; 
 
 loadList = {
     '200311_i139_2_outfile.mat'
