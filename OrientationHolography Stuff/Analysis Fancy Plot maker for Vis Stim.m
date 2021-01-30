@@ -123,7 +123,7 @@ end
 
 data = zdfData  ; %allSPData;    DFFdata; dfData; zData;
 
-cellsToPlot = ~any(offTargetRisk)  & ~ROIinArtifact' & ~ismember(cellList,[HoloTargets{:}]);% & allDepth'>2.5 ;%& pVis2<0.01; %&  1:numCells;% ismember(cellList,TargetCells) & ~ROIinArtifact';
+cellsToPlot = ~any(offTargetRisk)  & ~ROIinArtifact' & ~ismember(cellList,[HoloTargets{:}]) & pVisT<0.01;% & allDepth'>2.5 ;%& pVis2<0.01; %&  1:numCells;% ismember(cellList,TargetCells) & ~ROIinArtifact';
 
 % cellsToPlot =  ~ROIinArtifact' & ismember(cellList,[HoloTargets{:}]);%1:numCells;% ismember(cellList,TargetCells) & ~ROIinArtifact';
 
@@ -142,6 +142,8 @@ baseline =1;
 lim=([-0.1 1]);
 
 % trialsToPlot =
+
+plotLog =[];
 c=0;
 X=[];
 clear ax
@@ -181,6 +183,7 @@ for i = 1:numel(uniqueVisStim)
             yticklabels({})
         end
 %         
+plotLog(c,:) = [c s v];
 %         visR(c,:) = mean(m(:,win(1):win(2)),2);
         
 %         if i==1 && k==1
@@ -335,13 +338,18 @@ visNames= {'none', '0\circ' '45\circ' '90\circ' '135\circ' '180\circ' '225\circ'
 %stimPlotList = {[4 1 8 2] [4 1 8 3] [7 1 8 5] [7 1 8 6]};
 % stimPlotList = {[1 3 2] [1 3 2] [1 5 4] [1 5 4]};
 stimPlotList = {[1 2 3] [1 4 5] [1 2 4] [1 3 5]};
+stimPlotList ={[1 2 ]}; %L4 to L23
+% stimPlotList = {[1 3 ]}; %L23 to L23
+[ro co] = splitPretty(numel(stimPlotList),1,1);
+visToTabThrough = 2; 8;1:numel(unique(visID));
+% visToTabThrough = 8; %L23 to L23
 
-for i=1:numel(unique(visID))
-    visPlotList = repmat(i,4,1);
+for i=visToTabThrough;1:numel(unique(visID));
+    visPlotList = repmat(i,numel(stimPlotList),1);
     figure(41);clf;
     for F = 1:numel(visPlotList);
         hold on
-        subplot(2,2,F)
+        subplot(ro,co,F);
         visToPlot = visPlotList(F);%[1 2 3];
         stimToPlot = stimPlotList{F};%[1 4];
         
@@ -363,25 +371,27 @@ for i=1:numel(unique(visID))
                 %         fillPlot(m,[],'se',colorList{c},'none',colorList{c},0.5);
                 %         fillPlot(m,[],'se',colorList{v},'none',colorList{v},alphaList(si));
                 fillPlot(m,[],'ci',colorList2{si},'none',colorList{si},0.25);
-                line([strt/1000*FR strt/1000*FR],get(gca,'ylim'))
-                line([(strt+dura)/1000*FR (strt+dura)/1000*FR],get(gca,'ylim'))
-                
-                line([visStart*FR visStart*FR],get(gca,'ylim'))
-                line([visStop*FR visStop*FR],get(gca,'ylim'))
-                
-                xticks([0:6:30])
-                xticklabels({'0' '1' '2' '3' '4' '5'})
-                xlabel('Seconds')
-                ylabel('Mean Z-Scored Fluorescence')
-                title([stimNames(F) visNames(visToPlot)])
+%                 line([strt/1000*FR strt/1000*FR],get(gca,'ylim'));
+%                 line([(strt+dura)/1000*FR (strt+dura)/1000*FR],get(gca,'ylim'));
+                yRange = get(gca,'ylim'); 
+%                 line([visStart*FR visStart*FR],get(gca,'ylim'));
+%                 line([visStop*FR visStop*FR],get(gca,'ylim'));
+                   line([visStart*FR visStart*FR],yRange);
+                line([visStop*FR visStop*FR],yRange);                             
+
+                xticks([0:6:30]);
+                xticklabels({'0' '1' '2' '3' '4' '5'});
+                xlabel('Seconds');
+                ylabel('Mean Z-Scored Fluorescence');
+%                 title([stimNames(F) visNames(visToPlot)]);
             end
             
             
         end
         
     end
-    if i<numel(unique(visID))
-        i
+    if i<numel(visToTabThrough)
+        
     pause
     end
 end
