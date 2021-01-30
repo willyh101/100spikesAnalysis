@@ -10,5 +10,5 @@ loadList = {
     '200902_w18_3_outfile.mat'
     '201102_w29_1_outfile.mat'
     '201103_w29_1_outfile.mat'
-    '201106_w29_1_outfile.mat'
+%     '201106_w29_1_outfile.mat'
     };
