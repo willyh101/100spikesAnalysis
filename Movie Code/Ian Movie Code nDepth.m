@@ -119,7 +119,7 @@ disp('done')
 
 %% Play Mov
 
-saveVid = 0; %save or do not save, there is no try
+saveVid = 1; %save or do not save, there is no try
 zScoreIt=0; %trialwise zscore, faster but less accurate
 preZScore =1; %Can Take a long time, not to be used with zScoreIt
 gausfilt = 1; %its helpful to gausian fliter it to reduce noise
@@ -134,7 +134,7 @@ superimposeIMs = 0; %collapse all planes into a single one
 maxFrameDisplay = inf; 18; %Cut off Movie early if you want, default inf
 oneFrameAtATime = 0; % this will pause after each frame if you're trying to pull out a single image
 
-stimToUseList=[ 8 26  ];%[2 5 4]; %[1 4 10 2 5 11];%[1 4 10 2 5 11];% 1:15% 2  4 5 8];%[7 13] ;[1 2 3]; %[4 7 10 13] ;[7 8 9]; %[4 5 6]; %[1 2 3];% The StimIDs that you want to cycle through
+stimToUseList=[2 5 4];%[2 5 4];[ 8 26  ];% %[1 4 10 2 5 11];%[1 4 10 2 5 11];% 1:15% 2  4 5 8];%[7 13] ;[1 2 3]; %[4 7 10 13] ;[7 8 9]; %[4 5 6]; %[1 2 3];% The StimIDs that you want to cycle through
 
 aF = 1; %average Factor; How many frames do you want average. default 1
 
@@ -171,12 +171,19 @@ depthString = {'-390\mum' '-350\mum' '-193\mum' '-150\mum'};%-60\mum' '-30\mum' 
 clim =[0 2];[-4 4]; % default colormap
 asymetricCLIM = 0; % sometimes you want a colormap that isn't smooth, but has different movement <0 and >0 this allows that
 
-labelLayers = 0; %cludgey to label the first two plots L4 and the second L23
+labelLayers = 1; %cludgey to label the first two plots L4 and the second L23
 %set subplots
 co = 2;
-ro = 1;2
-nDepthsTotal = 2;4;
+ro = 2;2
+nDepthsTotal = 4;4;
 % clim = [-100 200];[0 2.5];
+
+
+circleTunedCells = 0; %circle tuned cells
+circleCriteria = find(pVisR<0.05 & prefVR==8);%find(pVisR<0.05 & prefVR==2);
+circleDiameter = 8;
+circleColor = rgb('cyan');
+circleLineWidth =1;
 
 % clim = [0 4];%4];%2.5];
 %  clim = [-3 3];
@@ -209,7 +216,7 @@ if saveVid
     savePath = 'C:\Users\ian\Documents\DATA\AnalysisOutput';
     %         savePath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data To Play With';
     
-    name = '201123_w29_1_L4toL23';
+    name = '201124_w29_1_L4toL23';
     
     vid = VideoWriter(fullfile(savePath,[name '.avi']));
     vid.FrameRate =FR*playSpeed;  % Default 30
@@ -557,6 +564,20 @@ for M=1:numel(stimToUseList)
                                 temp.LineStyle = ':';
                                 hold on
                             end
+                        end
+                    end
+                end
+                
+                if circleTunedCells 
+                     cells = circleCriteria;
+                    for k=1:numel(cells)
+                        cell = cells(k);
+                        
+                        if allDepth2(cell)==j
+                            temp = circle(allCoM2(cell,2),allCoM2(cell,1),circleDiameter,circleColor);
+                            temp.LineWidth = circleLineWidth;
+                            temp.LineStyle = ':';
+                            hold on 
                         end
                     end
                 end
