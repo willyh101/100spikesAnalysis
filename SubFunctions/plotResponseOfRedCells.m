@@ -97,12 +97,39 @@ popRespRed(isControl)=[];
 popRespNotRed(isControl)=[];
 
 
- figure(23);clf
- sp = scatter(outVars.numCellsEachEns(ensToPlot),popRespRed(ensToPlot),'o');
- sp.MarkerEdgeColor = 'b';%'r'
- hold on
- sp2=scatter(outVars.numCellsEachEns(ensToPlot)+0.75,popRespNotRed(ensToPlot),'o');
-  sp2.MarkerEdgeColor = 'k';
+figure(233);clf
+% sp3 = scatter(ones(1,numel(popRespRed(ensToPlot))), popRespRed(ensToPlot), 'filled');
+% sp3.MarkerEdgeColor = 'b';%'r'
+% sp3.MarkerFaceAlpha = 0.6;
+% sp3.MarkerEdgeColor = 'none';
+% hold on
+% e3 = errorbar(1, mean(popRespRed(ensToPlot)), sem(popRespRed(ensToPlot)));
+% e3.LineWidth = 2;
+% e3.Color = 'k';
+% 
+% sp32 = scatter(ones(1,numel(popRespNotRed(ensToPlot)))+1, popRespNotRed(ensToPlot), 'filled');
+% sp3.MarkerEdgeColor = 'b';%'r'
+% sp3.MarkerFaceAlpha = 0.6;
+% sp3.MarkerEdgeColor = 'none';
+% e32 = errorbar(2, mean(popRespNotRed(ensToPlot)), sem(popRespNotRed(ensToPlot)));
+% e32.LineWidth = 2;
+% e32.Color = 'k';
+% xlim([0.5 2.5])
+p = fancyPlotSpread([popRespRed(ensToPlot); popRespNotRed(ensToPlot)]', {opts.redCellName, 'Pyramidal Cells'});
+ylabel('Mean Population Response')
+% xlim([0.7 2.3])
+
+
+figure(23);clf
+sp = scatter(outVars.numCellsEachEns(ensToPlot),popRespRed(ensToPlot),'filled');
+sp.MarkerFaceAlpha = 0.6;
+sp.MarkerEdgeColor = 'none';
+hold on
+sp2=scatter(outVars.numCellsEachEns(ensToPlot)+0.75,popRespNotRed(ensToPlot),'filled');
+sp2.MarkerFaceAlpha = 0.6;
+sp2.MarkerEdgeColor = 'none';
+sp2.MarkerFaceColor = rgb('tomato');
+
 
   
   
@@ -130,13 +157,13 @@ popRespNotRed(isControl)=[];
  end
  e = errorbar(ensCat+0.25,redGrandMean,redGrandSEM);
  e.LineWidth = 2;
- e.Color ='b'; %'r'
+ e.Color =rgb('royalblue'); %'r'
  e = errorbar(ensCat+0.5,notRedGrandMean,notRedGrandSEM);
  e.LineWidth = 2;
- e.Color ='k';
+ e.Color =rgb('tomato');
  
 %  legend([sp(1) sp2(1)],'Red Cells', 'Not Red Cells')
- legend([sp(1) sp2(1)],'Interneuron', 'Pyramid')
+ legend([sp(1) sp2(1)], opts.redCellName, 'Pyramidal Cells')
 
  %TS Section
  popTSRed(isControl,:)=[];
@@ -190,7 +217,7 @@ edgeCol = 'none';
 faceCol = rgb('DimGray');
 faceAlpha = 0.5;
  fp2 = fillPlot(popTSNotRed(ensToPlot,:),[],'ci',lineCol,edgeCol,faceCol,faceAlpha);
- legend([fp1(1) fp2(1)],'Interneuron','Pyramid')
+ legend([fp1(1) fp2(1)], opts.redCellName,'Pyramidal Cells')
  
  xlabel('Frame')
  ylabel('\DeltaZ-Score dF/F')

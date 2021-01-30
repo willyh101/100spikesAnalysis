@@ -197,7 +197,7 @@ lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTr
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    ...& highVisPercentInd ...
+    & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
@@ -208,7 +208,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
     ...& ensembleOneSecond ... %cuts off a lot of the earlier
-    ... & numCellsEachEns==10 ...    
+    ... & numCellsEachEns==10 ...
     ;
 %& numCellsEachEns>10 ;
 
@@ -251,11 +251,11 @@ end
 %% Create time series plot
 
 [All, outVars] = createTSPlot(All,outVars);
-[All, outVars] = createTSPlotAllVis(All,outVars);
+% [All, outVars] = createTSPlotAllVis(All,outVars);
 
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
-numCellsEachEns(numCellsEachEns < 10) = 5;
+numCellsEachEns(numCellsEachEns < 10) = 3;
 numCellsEachEns(numCellsEachEns > 10) = 20;
 
 outVars.numCellsEachEns= numCellsEachEns;
@@ -356,23 +356,61 @@ plotResponseByDiffAnglePrefPosNeg(outVars,opts);
 
 OSImin = 0.5;
 
-goodOSIens = outVars.ensCurve(2:9,outVars.ensOSI > OSImin);
-goodOSIensSEM = outVars.ensCurveSEM(2:9,outVars.ensOSI > OSImin);
+goodOSIensIdxs = find(outVars.ensOSI > OSImin);
 
-r = randi(size(goodOSIens,2));
+
+goodOSIens = outVars.ensCurve(2:9,:);
+goodOSIensSEM = outVars.ensCurveSEM(2:9,:);
+r=5;
+r=505;
+r=573;
+% r = randi(numel(goodOSIensIdxs));
+% r = goodOSIensIdxs(r);
 figure(222)
 e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
-e.LineWidth = 1.5;
-e.Color = 'k';
+e.LineWidth = 3;
+% e.Color = 'blue';
 ylabel('ZDF')
 xlabel('Orientation')
 xticklabels([0:45:315])
+xlim([0.5 8.5])
+box off
+title('Ensemble Tuning Curve')
+
+
+ind = outVars.ensIndNumber(r);
+hNum = outVars.ensHNumber(r);
+% ind=1;
+% hNum = 2;
+h = All(ind).out.exp.stimParams.roi{hNum};
+tg = All(ind).out.exp.holoTargets{h};
+tg(isnan(tg))=[];
+
+figure(1222)
+clf
+nTg = numel(tg);
+% [w, h] = splitPretty(nTg, 5, 5);
+w=1;h=3;
+for i=1:numel(tg)
+    c = tg(i);
+    subplot(w, h, i)
+    curve = All(ind).out.anal.oriCurve(2:9,c);
+    curveSEM = All(ind).out.anal.oriCurveSEM(2:9,c);
+    e = errorbar(curve, curveSEM);
+    e.LineWidth = 2;
+    box off
+    xlim([0.5 8.5])
+    xticklabels([])
+    yticklabels([])
+    axis off
+    title(['Cell ' num2str(i)])
+end
 
 %% Red Cell Analysis (will only run if you have the red section on all your recordings).
-opts.numExamples = 5;
+opts.numExamples = 3;
 opts.osiThreshold4Examples = 0.5;
 opts.visAlpha = 0.05;
-
+opts.redCellName = 'SST Cells';
 [outVars] = plotResponseOfRedCells(All, outVars, opts);
 [All, outVars] = redCellTuningAnalysis(All, outVars, opts);
 [outVars] = makeMeanRespEns2(All, outVars);
@@ -401,6 +439,7 @@ plotResponseByDifferenceinAnglePrefRed(outVars, opts)
 %%
 opts.goodOSIthresh = 0;
 opts.redCellName = 'SST Cells';
+opts.goodOSIthresh = 0.001;
 
 plotRedandPyrConnTogether(outVars, opts)
 
@@ -596,7 +635,7 @@ for k = 1:numEns
         ~outVars.offTargetRiskEns{k};
     if sum(cellsToUse)<5
         temp = [NaN NaN];
-        
+
        ensemblesToUse(k)=0;
     else
         temp = outVars.mRespEns{k}(cellsToUse);
@@ -628,8 +667,8 @@ box off
 end
 % colorbar
 axis tight
- 
-%% 
+
+%%
 
 opts.posNegThreshold = 0;0.1;
 [All outVars] = posNegIdentifiers(All,outVars,opts);
@@ -672,7 +711,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         & outVars.pVisR{ind} < 0.05 ...
         & outVars.osi{ind} > 0.25 ...
         ... & outVars.posCellbyInd{i} ... %if you want to only include cells that went up
-        ...& outVars.isRedByEns{i} ...  %if you want to excluded red cells (i.e. interneurons) 
+        ...& outVars.isRedByEns{i} ...  %if you want to excluded red cells (i.e. interneurons)
         ;
 
     for k=1:numel(diffsPossible)
@@ -813,14 +852,14 @@ ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 ;%& 
 criteria =  outVars.ensMaxD; outVars.ensMeaD;%   outVars.ensMaxD;outVars.ensOSI; %outVars.ensMaxD;
 useableCriteria = criteria(ensemblesToUse);
 bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
-bins = [0 400 500 inf]; 
-% bins = [0 200 250 inf]; 
+bins = [0 400 500 inf];
+% bins = [0 200 250 inf];
 
 % bins = [linspace(min(useableCriteria),max(useableCriteria),5)];
 criteria2 = outVars.ensOSI; %outVars.ensMaxD;
 useableCriteria = criteria2(ensemblesToUse);
 bins2 = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
-bins2 = [0 0.33 0.7 inf]; 
+bins2 = [0 0.33 0.7 inf];
 
 % bins2 = [linspace(min(useableCriteria),max(useableCriteria),5)];
 
@@ -858,7 +897,7 @@ c=0;
 for i = 1:numel(bins2)-1
 for k = 1:numel(bins)-1
     c=c+1;
-    
+
     ax(c) =subplot(numel(bins2)-1,numel(bins)-1,c);
 popToPlotTemp = popToPlot;
 ensembleExcluder  = criteria>=bins(k) & criteria<bins(k+1) & criteria2>=bins2(i) & criteria2<bins2(i+1) & ensemblesToUse;

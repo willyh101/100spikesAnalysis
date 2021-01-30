@@ -11,7 +11,7 @@ function result = osi(curve)
 curve = curve - min(curve);
 curve = makeTuningCurve180(curve);
 
-[~, prefOri]= max(curve);
+[~, prefOri]= max(curve, [], 'omit');
 
 orthoOri = mod(prefOri + 2, 4);
 orthoOri(orthoOri==0) = 4;
