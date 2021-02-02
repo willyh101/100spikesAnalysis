@@ -1,8 +1,8 @@
-function plotResponseByDifferenceinAnglePrefRed(outVars, opts)
+function plotResponseByDifferenceinAnglePrefRed_12(outVars, opts)
 
 mRespByOriDiff = outVars.mRespByOriDiffRed;
 sortedOSI = outVars.sortedOSIred;
-diffRange = -22.5:45:315;
+diffRange = -15:30:330;
 
 figure(144);clf
 % imagesc(mRespByOriDiff);
@@ -29,7 +29,7 @@ e2.LineWidth = 2;
 xlim([-5 185])
 xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Response')
-xticks(0:45:135)
+xticks(0:30:160)
 legend({['All OSIs, n= ' num2str(size(mRespByOriDiff,1))], ...
     ['OSI > ' num2str(goodOSIthreshold) ', n=' num2str(size(datToPlot,1))]})
 
@@ -66,21 +66,21 @@ hold on
 % semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
 % errorbar(diffRange(1:end-1),meanByOriDIff,semByOriDiff)
 
-
-datToPlot = mRespByOriDiff(sortedOSI<0.25,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
-
-datToPlot = mRespByOriDiff(sortedOSI>=0.25 & sortedOSI<=0.75,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
-
-datToPlot = mRespByOriDiff(sortedOSI>0.75,:);
-meanByOriDiff = (nanmean(datToPlot));
-semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
-errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
+% 
+% datToPlot = mRespByOriDiff(sortedOSI<0.25,:);
+% meanByOriDiff = (nanmean(datToPlot));
+% semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+% errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
+% 
+% datToPlot = mRespByOriDiff(sortedOSI>=0.25 & sortedOSI<=0.75,:);
+% meanByOriDiff = (nanmean(datToPlot));
+% semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+% errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
+% 
+% datToPlot = mRespByOriDiff(sortedOSI>0.75,:);
+% meanByOriDiff = (nanmean(datToPlot));
+% semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+% errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff)
 
 
 % ylim([-0.05 0.01])
@@ -103,7 +103,7 @@ e1.LineWidth = 2;
 xlim([-5 185])
 xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Response')
-xticks(0:45:135)
+xticks(0:30:160)
 
 
 

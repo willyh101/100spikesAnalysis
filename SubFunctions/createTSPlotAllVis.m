@@ -39,11 +39,11 @@ for ind=1:numExps
         cellList = 1:numel(ROIinArtifact);
         
         if i==1
-            cellsToUse = ~ROIinArtifact';% & pVisR<0.05 ;
+            cellsToUse = ~ROIinArtifact' & pVisR<0.05 ;
         else
             cellsToUse = ~ROIinArtifact' &...
                 ~offTargetRisk(h,:) &...
-                ~ismember(cellList,tg);% & pVisR<0.05;
+                ~ismember(cellList,tg) & pVisR<0.05;
         end
         
         dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...

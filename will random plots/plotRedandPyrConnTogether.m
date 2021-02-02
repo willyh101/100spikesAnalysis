@@ -34,7 +34,7 @@ xlabel('\Delta Preferred Angle (Deg)')
 ylabel('\Delta Mean Population Response')
 xticks(0:45:135)
 legend('Pyramidal Cells', redCellName)
-title('Population Response to Ensemble Stim, by tuning')
+% title('Population Response to Ensemble Stim, by tuning')
 
 figure(178);
 clf
