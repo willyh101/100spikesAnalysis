@@ -1,12 +1,23 @@
 %% Start Here
 
+clear; close all; clc;
+
+restoredefaultpath;
+folder = fileparts(which('GregAnalysis.m')); 
+addpath(genpath(folder));
+rmpath(folder)
+
+%%
+
 %which dataset do you wannt to use
 % allLoadList;
  oriLoadList;
 % SSTOriLoadList;
 % PVOriLoadList;
 
-loadPath = 'T:\Outfiles';
+% loadPath = 'T:\Outfiles';
+
+loadPath = '/Users/gregoryhandy/Research_Local/outputdata1';
 
 %% Load
 numExps = numel(loadList);
