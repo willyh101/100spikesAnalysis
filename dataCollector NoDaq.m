@@ -47,3 +47,24 @@ vis.visID = visID;
 % vis.visStop = visStop;
 vis.DAQepoch = DAQepoch;
 disp('got vis')
+
+%% run to save
+
+out.info = info;
+out.exp = exp;
+try %if merging two or more experiments put them in here
+out.exp1 = exp1;
+out.exp2 = exp2;
+catch; end;
+try
+    out.vis = vis;
+catch
+    disp('No Vis Data')
+end
+
+save([basePath info.date '_' info.mouse '_outfile'], 'out')
+% save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
+% save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+% save(['E:\Contrast Modulated Ensembles\'
+
+disp('All data saved!')

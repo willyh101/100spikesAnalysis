@@ -16,7 +16,8 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 % oriLoadList;
 % SSTOriLoadList;
 % PVOriLoadList;
-u19LoadList;
+% u19LoadList;
+manifoldLoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
@@ -165,7 +166,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.20; %default 0.05
+opts.IndsVisThreshold =-0.20; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));

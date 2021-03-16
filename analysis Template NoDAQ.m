@@ -1,8 +1,8 @@
 %% Analysis template with no DAQ File
 clear;
-date = '210122';
+date = '210201';
 mouse = 'w29_3';%'I138_1';%'I136_1';
-epochs = '2_3_4_5_6_7_8';
+epochs = '1_2_3_4_5_6';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -27,7 +27,7 @@ nDepthsTotal = 3;4;%Normally 3;
 %% Experiment
 
 s2pEpoch = 5 ;
-DAQepoch = 6 ;
+DAQepoch = 5 ;
 
 %%  Load without phys
 BaseLinePeriod = 1000;
@@ -45,6 +45,10 @@ numColors=2;
 
 %Manually get orderBackup
 orderWOcatch = cellfun(@(x) x(1),orderBackup);
+
+disp(['Holo Comp recorded ' num2str(numel(orderWOcatch)) ' stims. while ' num2str(numel(localFiles)) ' Files detected']);
+disp(['Discrepency: ' num2str(numel(localFiles)-numel(orderWOcatch))])
+disc = numel(localFiles)-numel(orderWOcatch);
 
 %% Extract artifact values
 val=[];
@@ -66,7 +70,8 @@ smVal = smooth(double(maxVal),100,'lowess')';
 rVal = double(maxVal)./smVal;
 figure(21);plot(rVal)
 
-catchIDs = find(rVal<0.555); %empirically set
+catchIDs = find(rVal<0.5); %empirically set
+disp([num2str(numel(catchIDs)) ' Catches detected. want ' num2str(disc)]);
 
 stimID = nan([1 numel(localFiles)]);
 stimID(catchIDs) = 0;
@@ -86,7 +91,7 @@ disp('No Run Info')
 sz = size(allData);
 runVector = zeros(sz([3 2]));
 %% holoStuff
-holoRequests = out.holoRequest;
+holoRequests = holoRequest; % out.holoRequest;
 [dfData, zdfData] =  computeDFFwithMovingBaseline(allData);
 strt = BaseLinePeriod; %start Time;
 try
@@ -251,24 +256,25 @@ end
 
 
 %% vis Section 
-temp = dir(localFiles{1});
 
 disp('navigate to the path with the vis files')
 visPath = uigetdir;
 
 %%
+temp = dir(localFiles{1});
+
 timeOfFirstTrial= temp.date;
 timeOfFirstTrial
-temp2 = load(fullfile(visPath,'w29_3_151_003.mat'));
+temp2 = load(fullfile(visPath,'w29_3_155_004.mat'));
 temp2.result.starttime
 
-size(temp2.result.conds,2)
+size(temp2.result.conds,2);
 
 visID1 = nan([1 size(temp2.result.stimParams,2)]);
-visID2 = nan([1 size(temp2.result.stimParams,2)]);
+% visID2 = nan([1 size(temp2.result.stimParams,2)]);
 
 visR1 = temp2.result.stimParams(1,:);
-visR2 = temp2.result.stimParams(3,:);
+% visR2 = temp2.result.stimParams(3,:);
 
 for i=1:size(temp2.result.conds,2)
     testVal = temp2.result.conds(1,i);
