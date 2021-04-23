@@ -271,8 +271,11 @@ numSpikesEachEns(numSpikesEachStim==0)=[];
 
 numCellsEachEns=cell2mat(numCellsEachEns(:)');
 hzEachEns = cell2mat(hzEachEns(:)');
-numSpikesEachCell = numSpikesEachEns/numCellsEachEns;
-
+try
+    numSpikesEachCell = numSpikesEachEns/numCellsEachEns;
+catch
+    numSpikesEachCell=0;
+end
 ensStimScore=cell2mat(ensStimScore(:)');
 ensStimScore(numSpikesEachStim==0)=[];
 
