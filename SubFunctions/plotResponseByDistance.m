@@ -44,8 +44,8 @@ figure(9);clf
 for i = 1:size(ensSizes,2)
 % subplot(1,size(ensSizes),i)
 dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
-meanDat = nanmean(dat);
-stdDat = nanstd(dat);
+meanDat = nanmean(dat,1);
+stdDat = nanstd(dat,[],1);
 numpDat = sum(~isnan(dat));
 semDat = stdDat./sqrt(numpDat);
 
