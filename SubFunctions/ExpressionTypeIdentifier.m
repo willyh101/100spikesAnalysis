@@ -23,6 +23,8 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'w19_1'
      'w29_1'
      'w29_3'
+     'w30_2'
+     'w32_2'
      };
  
  ExpressionTypeList = {
@@ -46,6 +48,8 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'AAV Tre'
      'AAV Tre'
      'AAV Tre'
+     'AAV Tre 2s'
+     'AAV Tre 2s'
      'AAV Tre 2s'
      };
      
