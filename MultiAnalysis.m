@@ -363,8 +363,8 @@ goodOSIensIdxs = find(outVars.ensOSI > OSImin);
 goodOSIens = outVars.ensCurve(2:9,:);
 goodOSIensSEM = outVars.ensCurveSEM(2:9,:);
 r=5;
-r=505;
-r=573;
+% r=505;
+% r=573;
 % r = randi(numel(goodOSIensIdxs));
 % r = goodOSIensIdxs(r);
 figure(222)
@@ -583,7 +583,7 @@ opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 numEns = numel(outVars.ensStimScore);
 
-distRange = [0 35]%[50 150];%[50 150];
+distRange = [0 35];[50 150];%[50 150];
 for i = 1:numEns
     responseToPlot(i) = nanmean(outVars.mRespEns{i}(...
         outVars.distToEnsemble{i}>=distRange(1) & ...
@@ -854,7 +854,8 @@ criteria =  outVars.ensMaxD; outVars.ensMeaD;%   outVars.ensMaxD;outVars.ensOSI;
 useableCriteria = criteria(ensemblesToUse);
 bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
 bins = [0 400 500 inf];
-% bins = [0 200 250 inf];
+% bins = [0 400  inf];
+% bins = [0 400 500 inf];bins = [0 200 250 inf];
 
 % bins = [linspace(min(useableCriteria),max(useableCriteria),5)];
 criteria2 = outVars.ensOSI; %outVars.ensMaxD;

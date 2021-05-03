@@ -70,11 +70,32 @@ disp('got exp')
 %% save exp to spk: for Spike Curve Support
 spk=exp;
 spk.dfData = dfData;
+try
 spk.Mani = ExpStruct.Mani;
+catch
+    tempMani    = ExpStruct.spikeTest;
+    tempMani.estSpikes      = ExpStruct.estSpikes;
+    tempMani.rThreshold     = ExpStruct.rThreshold;
+    tempMani.FitCells       = ExpStruct.FitCells;
+    tempMani.pBalLookRight  = ExpStruct.pBalLookRight;
+    tempMani.roiWeightsPBal = ExpStruct.roiWeightsPBal;
+    tempMani.pBalSatValue   = ExpStruct.pBalSatValue;
+    spk.Mani = tempMani;
+end
 
 %% save exp to Manifold
 mani = exp;
+try
 mani.mani = ExpStruct.Mani; 
+catch
+    tempMani    = ExpStruct.ManifoldWrite;
+    tempMani.CellsWritten   = ExpStruct.CellsWritten;
+    tempMani.estSpikes      = ExpStruct.estSpikes;
+    tempMani.rThreshold     = ExpStruct.rThreshold;
+    tempMani.FitCells       = ExpStruct.FitCells;
+    mani.mani = tempMani;
+end
+mani.CellIDs = unique(cat(2,exp.holoRequest.rois{:}));
 
 %% orientation/vis epoch
 vis.desc = 'Ori';
@@ -104,14 +125,22 @@ disp('got vis2')
 out.info = info;
 out.exp = exp;
 try %if merging two or more experiments put them in here
-out.exp1 = exp1;
-out.exp2 = exp2;
-catch; end;
+    out.exp1 = exp1;
+    out.exp2 = exp2;
+catch; 
+end;
 try
     out.vis = vis;
 catch
     disp('No Vis Data')
 end
+
+try out.vis2=vis2; catch;end
+try out.spk = spk; catch; end
+try out.mani = mani; catch; end
+try out.mani2 = mani2; catch; end
+try out.mani0 = mani0; catch; end
+
 
 save([basePath info.date '_' info.mouse '_outfile'], 'out')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')

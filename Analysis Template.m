@@ -1,7 +1,7 @@
 clear;
-date = '210111';
-mouse = 'w29_3';%'I138_1';%'I136_1';
-epochs = '1_2_3_4_5_6_7_8_9_10';
+date = '210428';
+mouse = 'w32_2';%'I138_1';%'I136_1';
+epochs = '2_3_4_5_6';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -10,10 +10,10 @@ basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
 path = fullfile(basePath,epochs);
 
 baseName = [mouse '_' date];%'I118a.2_180504';
-loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc'] ['F_' baseName '_plane4_proc']};
+loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc']};% ['F_' baseName '_plane4_proc']};
 
 nDepthsTotal = 3;4;%Normally 3;
-physfile = fullfile(basePath,[date '_C' '.mat']);
+physfile = fullfile(basePath,[date '_A' '.mat']);
 % physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 try
     load(physfile)
@@ -23,8 +23,8 @@ catch
 end
 %% Experiment
 
-s2pEpoch = 7 ;
-DAQepoch = 7 ;
+s2pEpoch = 4 ;
+DAQepoch = 5 ;
 
 
 %% Scary Loading Part
@@ -52,7 +52,7 @@ tScary = tic;
     ArtifactSizeRight, ROIinArtifact, excludeCells, framesUsed, Tused, zData2]...
     = loadCaData(path,loadList,DAQepoch,s2pEpoch,nDepthsTotal,ExpStruct,DIGITSWEEP,BaseLinePeriod, numColors);
 toc(tScary)
-%%
+
 swp =ExpStruct.EpochEnterSweep{DAQepoch};
 hr = ExpStruct.Holo.Sweeps_holoRequestNumber(swp);
 
