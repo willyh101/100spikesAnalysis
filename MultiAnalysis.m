@@ -767,6 +767,9 @@ ciToPlot = nanstd(datToPlot,[],1)./sqrt(size(datToPlot,1))*1.93;
 errorbar(nanmean(datToPlot),ciToPlot);
 p = anova1(datToPlot,[],'off');
 p2 = signrank(datToPlot(:,1),datToPlot(:,3));
+% p2 = signrank([datToPlot(:,1);datToPlot(:,5)],datToPlot(:,3));
+% [~,p2] = ttest2(datToPlot(:,1),datToPlot(:,3));
+% [~,p2] = ttest2([datToPlot(:,1);datToPlot(:,5)],datToPlot(:,3));
 title({['Pvalue ' num2str(p)]...
     ['Iso vs Ortho PValue: ' num2str(p2)] })
 
@@ -774,6 +777,127 @@ title({['Pvalue ' num2str(p)]...
 % ax2 =subplot(1,2,2);
 % plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
 % title('Cells That go down')
+
+
+%% ---CLOSE VS FAR---%%
+figure(61)
+clf
+
+closeDat = squeeze(popToPlot(ensemblesToUse,1,:));
+
+% farbins = find(opts.distBins > 49 & opts.distBins < 101);
+farbins = find(opts.distBins > 100);
+farbinstart = farbins(1);
+farbinstop = farbins(end)-1;
+farDat = squeeze(nanmean(popToPlot(ensemblesToUse,farbinstart:farbinstop,:),2));
+
+% err = bootci(10000, {@nanmean, closeDat});
+% errorbar(1:numel(m),m,err(1,:),err(2,:))
+
+err = nanstd(closeDat,[],1)./sqrt(size(closeDat,1));
+m = nanmean(closeDat);
+e1 = errorbar(m,err);
+e1.LineWidth = 2;
+xlabel('\Delta Preferred Orientation')
+ylabel('z-score \DeltaF/F')
+
+
+hold on
+
+err = nanstd(farDat,[],1)./sqrt(size(farDat,1));
+m = nanmean(farDat);
+e2 = errorbar(m,err);
+e2.LineWidth = 2;
+
+
+% allDat = squeeze(nanmean(popToPlot(ensemblesToUse,:,:),2));
+% err = nanstd(allDat,[],1)./sqrt(size(allDat,1));
+% m = nanmean(allDat);
+% e3 = errorbar(m,err);
+% e3.LineWidth = 2;
+
+% legend({'Close','Far', 'All'})
+legend({'Close','Far'})
+xticks(1:5)
+xticklabels(0:45:180)
+box off
+ax = gca();
+ax.FontSize = 14;
+
+for i=1:5
+    [~, p(i)] = ttest2(closeDat(:,i),farDat(:,i));
+end
+p = p.*5;
+
+    
+
+%% ---ISO VS ORTHO PLOT---%%
+figure(62)
+clf
+
+% isoClose = mean([closeDat(:,1); closeDat(:,5)],2,'omitnan');
+% orthClose = mean(closeDat(:,3),'omitnan');
+% 
+% isoFar = mean([farDat(:,1); farDat(:,5)],'omitnan');
+% orthFar = mean(farDat(:,3),'omitnan');
+
+% isoClose = [closeDat(:,1); closeDat(:,5)];
+isoClose = closeDat(:,1);
+orthClose = closeDat(:,3);
+
+% isoFar = [farDat(:,1); farDat(:,5)];
+isoFar = farDat(:,1);
+orthFar = farDat(:,3);
+
+subplot(1,3,1)
+clrs = {rgb('RoyalBlue'), rgb('tomato')};
+p = plotSpread({isoClose,orthClose},'xnames', {'iso', 'ortho'}, 'showMM',4, 'distributionColors', clrs);
+set(findall(gcf(),'type','line'),'markerSize',16)
+% set(findall(gcf(),'type','line'),'markerFaceAlpha',0.5)
+p{2}(1).Color = 'k';
+p{2}(2).Color = 'k';
+p{2}(1).LineWidth = 2;
+p{2}(2).LineWidth = 2;
+uistack(p{2},'top')
+title('Close')
+
+[~,p] = ttest2(isoClose,orthClose);
+disp(['ttest for iso ortho for close bins: ' num2str(p)])
+
+subplot(1,3,2)
+clrs = [rgb('RoyalBlue'); rgb('tomato')];
+p = plotSpread({isoFar,orthFar},'xnames', {'iso', 'ortho'}, 'showMM',4, 'distributionColors', clrs);
+set(findall(gcf(),'type','line'),'markerSize',16)
+% set(findall(gcf(),'type','line'),'markerFaceAlpha',0.5)
+p{2}(1).Color = 'k';
+p{2}(2).Color = 'k';
+p{2}(1).LineWidth = 2;
+p{2}(2).LineWidth = 2;
+uistack(p{2},'top')
+title('Far')
+
+[~,p] = ttest2(isoFar,orthFar);
+disp(['ttest for iso ortho for far bins: ' num2str(p)])
+
+subplot(1,3,3)
+clrs = [rgb('RoyalBlue'); rgb('tomato')];
+% isoAll = reshape(squeeze(nanmean(popToPlot(ensemblesToUse,:,[1,5]),2)),[],1);
+isoAll = squeeze(nanmean(popToPlot(ensemblesToUse,:,1),2));
+orthAll = squeeze(nanmean(popToPlot(ensemblesToUse,:,3),2));
+p = plotSpread({isoAll,orthAll},'xnames', {'iso', 'ortho'}, 'showMM',4, 'distributionColors', clrs);
+set(findall(gcf(),'type','line'),'markerSize',16)
+% set(findall(gcf(),'type','line'),'markerFaceAlpha',0.5)
+p{2}(1).Color = 'k';
+p{2}(2).Color = 'k';
+p{2}(1).LineWidth = 2;
+p{2}(2).LineWidth = 2;
+uistack(p{2},'top')
+title('All')
+
+[~,p] = ttest2(isoAll,orthAll);
+disp(['ttest for iso ortho for all bins: ' num2str(p)])
+disp(' ')
+
 
 %% Plot Distance Plots by criteria
 opts.distType = 'min';
@@ -1199,6 +1323,8 @@ plotSparsityBySize(All,outVars)
  opts.ensemblesToUseSpikePlot = outVars.ensemblesToUse & outVars.numCellsEachEns ==10;
  opts.plotMeansOnly = 1;
  plotPopRespByNumSpikes2(outVars,opts)
+ 
+ 
  %% Section to determine holo/vis interaction
 [All] = autodetectVisCondionsInEpoch(All);
 

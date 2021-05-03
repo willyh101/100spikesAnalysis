@@ -1,6 +1,6 @@
 function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
  numExps = numel(All);
- 
+
  mouseNameList = {
      'I127_1'
      'HB40_1'
@@ -23,9 +23,10 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'w19_1'
      'w29_1'
      'w29_3'
+     'w30_2'
      'w32_2'
      };
- 
+
  ExpressionTypeList = {
      'PHP CAG'
      'AAV Syn'
@@ -39,7 +40,7 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'Ai203'
      'AAV Tre'
      'AAV Tre'
-     'PHP Tre' 
+     'PHP Tre'
      'AAV Tre'
      'Ai203'
      'AAV Tre'
@@ -47,16 +48,17 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'AAV Tre'
      'AAV Tre'
      'AAV Tre'
+     'AAV Tre 2s'
      'AAV Tre 2s'
      'AAV Tre 2s'
      };
-     
+
  [uniqueExpressionTypes, ~, ExpressionTypeNum] = unique(ExpressionTypeList);
-     
+
 indExpressionType = zeros([1 numExps]);
  for ind =1:numExps
      mouseName = All(ind).out.info.mouse;
-     
+
      idx = find(cellfun(@(x) strcmp(lower(mouseName),lower(x)),mouseNameList));
      if isempty(idx);
          disp(['Error mouse: ' mouseName '. Not Detected...']);
@@ -66,6 +68,6 @@ indExpressionType = zeros([1 numExps]);
          indExpressionType(ind) =  ExpressionTypeNum(idx);
      end
  end
- 
+
  outVars.uniqueExpressionTypes = uniqueExpressionTypes;
  outVars.indExpressionType=indExpressionType;
