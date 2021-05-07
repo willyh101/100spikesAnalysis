@@ -192,6 +192,18 @@ for i = 1:nDepthsTotal
     ylim([0 512])
 end
 
+% % new method using KDTree
+% % this can be done in 3D, so make the depths correct
+% allDepthsNew = arrayfun(@(x) depthList(x), allDepth);
+% a = [allCoM, allDepthsNew];
+% b = [stimCoM, holoRequests.targets(:,3)];
+% 
+% % make kdtree and query
+% kmodel = KDTreeSearcher(b);
+% [targettedCells, dists] = knnsearch(kmodel, a);
+% targettedCells(dists > targetDistanceThreshold)=nan;
+% targettedCells(ismember(targettedCells,CellstToExclude))=nan;
+
 
 % targettedCells = Mapping(:,2); targettedCells(Mapping(:,3)>targetDistanceThreshold)=nan;
 % targettedCells(ismember(targettedCells,CellstToExclude))=nan;
