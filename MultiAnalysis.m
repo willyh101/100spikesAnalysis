@@ -356,8 +356,10 @@ plotResponseByDiffAnglePrefPosNeg(outVars,opts);
 %% ensemble tuning curve examples
 
 OSImin = 0.5;
+OSImin = 0.7;
 
 goodOSIensIdxs = find(outVars.ensOSI > OSImin);
+goodOSIensIdxs = find(outVars.ensOSI > OSImin & ensemblesToUse);
 
 
 goodOSIens = outVars.ensCurve(2:9,:);
@@ -365,8 +367,15 @@ goodOSIensSEM = outVars.ensCurveSEM(2:9,:);
 r=5;
 r=505;
 r=573;
+% r=5;
+% r=505;
+% r=573;
+% r = 613;
+% r = 575;
+r = 576;
 % r = randi(numel(goodOSIensIdxs));
 % r = goodOSIensIdxs(r);
+
 figure(222)
 e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
 e.LineWidth = 3;
@@ -392,9 +401,11 @@ clf
 nTg = numel(tg);
 % [w, h] = splitPretty(nTg, 5, 5);
 w=1;h=3;
+w=2;h=5;
 for i=1:numel(tg)
     c = tg(i);
     subplot(w, h, i)
+    subplot(h, w, i)
     curve = All(ind).out.anal.oriCurve(2:9,c);
     curveSEM = All(ind).out.anal.oriCurveSEM(2:9,c);
     e = errorbar(curve, curveSEM);
