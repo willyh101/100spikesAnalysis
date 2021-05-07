@@ -1,7 +1,7 @@
 clear;
 date = '210428';
 mouse = 'w32_2';%'I138_1';%'I136_1';
-epochs = '2_3_4_5_6';
+epochs = '2_3_4_5_6_7';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
