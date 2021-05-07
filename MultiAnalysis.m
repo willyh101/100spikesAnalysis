@@ -166,7 +166,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold =-0.20; %default 0.05
+opts.IndsVisThreshold =-0.15; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -209,7 +209,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
     ...& ensembleOneSecond ... %cuts off a lot of the earlier
-    ... & numCellsEachEns==10 ...
+     & numCellsEachEns==10 ...
     ;
 %& numCellsEachEns>10 ;
 
@@ -365,14 +365,8 @@ goodOSIensIdxs = find(outVars.ensOSI > OSImin & ensemblesToUse);
 goodOSIens = outVars.ensCurve(2:9,:);
 goodOSIensSEM = outVars.ensCurveSEM(2:9,:);
 r=5;
-r=505;
-r=573;
-% r=5;
 % r=505;
 % r=573;
-% r = 613;
-% r = 575;
-r = 576;
 % r = randi(numel(goodOSIensIdxs));
 % r = goodOSIensIdxs(r);
 
@@ -594,7 +588,7 @@ opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 numEns = numel(outVars.ensStimScore);
 
-distRange = [0 35]%[50 150];%[50 150];
+distRange = [0 35];[50 150];%[50 150];
 for i = 1:numEns
     responseToPlot(i) = nanmean(outVars.mRespEns{i}(...
         outVars.distToEnsemble{i}>=distRange(1) & ...
@@ -840,7 +834,7 @@ for i=1:5
 end
 p = p.*5;
 
-    
+
 
 %% ---ISO VS ORTHO PLOT---%%
 figure(62)
@@ -848,7 +842,7 @@ clf
 
 % isoClose = mean([closeDat(:,1); closeDat(:,5)],2,'omitnan');
 % orthClose = mean(closeDat(:,3),'omitnan');
-% 
+%
 % isoFar = mean([farDat(:,1); farDat(:,5)],'omitnan');
 % orthFar = mean(farDat(:,3),'omitnan');
 
@@ -989,7 +983,8 @@ criteria =  outVars.ensMaxD; outVars.ensMeaD;%   outVars.ensMaxD;outVars.ensOSI;
 useableCriteria = criteria(ensemblesToUse);
 bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
 bins = [0 400 500 inf];
-% bins = [0 200 250 inf];
+% bins = [0 400  inf];
+% bins = [0 400 500 inf];bins = [0 200 250 inf];
 
 % bins = [linspace(min(useableCriteria),max(useableCriteria),5)];
 criteria2 = outVars.ensOSI; %outVars.ensMaxD;
@@ -1013,7 +1008,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
 
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
          & outVars.pVisR{ind} < 0.05 ...
-        ...& outVars.osi{ind} > 0.25 ...
+        ... & outVars.osi{ind} > 0.25 ...
         ... & outVars.posCellbyInd{i} ...
         ;
 
@@ -1333,8 +1328,8 @@ plotSparsityBySize(All,outVars)
  opts.ensemblesToUseSpikePlot = outVars.ensemblesToUse & outVars.numCellsEachEns ==10;
  opts.plotMeansOnly = 1;
  plotPopRespByNumSpikes2(outVars,opts)
- 
- 
+
+
  %% Section to determine holo/vis interaction
 [All] = autodetectVisCondionsInEpoch(All);
 
