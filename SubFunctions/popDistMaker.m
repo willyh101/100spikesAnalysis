@@ -84,6 +84,16 @@ for ind = 1:numExps
                 case 'harm'
                     harmDist = harmmean(dists,1);
                     distToUse = harmDist;
+                case 'median'
+                    medDist = median(dists,1);
+                    distToUse = medDist;
+                case 'centroid'
+                    stimCentroid = mean(stimLoc(Tg,:)); 
+                    tempDists =[];
+                    for idx =1:numCells
+                        tempDists(idx) = sqrt(sum((stimCentroid-allLoc(idx,:)).^2));
+                    end
+                    distToUse = tempDists;
                 otherwise
                     disp('dist type not understood, using min')
                     minDist = min(dists,[],1);

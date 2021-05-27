@@ -209,7 +209,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
     ...& ensembleOneSecond ... %cuts off a lot of the earlier
-     & numCellsEachEns==10 ...
+    ... & numCellsEachEns==10 ...
     ;
 %& numCellsEachEns>10 ;
 
@@ -293,19 +293,26 @@ legend off
 %% Compare Distance responses
 figure(102);clf
 
-distTypes = {'min' 'geo' 'mean' 'harm'};
-for i =1:4
+distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
+for i =1:6
     disp(['working on ' distTypes{i}])
     opts.distType = distTypes{i}; %options: min geo mean harm
     CellToUseVar = [];
     [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
-    ax = subplot(2,2,i);
-    opts.distAxisRange = [0 550]; %[0 350] is stand
+    ax = subplot(2,3,i);
+    opts.distAxisRange = [0 350]; %[0 350] is stand
     plotDistRespGeneric(popRespDist,outVars,opts,ax);
     title(distTypes{i})
+    drawnow
 end
 disp('done')
 
+
+% for i =1:5
+%         ax = subplot(2,3,i);
+%         ylim([-0.05 0.15])
+% end
+    
 %% Plot Distance divided between stimmed and not
 
 for ind = 1:numExps
@@ -337,7 +344,7 @@ disp('made new stimmed vs neverstimmed cells')
 %%
 figure(103);clf
 opts.distType = 'min';
-opts.distAxisRange = [0 200]; %[0 350] is stand
+opts.distAxisRange = [0 350]; %[0 350] is stand
 ax = subplot(1,3,1);
 
 CellToUseVar = [];
@@ -429,7 +436,7 @@ opts.restrictToHighOSICells =0.5; 0.5; %0 or 0.5 typical; threshold to restrict 
 
 opts.ensXaxis = 'osi'; % order, osi, dist, corr, size...
 plotCompareAllCellsTuning(outVars, opts);
-opts.goodOSIthresh = 0.5; %ensemble OSI threshold
+opts.goodOSIthresh = 0.7; %ensemble OSI threshold
 plotResponseByDifferenceinAnglePref(outVars, opts)
 
 %% ensemble Plots to look at
@@ -771,11 +778,13 @@ opts.distType = 'min';
 opts.distBins =[10:20:150];% [0:25:400];
 
 %this is where you change the criteria of what ensembles are included
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66 ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI<0.23;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.meanEnsOSI>0.5 &  outVars.ensOSI>0.25  & outVars.ensMaxD<475 ;%& outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.68  & outVars.ensMaxD>500 ;%& outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66  & outVars.ensMaxD<400;
+ensemblesToUse = outVars.ensemblesToUse  &  outVars.ensOSI>0.66 ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+
 sum(ensemblesToUse)
 
 oriVals = [NaN 0:45:315];
@@ -1070,7 +1079,7 @@ ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & 
 criteria =  outVars.ensMaxD; outVars.ensMeaD;%   outVars.ensMaxD;outVars.ensOSI; %outVars.ensMaxD;
 useableCriteria = criteria(ensemblesToUse);
 bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
-bins = [0 400 500 inf];
+bins = [0  400 500 inf];
 % bins = [0 400  inf];
 % bins = [0 400 500 inf];bins = [0 200 250 inf];
 
