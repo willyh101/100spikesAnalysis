@@ -62,7 +62,7 @@ r.Color = rgb('grey');
 r.LineWidth = 2;
 xlabel('Distance from Ensemble')
 ylabel('Population Response')
-xlim([0 300])
+xlim(xaxisrange)
 if numEnsembles ==3;
     legend('Small', 'Medium', 'Big')
 elseif numEnsembles

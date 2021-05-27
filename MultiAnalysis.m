@@ -306,6 +306,94 @@ for i =1:4
 end
 disp('done')
 
+%% Plot Distance divided between stimmed and not
+
+for ind = 1:numExps
+    allStimmedCells = unique([All(ind).out.exp.holoTargets{:}]);
+    allStimmedCells(isnan(allStimmedCells)) = [];
+    tempCells = 1:size(All(ind).out.exp.zdfData,1); 
+    asc = ismember(tempCells,allStimmedCells);
+    All(ind).out.anal.allStimmedCells = asc;
+    All(ind).out.anal.neverStimmedCells = ~asc;
+    
+     tc = ismember(tempCells,All(ind).out.exp.targetedCells);
+     All(ind).out.anal.allTargetedCells = tc;
+     All(ind).out.anal.neverTargetedCells = ~tc;
+     
+     if isfield(All(ind).out.exp,'holoRequest')
+         roiNaN =isnan(All(ind).out.exp.holoRequest.roiWeights);% | All(ind).out.exp.holoRequest.roiWeights>1.5;
+         unstimableCells = All(ind).out.exp.targetedCells(roiNaN);
+         usc = ismember(tempCells,unstimableCells);
+     else
+         usc = zeros(size(tempCells));
+     end
+     
+     disp(['Ind: ' num2str(ind) '. ' num2str(sum(usc)) ' cells unstimmable'])
+     
+     All(ind).out.anal.unstimableCells= usc; 
+         
+end
+disp('made new stimmed vs neverstimmed cells')
+%%
+figure(103);clf
+opts.distType = 'min';
+opts.distAxisRange = [0 200]; %[0 350] is stand
+ax = subplot(1,3,1);
+
+CellToUseVar = [];
+[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('black');
+
+hold on
+
+CellToUseVar = 'anal.allStimmedCells';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+p2 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+p2{1}.Color=rgb('crimson');
+
+
+CellToUseVar = 'anal.neverStimmedCells';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+p3 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+p3{1}.Color=rgb('forestGreen');
+legend([p1{1} p2{1} p3{1}],'All Cells','All Stimmed Cells','All Never Stimmed Cells');
+
+drawnow
+ax = subplot(1,3,2);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('black');
+hold on
+
+CellToUseVar = 'anal.allTargetedCells';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+p2 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+p2{1}.Color=rgb('crimson');
+
+CellToUseVar = 'anal.neverTargetedCells';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+p3 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+p3{1}.Color=rgb('forestGreen');
+
+legend([p1{1} p2{1} p3{1}],'All Cells','All MM3D Matched Cells','All Not MM3D Matched');
+
+
+drawnow
+
+
+ax = subplot(1,3,3);
+
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('black');
+
+hold on
+CellToUseVar = 'anal.unstimableCells';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+p2 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+p2{1}.Color=rgb('ForestGreen');
+legend([p1{1} p2{1}],'All Cells','All StimTest Failed Cells');
+
+
 %% Distance by Vis Response (will only work if consistent number of unique(visID)
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
 %% Contrast Response Functions
