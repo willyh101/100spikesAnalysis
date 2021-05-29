@@ -179,6 +179,10 @@ excludedTypes = {'AAV CamK2' 'Ai203'};
 % excludedTypes = {'AAV Tre'};
 % excludedTypes = {};
 
+% excludedTypes = {'AAV Tre' 'PHP Tre'};
+% excludedTypes = {'Ai203'};
+
+
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
 excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 
@@ -209,7 +213,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
     ...& ensembleOneSecond ... %cuts off a lot of the earlier
-    ... & numCellsEachEns==10 ...
+     & numCellsEachEns==10 ...
     ;
 %& numCellsEachEns>10 ;
 
@@ -314,7 +318,7 @@ disp('done')
 % end
     
 %% Plot Distance divided between stimmed and not
-
+countUSC=[]
 for ind = 1:numExps
     allStimmedCells = unique([All(ind).out.exp.holoTargets{:}]);
     allStimmedCells(isnan(allStimmedCells)) = [];
@@ -335,6 +339,7 @@ for ind = 1:numExps
          usc = zeros(size(tempCells));
      end
      
+     countUSC(ind) = sum(usc);
      disp(['Ind: ' num2str(ind) '. ' num2str(sum(usc)) ' cells unstimmable'])
      
      All(ind).out.anal.unstimableCells= usc; 
@@ -344,7 +349,7 @@ disp('made new stimmed vs neverstimmed cells')
 %%
 figure(103);clf
 opts.distType = 'min';
-opts.distAxisRange = [0 350]; %[0 350] is stand
+opts.distAxisRange = [0 250]; %[0 350] is stand
 ax = subplot(1,3,1);
 
 CellToUseVar = [];
@@ -390,8 +395,14 @@ drawnow
 
 ax = subplot(1,3,3);
 
+backupEnsemblesToUse = outVars.ensemblesToUse; 
+noUnstimableCount = find(countUSC==0);
+outVars.ensemblesToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,noUnstimableCount);
+disp(sum(outVars.ensemblesToUse))
+
 p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
 p1{1}.Color=rgb('black');
+outVars.ensemblesToUse = backupEnsemblesToUse;
 
 hold on
 CellToUseVar = 'anal.unstimableCells';
@@ -399,7 +410,6 @@ CellToUseVar = 'anal.unstimableCells';
 p2 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
 p2{1}.Color=rgb('ForestGreen');
 legend([p1{1} p2{1}],'All Cells','All StimTest Failed Cells');
-
 
 %% Distance by Vis Response (will only work if consistent number of unique(visID)
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
@@ -581,7 +591,7 @@ answerDanQuestionY = outVars.allRedEnsResp;
 
 % fit(outVars.ensMaxD',outVars.allRedEnsResp','poly1')
 %% Pos vs Neg by Distance
-opts.posNegThreshold = 0.1;
+opts.posNegThreshold = 0.0;
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
 opts.distBins = [0:25:1000];
@@ -781,9 +791,9 @@ opts.distBins =[10:20:150];% [0:25:400];
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66 ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI<0.23;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.meanEnsOSI>0.5 &  outVars.ensOSI>0.25  & outVars.ensMaxD<475 ;%& outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
-% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.68  & outVars.ensMaxD>500 ;%& outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
+% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66  & outVars.ensMaxD>500 ;%& outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66  & outVars.ensMaxD<400;
-ensemblesToUse = outVars.ensemblesToUse  &  outVars.ensOSI>0.66 ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66 & outVars.ensMaxD>400 & outVars.ensMaxD<500;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 
 sum(ensemblesToUse)
 
@@ -813,7 +823,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
         & outVars.pVisR{ind} < 0.05 ...
         & outVars.osi{ind} > 0.25 ...
-        ... & outVars.posCellbyInd{i} ... %if you want to only include cells that went up
+         ...& outVars.posCellbyInd{i} ... %if you want to only include cells that went up
         ...& outVars.isRedByEns{i} ...  %if you want to excluded red cells (i.e. interneurons)
         ;
 
@@ -835,6 +845,8 @@ figure(10);clf
 opts.distAxisRang = [0 350];
 
 figure(11);clf;hold on
+figure(14);clf
+
 % ax =subplot(1,1,1);
 %  hold on
 colorListOri = colorMapPicker(numel(diffsPossible),'plasma');
@@ -848,12 +860,22 @@ for k = 1:numel(diffsPossible)
         eHandle{1}.Color = colorListOri{k};
     end
     ylabel('Pop Response (Mean \DeltaF/F)')
-
+    
     figure(11); tempax = subplot(1,1,1);
     [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
     eHandle{1}.Color = colorListOri{k};
+    ylabel('Pop Response (Mean \DeltaF/F)')
+    
+    if k ==1 || k==3
+        figure(14); tempax = subplot(1,1,1);
+        [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
+        eHandle{1}.Color = colorListOri{k};
         ylabel('Pop Response (Mean \DeltaF/F)')
-
+        
+        if k==1
+        delete(eHandle{end})
+        end
+    end
 end
 linkaxes(ax)
 xlim([0 opts.distBins(end)])
@@ -861,6 +883,11 @@ ylim([-0.1 0.3])
 
 figure(10);
 xlim([0 opts.distBins(end)])
+
+figure(14)
+xlim([0 opts.distBins(end)])
+legend('Iso','Ortho')
+
 
 
 figure(12);clf
@@ -1071,8 +1098,8 @@ xlim([0 opts.distBins(end)])
 ylim([-0.1 0.3])
 %% Two Criteria Distance Plots
 %% Plot Distance Plots by criteria
-opts.distType = 'min';
-opts.distBins =[15:20:150];% [0:25:400];
+opts.distType = 'harm'; 'min';
+opts.distBins =[0:50:400];[15:20:150];% [0:25:400];
 
 %things to hold constant
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & outVars.meanEnsOSI>0.25;
@@ -1081,12 +1108,13 @@ useableCriteria = criteria(ensemblesToUse);
 bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
 bins = [0  400 500 inf];
 % bins = [0 400  inf];
-% bins = [0 400 500 inf];bins = [0 200 250 inf];
+% bins = [0 400 500 inf];%bins = [0 200 250 inf];
 
 % bins = [linspace(min(useableCriteria),max(useableCriteria),5)];
 criteria2 = outVars.ensOSI; %outVars.ensMaxD;
 useableCriteria = criteria2(ensemblesToUse);
 bins2 = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
+% bins2 = [0 0.33 0.7 inf];
 bins2 = [0 0.33 0.7 inf];
 
 % bins2 = [linspace(min(useableCriteria),max(useableCriteria),5)];

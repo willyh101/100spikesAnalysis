@@ -56,7 +56,8 @@ hold on
 distBinSize = distBins(2)-distBins(1);
 eHandle{i} = errorbar(distBins(2:end)-distBinSize/2,meanDat,semDat,'linewidth',2,'color',colorList{i});
 end
-r = refline(0);
+eHandle{end+1} = refline(0);
+r = eHandle{end};
 r.LineStyle=':';
 r.Color = rgb('grey');
 r.LineWidth = 2;
