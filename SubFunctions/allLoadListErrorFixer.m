@@ -177,6 +177,25 @@ if ~isempty(indToUse)
     All(indToUse).out.vis.runVal(188,:) = [];
     All(indToUse).out.vis.visID(188) = [];
 end
+%% fix 'vis' stim to be same as blank holo stim
+nameToUse = '210426_w32_2_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    
+    if any(All(indToUse).out.exp.stimID == 13)
+        All(indToUse).out.exp.stimID(All(indToUse).out.exp.stimID == 13) = 14;
+        All(indToUse).out.exp.outputsInfo.OutputStims(1) = [];
+        All(indToUse).out.exp.outputsInfo.OutputNames{1} = [];
+        All(indToUse).out.exp.outputsInfo.OutputOrder(1) = [];
+        All(indToUse).out.exp.outputsInfo.OutputPatterns{1} = [];
+        All(indToUse).out.exp.stimParams.Seq(1)=[];
+        All(indToUse).out.exp.stimParams.numPulse(1)=[];
+        All(indToUse).out.exp.stimParams.roi(1)=[];
+        All(indToUse).out.exp.uniqueStims(1) = [];
+    end
+end
 
 
 %%

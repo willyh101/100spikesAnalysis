@@ -7,14 +7,15 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 %%
 
 % [loadList, loadPath ]= uigetfile('Z:\ioldenburg\outputdata','MultiSelect','on');
-% [loadList, loadPath ]= uigetfile('E:\100spikes-results\outfiles-master','MultiSelect','on');
+[loadList, loadPath ]= uigetfile('E:\100spikes-results\outfiles-master','MultiSelect','on');
 
 %%
 % loadList = loadList(15);
 
 
 % allLoadList;
-oriLoadList;
+% oriLoadList;
+singleCellStim;
 % SSTLoadList;
 % PVLoadList;
 % u19LoadList;
@@ -65,7 +66,7 @@ opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
 
 
 %Stim Success Thresholds
-opts.stimsuccessZ = 0.3; %0.3, 0.25 over this number is a succesfull stim
+opts.stimsuccessZ = 0.5; %0.3, 0.25 over this number is a succesfull stim
 opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
 
 %run Threshold
@@ -110,7 +111,7 @@ ensIndNumber =outVars.ensIndNumber;
 %% Optional: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
-outVars.visPercentFromVis = visPercent;
+outVars.visPercentFromVis = visPercent; 
 
 %% if there is a red section (will run even if not...)
 [outVars] = detectShotRedCells(All,outVars);
@@ -185,8 +186,8 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [80 120];[1 inf];[80 120];%[0 1001];
-opts.ensStimScoreThreshold = 0.5; % default 0.5
+opts.numSpikeToUseRange = [1 inf];[80 120];%[0 1001];
+opts.ensStimScoreThreshold = 0.33; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
@@ -200,14 +201,12 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeInds ...
     & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
     & ~lowBaseLineTrialCount ...
-    & ~ensHasRed ...
+    ...& ~ensHasRed ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
-    & numMatchedTargets >= 2 ...
-    & ensembleOneSecond ... %cuts off a lot of the earlier
-    & numCellsEachEns==10 ...
-    ;
-%&  ;
+    ...& numMatchedTargets >= 2 ...
+    ...& ensembleOneSecond;%$ ... %cuts off a lot of the earlier
+    & numCellsEachEns==1;
 
 indsSub = ensIndNumber(ensemblesToUse);
 IndsUsed = unique(ensIndNumber(ensemblesToUse));
@@ -240,9 +239,9 @@ disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
 for ind=1:numExps
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
         All(ind).out.exp.lowRunTrials &...
-        All(ind).out.exp.stimSuccessTrial;% & ...
-%         All(ind).out.exp.visID == 1 | ...
-%         All(ind).out.exp.visID == 0;
+        All(ind).out.exp.stimSuccessTrial & ...
+        All(ind).out.exp.visID == 1 | ...
+        All(ind).out.exp.visID == 0;
     All(ind).out.anal.defaultTrialsToUse = trialsToUse;
 end
 %% Create time series plot
@@ -278,9 +277,7 @@ plotPopResponseByExpressionType(All,outVars);
 opts.distBins = 0:25:1000;
 plotResponseByDistance(outVars,opts);
 
-
-%%
-ylabel('Pop Response (Mean \Delta Z-dF/F)')
+ylabel('Pop Response (Mean z-scored \DeltaF/F)')
 xlabel('Distance From Nearest Target (\mum)')
 legend off
 %% Second more flexible way to make Distance Plots
@@ -345,6 +342,7 @@ plotResponseByDifferenceinAnglePref_12(outVars, opts)
 
 
 %% seperate by posNeg
+% opts.Thre
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 outVars = getRespByTuningDiffPosNeg_12(All, outVars);
 %% pos neg stim click thru
@@ -358,16 +356,17 @@ plotResponseByDiffAnglePrefPosNeg_12(outVars,opts);
 
 OSImin = 0.5;
 
-goodOSIensIdxs = find(outVars.ensOSI > OSImin);
+% goodOSIensIdxs = find(outVars.ensOSI > OSImin);
+goodOSIensIdxs = find(outVars.numCellsEachEns == 10);
 
 
 goodOSIens = outVars.ensCurve(2:9,:);
 goodOSIensSEM = outVars.ensCurveSEM(2:9,:);
-r=5;
-r=505;
-r=573;
-% r = randi(numel(goodOSIensIdxs));
-% r = goodOSIensIdxs(r);
+% r=5;
+% r=505;
+% r=573;
+r = randi(numel(goodOSIensIdxs));
+r = goodOSIensIdxs(r);
 figure(222)
 e = errorbar(goodOSIens(:,r), goodOSIensSEM(:,r));
 e.LineWidth = 3;
@@ -413,6 +412,7 @@ opts.numExamples = 3;
 opts.osiThreshold4Examples = 0.5;
 opts.visAlpha = 0.05;
 opts.redCellName = 'SST Cells';
+opts.colorLim = [-.1 .1];
 [outVars] = plotResponseOfRedCells(All, outVars, opts);
 [All, outVars] = redCellTuningAnalysis_12(All, outVars, opts);
 [outVars] = makeMeanRespEns2(All, outVars);
@@ -436,7 +436,7 @@ plotResponseByDifferenceinAnglePrefRed_12(outVars, opts)
 %%
 opts.goodOSIthresh = 0;
 opts.redCellName = 'SST Cells';
-opts.goodOSIthresh = 0.001;
+opts.goodOSIthresh = 0.5;
 
 plotRedandPyrConnTogether_12(outVars, opts)
 
@@ -464,7 +464,7 @@ title('Not Red Cells')
 linkaxes([ax ax2])
 
 %% Pos vs Neg by Distance
-opts.posNegThreshold = 0.1;
+opts.posNegThreshold = 0.05;
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
 opts.distBins = [0:25:1000];
@@ -650,15 +650,16 @@ axis tight
 opts.posNegThreshold = 0.1;
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
-opts.distBins = [0:25:400];
+opts.distBins = [10:20:150];
 
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup>=3 &  outVars.ensOSI>0.5 & outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
+ensemblesToUse = outVars.ensemblesToUse &  outVars.ensOSI>0.5;% outVars.numMatchedTargets>=3 &    ;
 sum(ensemblesToUse)
 
 oriVals = [NaN 0:30:330];
+numEns = numel(outVars.ensStimScore);
 % numEns = numel(outVars.posCellbyInd);
 
-ensIndNumber = outVars.ensIndNumber;
+% ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
 
 clear popToPlot
@@ -667,7 +668,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         fprintf('.')
     end
 
-    diffsPossible = [0 30 60 90 120 150];
+    diffsPossible = [0 30 60 90 120 150 180];
 %     diffsPossible = [0:45:315];
 
     if ensemblesToUse(i)
@@ -729,7 +730,7 @@ ylim([-0.1 0.3])
 
 %% OSI stuff
 % click to see more examples in subplot 2
-ind = 1;
+ind = 2;
 stimNum = 3; % for that expt
 
 % get no stim OSI first
@@ -1005,7 +1006,7 @@ ensemblesWithVisList = find(ensemblesWithVis);
 colorList = {rgb('black') rgb('firebrick')};
 titleString = {'No Vis' '\Delta0\circ' '\Delta45\circ' '\Delta90\circ' '\Delta135\circ'...
     '\Delta180\circ' '\Delta225\circ' '\Delta270\circ' '\Delta315\circ' };
-oriList = [NaN 0:45:315];
+oriList = [NaN 0:30:330];
 
 ro = numel(ensemblesWithVisList);
 co = 9;

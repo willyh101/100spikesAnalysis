@@ -1,4 +1,4 @@
-function plotPopRespByStimRate(outVars)
+% function plotPopRespByStimRate(outVars)
 
 figure(139);clf
 ensemblesToUse = outVars.ensemblesToUse;
@@ -8,6 +8,7 @@ hzEachEns = outVars.hzEachEns;
 uEns = unique(numCellsEachEns(ensemblesToUse)); 
 popResponseEns = outVars.popResponseEns;
 
+clear mdat err
 for i=1:numel(uEns)
     subplot(1,numel(uEns),i)
     
@@ -19,6 +20,9 @@ for i=1:numel(uEns)
         data{k} = popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & hzEachEns==uRates(k));
         names{k} = string(uRates(k));
     end
+    mdat(i) = mean(popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & hzEachEns==uRates(k)));
+    err(i) = sem(popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & hzEachEns==uRates(k)));
+    a{i} = popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & hzEachEns==uRates(k));
     
     cmap = colorMapPicker(numel(uRates),outVars.defaultColorMap);
 
@@ -35,3 +39,16 @@ for i=1:numel(uEns)
     ylabel('\Delta Pop Response')
     xlabel('Stim Rate (Hz)')
 end
+
+figure(299)
+clf
+
+% uRates = unique(hzEachEns(ensemblesToUse));
+% clear data err
+% for i=1:numel(uRates)
+%     data(i) = nanmean(popResponseEns(ensemblesToUse & hzEachEns==uRates(i)));
+%     err(i) = sem(popResponseEns(ensemblesToUse & hzEachEns==uRates(i)));
+% end
+
+errorbar(mdat,err)
+    

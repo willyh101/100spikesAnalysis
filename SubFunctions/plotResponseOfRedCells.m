@@ -6,6 +6,7 @@ minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
 strtFrames = arrayfun(@(x) x.out.anal.recStartFrame,All);
 totNumFrames = arrayfun(@(x) size(x.out.exp.zdfData,2),All);
 minEndFrame = min(totNumFrames-minStrtFrame);
+colorLim = opts.colorLim;
 
     clear popRespRed popRespNotRed popRespRedSEM popRespNotRedSEM
     clear popTSRed popTSNotRed nRedNotRed
@@ -21,6 +22,7 @@ for ind = 1:numExps
     baseMat = All(ind).out.anal.baseMat;
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
+    visResp = All(ind).out.anal.pVisR < opts.visAlpha;
     
     trialsToUse = All(ind).out.exp.lowMotionTrials &...
         All(ind).out.exp.lowRunTrials &...
@@ -36,9 +38,9 @@ for ind = 1:numExps
         holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
         c=c+1;
         if i==1
-            cellsToUse = ~ROIinArtifact';
+            cellsToUse = ~ROIinArtifact' & visResp;
         else
-            cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:);
+            cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:) & visResp;
         end
         popRespRed(c) = nanmean(squeeze(respMat(i,v,cellsToUse & isRed) -...
             baseMat(i,v,cellsToUse & isRed)));
@@ -175,28 +177,34 @@ sp2.MarkerFaceColor = rgb('tomato');
      popTSNotRed = popTSNotRed - mean(popTSNotRed(:,1:minStrtFrame),2);
  end
  
- colorLim = [-0.5 0.5];
+ 
+%  colorLim = [-0.2 0.2];
  figure(22);clf
  ax1(1) = subplot(2,2,1);
  imagesc(popTSRed(ensToPlot,:))
  colormap rdbu
  caxis(colorLim)
- title('Red Cells')
+ title('SST Cells')
  ylabel('Ensemble')
  xlabel('Frame')
  
- ax(1) = subplot(2,2,3);
+ ax(2) = subplot(2,2,3);
  fillPlot(popTSRed(ensToPlot,:),[],'ci');
+ ylim(colorLim)
+ ylabel('z-scored df/f')
  
- ax1(2) = subplot(2,2,2);
+ ax1(3) = subplot(2,2,2);
   imagesc(popTSNotRed(ensToPlot,:))
  colormap rdbu
  caxis(colorLim)
- title('Not Red Cells')
+ title('Pyramidal Cells')
  xlabel('Frame')
  
- ax(2) = subplot(2,2,4);
+ 
+ ax(4) = subplot(2,2,4);
   fillPlot(popTSNotRed(ensToPlot,:),[],'ci');
+  ylim(colorLim)
+  
 linkaxes(ax);
 
 figure(24);

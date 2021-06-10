@@ -142,7 +142,7 @@ try out.mani2 = mani2; catch; end
 try out.mani0 = mani0; catch; end
 
 
-save([basePath info.date '_' info.mouse '_outfileOnline'], 'out')
+save([basePath info.date '_' info.mouse '_outfile'], 'out')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
 % save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
 % save(['E:\Contrast Modulated Ensembles\'
