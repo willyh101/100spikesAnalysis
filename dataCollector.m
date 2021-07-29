@@ -22,7 +22,7 @@ info.offsets = offsets; %motion correction and clipping offsets.
 
 disp('got info')
 
-%%experiment epoch
+%% experiment epoch
 exp.DAQepoch = DAQepoch;
 exp.zdfData = zdfData;
 exp.allData = allData;
@@ -64,6 +64,8 @@ exp.holoRequest = ExpStruct.Holo.holoRequests{...
 
 exp.Tarray = Tarray; %Motion Correct trace;
 exp.dfData = dfData; %non zscored data; 
+
+exp.offsets = offsets; %sometimes different epochs calc subtly different offsets, recorded here
 
 disp('got exp')
 
@@ -142,7 +144,7 @@ try out.mani2 = mani2; catch; end
 try out.mani0 = mani0; catch; end
 
 
-save([basePath info.date '_' info.mouse '_outfileOnline'], 'out')
+save([basePath info.date '_' info.mouse '_outfile'], 'out','-v7.3')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
 % save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
 % save(['E:\Contrast Modulated Ensembles\'
@@ -153,8 +155,8 @@ disp('All data saved!')
 %be aware that some identical experiments, can have different numbers of
 %frames
 
-ex1 = exp1;
-ex2 = exp2;
+ex1 = exp1;exp_e5;% exp1;
+ex2 = exp_e9;% exp2;
 
 ex=ex1;
 
@@ -167,5 +169,38 @@ ex.lowMotionTrials = cat(2,ex1.lowMotionTrials,ex2.lowMotionTrials);
 ex.stimID = cat(2,ex1.stimID,ex2.stimID);
 ex.visID = cat(2,ex1.visID,ex2.visID);
 ex.DAQepoch = [ex1.DAQepoch ex2.DAQepoch];
+ex.dfData = cat(3,ex1.dfData(:,1:frameLen,:),ex2.dfData(:,1:frameLen,:));
+
+ex.uniqueStims = unique([ex1.uniqueStims ex2.uniqueStims]);
+ex.holoTargets = [ex1.holoTargets ex2.holoTargets];
+ex.rois = [ex1.rois ex2.rois];
+
+numRois = numel(ex1.rois); %warning assumes first seq of ex2 is 0, ie no stim. 
+Seq = [ex1.stimParams.Seq ex2.stimParams.Seq(2:end)+numRois];
+numPulse = [ex1.stimParams.numPulse ex2.stimParams.numPulse(2:end)];
+roi = [ex1.stimParams.roi cellfun(@(x) x+numRois, ex2.stimParams.roi(2:end),'uniformoutput',0)];
+Hz = [ex1.stimParams.Hz ex2.stimParams.Hz];
+numCells = [ex1.stimParams.numCells ex2.stimParams.numCells];
+powers = [ex1.stimParams.powers ex2.stimParams.powers];
+
+stimParams.Seq = Seq;
+stimParams.numPulse = numPulse;
+stimParams.roi = roi;
+stimParams.Hz = Hz;
+stimParams.numCells = numCells;
+stimParams.powers = powers;
+
+ex.stimParams = stimParams; 
+
+
+oi.OutputStims = [ex1.outputsInfo.OutputStims ex1.outputsInfo.OutputStims(2:end)];
+oi.OutputNames = [ex1.outputsInfo.OutputNames ex1.outputsInfo.OutputNames(2:end)];
+oi.OutputOrder = [ex1.outputsInfo.OutputOrder ex1.outputsInfo.OutputOrder(2:end)];
+oi.OutputPatterns = [ex1.outputsInfo.OutputPatterns ex1.outputsInfo.OutputPatterns(2:end)];
+ex.outputsInfo = oi; 
+
+for i =1:numel(ex1.Tarray)
+    ex.Tarray{i} = cat(2,ex1.Tarray{i}(1:frameLen,:,:),ex2.Tarray{i}(1:frameLen,:,:));
+end
 
 exp = ex;
