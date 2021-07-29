@@ -59,8 +59,8 @@ clist = colorMapPicker(numel(uEnsSizes),'viridis');
 for i=1:numel(uEnsSizes);
     
     datToPlot = mRespByOriDiffPos(ensSizes==uEnsSizes(i),:);
-    meanByOriDiff = (nanmean(datToPlot));
-    semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+    meanByOriDiff = (nanmean(datToPlot,1));
+    semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot)));
     e=errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
     e.Color = clist{i};
     e.LineWidth=2;
@@ -77,8 +77,8 @@ subplot(3,2,4)
 for i=1:numel(uEnsSizes);
     
     datToPlot = mRespByOriDiffNeg(ensSizes==uEnsSizes(i),:);
-    meanByOriDiff = (nanmean(datToPlot));
-    semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+    meanByOriDiff = (nanmean(datToPlot,1));
+    semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot)));
     e=errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
     e.Color = clist{i};
     e.LineWidth=2;
@@ -102,8 +102,8 @@ for i=1:numel(uEnsSizes);
     disp([num2str(uEnsSizes(i)) ' n=' num2str(sum(condToUse))]);
     if sum(condToUse)>2
         datToPlot = mRespByOriDiffPos(condToUse,:);
-        meanByOriDiff = (nanmean(datToPlot));
-        semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+        meanByOriDiff = (nanmean(datToPlot,1));
+        semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot)));
         e=errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
         e.Color = clist{i};
         e.LineWidth=2;
@@ -127,8 +127,8 @@ for i=1:numel(uEnsSizes);
     disp([num2str(uEnsSizes(i)) ' n=' num2str(sum(condToUse))]);
     if sum(condToUse)>2
         datToPlot = mRespByOriDiffNeg(condToUse,:);
-        meanByOriDiff = (nanmean(datToPlot));
-        semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+        meanByOriDiff = (nanmean(datToPlot,1));
+        semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot)));
         e=errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
         e.Color = clist{i};
         e.LineWidth=2;

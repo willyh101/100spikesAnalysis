@@ -63,7 +63,7 @@ exp.holoRequest = ExpStruct.Holo.holoRequests{...
     ExpStruct.Holo.Sweeps_holoRequestNumber(ExpStruct.EpochEnterSweep{DAQepoch})};
 
 exp.Tarray = Tarray; %Motion Correct trace;
-exp.dfData = dfData; %non zscored data; 
+exp.dfData = dfData; %non zscored data;
 
 exp.offsets = offsets; %sometimes different epochs calc subtly different offsets, recorded here
 
@@ -88,7 +88,7 @@ end
 %% save exp to Manifold
 mani = exp;
 try
-mani.mani = ExpStruct.Mani; 
+mani.mani = ExpStruct.Mani;
 catch
     tempMani    = ExpStruct.ManifoldWrite;
     tempMani.CellsWritten   = ExpStruct.CellsWritten;
@@ -129,7 +129,7 @@ out.exp = exp;
 try %if merging two or more experiments put them in here
     out.exp1 = exp1;
     out.exp2 = exp2;
-catch; 
+catch;
 end;
 try
     out.vis = vis;
@@ -175,7 +175,7 @@ ex.uniqueStims = unique([ex1.uniqueStims ex2.uniqueStims]);
 ex.holoTargets = [ex1.holoTargets ex2.holoTargets];
 ex.rois = [ex1.rois ex2.rois];
 
-numRois = numel(ex1.rois); %warning assumes first seq of ex2 is 0, ie no stim. 
+numRois = numel(ex1.rois); %warning assumes first seq of ex2 is 0, ie no stim.
 Seq = [ex1.stimParams.Seq ex2.stimParams.Seq(2:end)+numRois];
 numPulse = [ex1.stimParams.numPulse ex2.stimParams.numPulse(2:end)];
 roi = [ex1.stimParams.roi cellfun(@(x) x+numRois, ex2.stimParams.roi(2:end),'uniformoutput',0)];
@@ -190,14 +190,14 @@ stimParams.Hz = Hz;
 stimParams.numCells = numCells;
 stimParams.powers = powers;
 
-ex.stimParams = stimParams; 
+ex.stimParams = stimParams;
 
 
 oi.OutputStims = [ex1.outputsInfo.OutputStims ex1.outputsInfo.OutputStims(2:end)];
 oi.OutputNames = [ex1.outputsInfo.OutputNames ex1.outputsInfo.OutputNames(2:end)];
 oi.OutputOrder = [ex1.outputsInfo.OutputOrder ex1.outputsInfo.OutputOrder(2:end)];
 oi.OutputPatterns = [ex1.outputsInfo.OutputPatterns ex1.outputsInfo.OutputPatterns(2:end)];
-ex.outputsInfo = oi; 
+ex.outputsInfo = oi;
 
 for i =1:numel(ex1.Tarray)
     ex.Tarray{i} = cat(2,ex1.Tarray{i}(1:frameLen,:,:),ex2.Tarray{i}(1:frameLen,:,:));

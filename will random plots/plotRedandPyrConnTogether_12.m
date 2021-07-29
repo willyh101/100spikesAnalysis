@@ -48,8 +48,8 @@ for i=1:numel(osisToUse)
     
     datToPlot = mRespByOriDiffNotRed(sortedOSI>=osiToPlot,:);
     nEns = size(datToPlot,1);
-    meanByOriDiff = (nanmean(datToPlot));
-    semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+    meanByOriDiff = (nanmean(datToPlot,1));
+    semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot)));
     e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
     e.LineWidth = 1.5;
     
@@ -59,8 +59,8 @@ for i=1:numel(osisToUse)
     hold on
     % reds
     datToPlot = mRespByOriDiffRed(sortedOSI>=osiToPlot,:);
-    meanByOriDiff = (nanmean(datToPlot));
-    semByOriDiff = nanstd(datToPlot)./sqrt(sum(~isnan(datToPlot)));
+    meanByOriDiff = (nanmean(datToPlot,1));
+    semByOriDiff = nanstd(datToPlot,[],1)./sqrt(sum(~isnan(datToPlot)));
     e = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
     e.LineWidth = 1.5;
     

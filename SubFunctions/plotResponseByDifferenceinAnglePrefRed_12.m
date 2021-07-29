@@ -96,7 +96,8 @@ title('Sorted OSI')
 
 figure(1444)
 clf
-meanByOriDiff = (nanmean(mRespByOriDiff));
+osiToPlot = 0.5;
+meanByOriDiff = (nanmean(mRespByOriDiff(mRespByOriDiff >= osiToPlot)));
 semByOriDiff = nanstd(mRespByOriDiff)./sqrt(sum(~isnan(mRespByOriDiff)));
 e1 = errorbar(diffRange(1:end-1)-diffRange(1),meanByOriDiff,semByOriDiff);
 e1.LineWidth = 2;

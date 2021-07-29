@@ -1,13 +1,15 @@
 %% Load one Out
 clear
-PVLoadList
+% PVLoadList
 
-loadList = loadList(6);
+% loadList = loadList(6);
 %  loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
-loadPath = 'E:\100spikes-results\outfiles-master'
-loadPath = 'T:\Outfiles';
+% loadPath = 'E:\100spikes-results\outfiles-master'
+% loadPath = 'T:\Outfiles';
+
+[loadList, loadPath ]= uigetfile('E:\100spikes-results\outfiles-master','MultiSelect','on');
 %%
 numExps = numel(loadList);
 if numExps ~= 0
@@ -47,12 +49,12 @@ rawRed1020Img = ScanImageTiffReader([redImagePath red1020FN]).data;
 rawRed1020Img=rawRed1020Img(:,:,2:2:end);
 %% Motion Correct and check each
 % i=1;
-alignIt =1; %register the two images together
-gfilt = 0.75; %Gaussian filter. 0 is no filter
+alignIt =0; %register the two images together
+gfilt = 0; %Gaussian filter. 0 is no filter
 
-alignMov = 1;
+alignMov = 0;
 
-pregfilt = 2.5; %sometimes gaussian filtering before motion correcting is important to remove noise. Currently only opperates on the green channel
+pregfilt = 0; %sometimes gaussian filtering before motion correcting is important to remove noise. Currently only opperates on the green channel
 
 for i = 1:nDepthsTotal
 
@@ -138,12 +140,16 @@ nDepthsTotal = max(out.exp.allDepth);
 
 for i = 1:nDepthsTotal
 %     subplot(1,3,i)
-figure(7);clf
-imToUse =mean(rawRedImg(:,:,i:nDepthsTotal:end),3);
+    figure(7);clf
+    imToUse =mean(rawRedImg(:,:,i:nDepthsTotal:end),3);
     imagesc(imToUse);
+%     IMG = zeros([512 512 3]);
+%     IMG(:,:,2) = imToUse;
+%     IMG(:,:,3) = imToUse;
+%     image(IMG);
     title(['Plane ' num2str(i) '. Click on every ''Red'' Cell. click outside the block to moveon']);
     
-    caxis([prctile(imToUse(:),0.5) prctile(imToUse(:), 99.5)]);
+%     caxis([prctile(imToUse(:),0.5) prctile(imToUse(:), 99.5)]);
     hold on
 
     thisLocation =[0 0];
@@ -188,6 +194,7 @@ imToUse2 = IMTOUSE2{i};
 IMG = zeros([512 512 3]);
 IMG(:,:,1) = imToUse2;
 IMG(:,:,2) = imToUse;
+IMG(:,:,3) = imToUse;
 image(IMG);
 
     title(['Plane ' num2str(i) '. Click on every ''Red'' Cell. click outside the block to moveon']);
@@ -224,12 +231,12 @@ additionalOffsets = zeros([nDepthsTotal 2]);
 %offset is just a single average number, but sometimes you can tell that
 %one plane is more offset then the rest ad that now
 % 
-% additionalOffsets(1,:)=[0 0];
-% additionalOffsets(2,:)=[0 0];
-% additionalOffsets(3,:)=[0 0];
-additionalOffsets(1,:)=[0 2];
-additionalOffsets(2,:)=[0 2];
+additionalOffsets(1,:)=[0 0];
+additionalOffsets(2,:)=[0 0];
 additionalOffsets(3,:)=[0 0];
+% additionalOffsets(1,:)=[0 2];
+% additionalOffsets(2,:)=[0 2];
+% additionalOffsets(3,:)=[0 0];
 
 %%match red cell locations
 figure(7);clf
@@ -302,9 +309,9 @@ out.red=red;
 
 info = out.info;
 
-save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
-% save(['E:\100spikes-results\outfiles-master\' info.date '_' info.mouse '_outfile'], 'out')
-save(['T:\Outfiles' info.date '_' info.mouse '_outfile'], 'out')
+% save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
+save(['E:\100spikes-results\outfiles-master\' info.date '_' info.mouse '_outfile'], 'out')
+% save(['T:\Outfiles' info.date '_' info.mouse '_outfile'], 'out')
 
 disp('saved')
 

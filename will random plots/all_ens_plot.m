@@ -1,6 +1,8 @@
 ensemblesToUse = outVars.ensemblesToUse;
 numCellsEachEns = outVars.numCellsEachEns;
 popResponseEns = outVars.popResponseEns;
+plotAllNoStim = 1;
+
 
     if plotAllNoStim
 noStimPopResp = outVars.noStimPopResp;
@@ -10,7 +12,7 @@ noStimPopResp = outVars.noStimPopResp;
 
 %%more simple, take the means, population response by ensemble size
 clear avg err ns ens2plt
-f6 = figure(6);
+f6 = figure(161);
 clf(f6)
 numEns = numel(unique(numCellsEachEns(ensemblesToUse)));
 uniqueEns = unique(numCellsEachEns(ensemblesToUse));
@@ -61,18 +63,20 @@ set(gcf(),'Name','Mean population response to holo')
 
 ax=p{3};
 set(findall(gcf(),'type','line'),'markerSize',16)
-p{2}(1).Color = rgb('darkgrey');
-p{2}(2).Color = rgb('darkgrey');
+p{2}(1).Color = 'k';%rgb('darkgrey');
+p{2}(2).Color = 'k';%rgb('darkgrey');
 p{2}(1).LineWidth = 2;
 p{2}(2).LineWidth = 2;
 % p{2}(2).
+
 
 r = refline(0);
 r.LineStyle=':';
 r.Color = rgb('grey');
 r.LineWidth = 1;
 
-pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off');
+% pValEnselbeSize = anovan(popResponseEns(ensemblesToUse),numCellsEachEns(ensemblesToUse)','display','off');
+[~, pValStimNoStim] = ttest2(popResponseEns(ensemblesToUse), noStimPopResp);
 
 disp(['Anova pVal between sizes: ' num2str(pValEnselbeSize)]);
 % ranksum(noStimPopResp,popResponseEns(ensemblesToUse & numCellsEachEns==5))
