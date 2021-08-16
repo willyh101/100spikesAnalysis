@@ -17,14 +17,19 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 % SSTOriLoadList;
 % PVOriLoadList;
 % u19LoadList;
-manifoldLoadList;
+% manifoldLoadList;
+ai203LoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
 % loadPath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data\outputdata1' %Ian Desktop
 % loadPath = 'C:\Users\Will\Local Data\100spikes-results\outfiles-ori'
 % loadPath = 'T:\Outfiles';
-loadPath = 'E:\100spikes-results\outfiles-master';
+% loadPath = 'E:\100spikes-results\outfiles-master';
+loadPath = '/Volumes/Frankenshare/Outfiles';
+loadPath = '/Users/willh/Desktop/ai203_data';
+addpath(genpath(loadPath))
+
 %%
 numExps = numel(loadList);
 disp(['There are ' num2str(numExps) ' Exps in this LoadList'])
