@@ -180,14 +180,14 @@ for ind=1:numExps
         v=vs(k); 
         for i= 1:numStims
             holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
-            if i==1;
+            if i==1 || holo == 0;
                 cellsToUse = ~ROIinArtifact';
             else
                 cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:);
             end
             popResp(i,v) = mean(squeeze(respMat(i,v ,cellsToUse) - baseMat(i,v,cellsToUse)));
             
-            if i~=1
+            if i~=1 && holo~=0
                 Tg=All(ind).out.exp.rois{holo};
                 dists = StimDistance(Tg,:);
                 
