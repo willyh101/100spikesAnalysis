@@ -47,6 +47,6 @@ end
 
 out.OutputStims     = OutputStims;      %number in stimLog
 out.OutputNames     = OutputNames;      %name as written in output selector
-out.OutputOrder     = OutputOrder;      %order to sort by to get back into ascending order
+out.OutputOrder     = OutputOrder;      %order to sort by to get back into stimparams order
 out.OutputPatterns  = OutputPatterns;   %full pattern of outputs
 out.OutputStimID    = OutputStimID;     %number in stimID
