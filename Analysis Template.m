@@ -23,8 +23,8 @@ catch
 end
 %% Experiment
 
-s2pEpoch = 9 ;
-DAQepoch = 10 ;
+s2pEpoch = 6 ;
+DAQepoch = 7 ;
 
 
 %% Scary Loading Part
