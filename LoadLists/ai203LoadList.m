@@ -12,4 +12,24 @@ loadList = {
     '210511_I147_outfile.mat'  %no equiv to 100spikes
     '210517_I147_outfile.mat'  %no equiv to 100spikes %good mani
     '210518_I147_outfile.mat'  %no equiv to 100spikes %good mani
+    
+    % will added
+%     '191213_W20_1_outfile.mat' % duplicate from above
+%     '191230_w20_1_outfile.mat' % duplicate from above
+    '200807_w26_1_outfile.mat'
+    
+    % tre expts for comparison
+    '191217_mora_tre_outfile.mat'
+    '200302_W14_1_outfile.mat'
+    '200304_W14_1_outfile.mat'
+    '200311_i139_2_outfile.mat'
+    '200728_i140_2_outfile.mat'
+    '200723_I140_2_outfile.mat'
+    '200729_I140_2_outfile.mat'
+    '200810_i140_2_outfile.mat'
+    '200902_w18_3_outfile.mat'
+    '200901_w19_1_outfile.mat'
+    '201102_w29_1_outfile.mat'
+    '201103_w29_1_outfile.mat'
+    
     }

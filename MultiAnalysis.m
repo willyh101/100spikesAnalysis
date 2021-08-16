@@ -317,21 +317,21 @@ disp('done')
 %         ax = subplot(2,3,i);
 %         ylim([-0.05 0.15])
 % end
-    
+
 %% Plot Distance divided between stimmed and not
 countUSC=[]
 for ind = 1:numExps
     allStimmedCells = unique([All(ind).out.exp.holoTargets{:}]);
     allStimmedCells(isnan(allStimmedCells)) = [];
-    tempCells = 1:size(All(ind).out.exp.zdfData,1); 
+    tempCells = 1:size(All(ind).out.exp.zdfData,1);
     asc = ismember(tempCells,allStimmedCells);
     All(ind).out.anal.allStimmedCells = asc;
     All(ind).out.anal.neverStimmedCells = ~asc;
-    
+
      tc = ismember(tempCells,All(ind).out.exp.targetedCells);
      All(ind).out.anal.allTargetedCells = tc;
      All(ind).out.anal.neverTargetedCells = ~tc;
-     
+
      if isfield(All(ind).out.exp,'holoRequest')
          roiNaN =isnan(All(ind).out.exp.holoRequest.roiWeights);% | All(ind).out.exp.holoRequest.roiWeights>1.5;
          unstimableCells = All(ind).out.exp.targetedCells(roiNaN);
@@ -339,12 +339,12 @@ for ind = 1:numExps
      else
          usc = zeros(size(tempCells));
      end
-     
+
      countUSC(ind) = sum(usc);
      disp(['Ind: ' num2str(ind) '. ' num2str(sum(usc)) ' cells unstimmable'])
-     
-     All(ind).out.anal.unstimableCells= usc; 
-         
+
+     All(ind).out.anal.unstimableCells= usc;
+
 end
 disp('made new stimmed vs neverstimmed cells')
 %%
@@ -396,7 +396,7 @@ drawnow
 
 ax = subplot(1,3,3);
 
-backupEnsemblesToUse = outVars.ensemblesToUse; 
+backupEnsemblesToUse = outVars.ensemblesToUse;
 noUnstimableCount = find(countUSC==0);
 outVars.ensemblesToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,noUnstimableCount);
 disp(sum(outVars.ensemblesToUse))
@@ -861,18 +861,18 @@ for k = 1:numel(diffsPossible)
         eHandle{1}.Color = colorListOri{k};
     end
     ylabel('Pop Response (Mean \DeltaF/F)')
-    
+
     figure(11); tempax = subplot(1,1,1);
     [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
     eHandle{1}.Color = colorListOri{k};
     ylabel('Pop Response (Mean \DeltaF/F)')
-    
+
     if k ==1 || k==3
         figure(14); tempax = subplot(1,1,1);
         [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
         eHandle{1}.Color = colorListOri{k};
         ylabel('Pop Response (Mean \DeltaF/F)')
-        
+
         if k==1
         delete(eHandle{end})
         end
