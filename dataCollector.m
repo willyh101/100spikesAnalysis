@@ -84,6 +84,7 @@ catch
     tempMani.pBalSatValue   = ExpStruct.pBalSatValue;
     spk.Mani = tempMani;
 end
+disp('got spk')
 
 %% save exp to Manifold
 mani = exp;
@@ -101,6 +102,7 @@ mani.CellIDs = unique(cat(2,exp.holoRequest.rois{:}));
 
 %% orientation/vis epoch
 vis.desc = 'Ori';
+vis.gratingSize = 30;
 vis.zdfData = zdfData;
 vis.allData = allData;
 vis.runVal = runVector;
