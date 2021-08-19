@@ -190,6 +190,7 @@ try out.spk = spk; catch; end
 try out.mani = mani; catch; end
 try out.mani2 = mani2; catch; end
 try out.mani0 = mani0; catch; end
+try out.stm = stm; catch; end
 
 
 save([basePath info.date '_' info.mouse '_outfile'], 'out','-v7.3')

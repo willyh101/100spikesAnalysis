@@ -1,7 +1,7 @@
 
 function out = outputPatternTranslator(ExpStruct,uniqueStims)
 
-OutputStims=[];OutputNames = [];OutputOrder=[];OutputPatterns=[];OutputStimID=[]
+OutputStims=[];OutputNames = [];OutputOrder=[];OutputPatterns=[];OutputStimID=[];
 for i =1:numel(uniqueStims)
     S=uniqueStims(i);
     
