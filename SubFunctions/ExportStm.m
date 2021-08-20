@@ -324,12 +324,12 @@ stm.DAQepoch = DAQepoch;
 stm.zdfData = zdfData;
 stm.allData = allData;
 stm.stimID =stimID;
+% 
+% swpStart = ExpStruct.EpochEnterSweep{DAQepoch};
+% Hnum = ExpStruct.Holo.Sweeps_holoRequestNumber(swpStart);
+% HR =ExpStruct.Holo.holoRequests{Hnum};
 
-swpStart = ExpStruct.EpochEnterSweep{DAQepoch};
-Hnum = ExpStruct.Holo.Sweeps_holoRequestNumber(swpStart);
-HR =ExpStruct.Holo.holoRequests{Hnum};
-
-stm.holoRequest = HR;
+stm.holoRequest = holoRequests; %HR;
 
 stm.runVal = runVector;
 stm.lowMotionTrials = lowMotionTrials;
