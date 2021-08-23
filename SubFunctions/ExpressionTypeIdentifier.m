@@ -25,8 +25,8 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'w29_3'
      'w30_2'
      'w32_2'
-     'i143'
-     'i147'
+     'I143'
+     'I147'
      };
 
  ExpressionTypeList = {
