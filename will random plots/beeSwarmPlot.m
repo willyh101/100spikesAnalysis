@@ -1,4 +1,4 @@
-% function h = beeSwarmPlot(data, names)
+function h = beeSwarmPlot(data, names)
 % % for now, data should be a cell array
 % 
 % assert(iscell(data), 'For now, data must be a cell array by category.')
@@ -6,8 +6,8 @@
 
 clear xData
 ncats = numel(data);
-figure(1111)
-clf
+% figure(1111)
+% clf
 
 sdev = 0.1;
 for i=1:ncats
