@@ -173,7 +173,12 @@ clear ensStimScore
             htg=[];
             stimSuccessTrial(k) = 1;
         else
-            htg = All(ind).out.exp.holoTargets{h};
+            try
+                htg = All(ind).out.exp.holoTargets{h};
+            catch
+                disp('Incorrect number of holoTargets')
+                htg =[];
+            end
             htg(isnan(htg))=[];
             
             vals = rdata(htg,k) - bdata(htg,k);
@@ -250,7 +255,16 @@ for ind = 1:numExps
             numSpikes(i)=0;
         else
             c=c+1;
+            try
             numSpikes(i) = temp(i)*All(ind).out.exp.stimParams.numCells(c);
+            catch
+                disp(['Error ind ' num2str(ind) ' stimParams is wrong. assuming all trial types identical (line 261)'])
+                if i>1
+                    numSpikes(i) = numSpikes(i-1);
+                else
+                    numSpikes(i) = 0
+                end
+            end
         end
     end
     

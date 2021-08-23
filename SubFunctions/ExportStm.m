@@ -1,34 +1,11 @@
-clear;
-date = '210518';
-mouse = 'I147';%'I138_1';%'I136_1';
-epochs = '2_3_4_5_6_7_8_9_10';
+function stm = ExportStm(inputParams)
 
-% addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
-% basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
-basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
+path = inputParams.fullPth;
+physfile = inputParams.physfile;
+loadList = inputParams.loadList;
+DAQepoch = inputParams.DAQepoch;
+s2pEpoch = inputParams.s2pEpoch;
 
-path = fullfile(basePath,epochs);
-
-baseName = [mouse '_' date];%'I118a.2_180504';
-loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc']};% ['F_' baseName '_plane4_proc']};
-
-nDepthsTotal = 3;4;%Normally 3;
-physfile = fullfile(basePath,[date '_B' '.mat']);
-% physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
-try
-    load(physfile)
-catch
-    physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
-    load(physfile)
-end
-%% Experiment
-
-s2pEpoch = 6 ;
-DAQepoch = 7 ;
-
-
-%% Scary Loading Part
-%The Slow File reading Part
 
 BaseLinePeriod = 1000;
 
@@ -42,7 +19,9 @@ if ~exist('DIGITSWEEP')
 end
 
 numColors=2;
+nDepthsTotal = 3;
 
+disp('The Scary Load Part...')
 tScary = tic;
 [localFiles, frameCount, MD, FR, minNumFrames, numFrames, numCells,...
     numFiles, allData, allSPData, allCoM, allDepth, allNP, allNPC,...
@@ -51,13 +30,19 @@ tScary = tic;
     stimID, uniqueStims, uStimCount, runVector, ArtifactSizeLeft,...
     ArtifactSizeRight, ROIinArtifact, excludeCells, framesUsed, Tused, zData2]...
     = loadCaData(path,loadList,DAQepoch,s2pEpoch,nDepthsTotal,ExpStruct,DIGITSWEEP,BaseLinePeriod, numColors);
-toc(tScary)
-
 swp =ExpStruct.EpochEnterSweep{DAQepoch};
 hr = ExpStruct.Holo.Sweeps_holoRequestNumber(swp);
 
 holoRequests = ExpStruct.Holo.holoRequests{hr};
 
+if ~isfield(holoRequests,'DE_list')
+    try
+       holoRequests = ExpStruct.Holo.holoRequests{hr-1};
+    catch
+    end
+end
+
+disp('Computing df and zdf...')
 [dfData, zdfData] =  computeDFFwithMovingBaseline(allData);
 
 
@@ -95,7 +80,7 @@ if ~exist('runVector')
     [runVector] = runReader2(ExpStruct,DAQepoch,FR,3);% sometimes 3, sometimes 5
 end
 
-numStimuli = 1
+numStimuli = 1;
 
 strtFrame = round(strt/FR);
 
@@ -285,8 +270,13 @@ for i =1:numel(uniqueStims)
         %         stimParam.numPulse(i) =  sum(diff(ExpStruct.output_patterns{ID}(:,5))>0);
         stimParam.Seq(i) = sum(diff(ExpStruct.stimlog{ID}{1}(:,7))>0);%formerly 9
         stimParam.numPulse(i) =  sum(diff(ExpStruct.stimlog{ID}{1}(:,5))>0);
-        if stimParam.Seq(i)~=0
-            stimParam.roi{i} = uniqueROIs{stimParam.Seq(i)};
+        if stimParam.Seq(i)~=0 
+            try
+                stimParam.roi{i} = uniqueROIs{stimParam.Seq(i)};
+            catch
+                stimParam.roi{i} = 0;
+                disp('stimParam Issues')
+            end
         else
             stimParam.roi{i} = 0;
         end
@@ -327,11 +317,47 @@ visStop = nanmean(timeOfVisStimEnd(2:end));
 
 uniqueVisStim = unique(visID);
 
-disp('Ready')
-%%
+disp('done process. now extracting stm')
 
-clear mov1 mov2 mov3 sweeps DIGITSWEEP
-savePath = basePath;
-saveName =['Analysis_e' num2str(DAQepoch) '.mat'];
-save(fullfile(savePath,saveName),'-regexp', '^(?!(ExpStruct)$).','-v7.3');
-disp('Saved')
+%% stimTest
+stm.DAQepoch = DAQepoch;
+stm.zdfData = zdfData;
+stm.allData = allData;
+stm.stimID =stimID;
+% 
+% swpStart = ExpStruct.EpochEnterSweep{DAQepoch};
+% Hnum = ExpStruct.Holo.Sweeps_holoRequestNumber(swpStart);
+% HR =ExpStruct.Holo.holoRequests{Hnum};
+
+stm.holoRequest = holoRequests; %HR;
+
+stm.runVal = runVector;
+stm.lowMotionTrials = lowMotionTrials;
+
+stm.holoTargets = HoloTargets;
+stm.rois = roisTargets;
+stm.allCoM = allCoM;
+stm.allDepth = allDepth;
+stm.stimCoM = stimCoM;
+stm.stimDepth = stimDepth;
+stm.targetedCells = targettedCells;
+stm.uniqueStims = uniqueStims;
+stm.outputsInfo = outputPatternTranslator(ExpStruct,uniqueStims);
+
+tempOutputOrder = stm.outputsInfo.OutputOrder;
+tempOutputOrder(tempOutputOrder==0)=[];
+% exp.output_names = ExpStruct.output_names;
+
+stm.stimParams = stimParam;
+try
+stm.stimParams.Hz = holoRequests.holoStimParams.hzList(tempOutputOrder);
+stm.stimParams.numCells = holoRequests.holoStimParams.cellsPerHolo(tempOutputOrder);
+stm.stimParams.powers = holoRequests.holoStimParams.powerList(tempOutputOrder);
+catch
+    disp('no holoStimParams')
+end
+
+stm.Tarray = Tarray; %Motion Correct trace;
+stm.dfData = dfData; %non zscored data;
+
+stm.offsets = offsets; %sometimes different epochs calc subtly different offsets, recorded here

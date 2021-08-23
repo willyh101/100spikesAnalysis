@@ -1,7 +1,7 @@
 
 function out = outputPatternTranslator(ExpStruct,uniqueStims)
 
-OutputStims=[];OutputNames = [];OutputOrder=[];OutputPatterns=[];
+OutputStims=[];OutputNames = [];OutputOrder=[];OutputPatterns=[];OutputStimID=[];
 for i =1:numel(uniqueStims)
     S=uniqueStims(i);
     
@@ -35,6 +35,7 @@ for i =1:numel(uniqueStims)
     OutputPatterns{i}= ExpStruct.output_patterns{c};
     OutputStims(i)=c;
     OutputNames{i}=ExpStruct.output_names{c};
+    OutputStimID(i)=S;
     try
     OutputOrder(i) = str2num(str{1});
     catch
@@ -44,7 +45,8 @@ for i =1:numel(uniqueStims)
 
 end
 
-out.OutputStims     = OutputStims;
-out.OutputNames     = OutputNames;
-out.OutputOrder     = OutputOrder;
-out.OutputPatterns  = OutputPatterns;
+out.OutputStims     = OutputStims;      %number in stimLog
+out.OutputNames     = OutputNames;      %name as written in output selector
+out.OutputOrder     = OutputOrder;      %order to sort by to get back into stimparams order
+out.OutputPatterns  = OutputPatterns;   %full pattern of outputs
+out.OutputStimID    = OutputStimID;     %number in stimID

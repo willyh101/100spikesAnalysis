@@ -84,6 +84,7 @@ catch
     tempMani.pBalSatValue   = ExpStruct.pBalSatValue;
     spk.Mani = tempMani;
 end
+disp('got spk')
 
 %% save exp to Manifold
 mani = exp;
@@ -101,6 +102,7 @@ mani.CellIDs = unique(cat(2,exp.holoRequest.rois{:}));
 
 %% orientation/vis epoch
 vis.desc = 'Ori';
+vis.gratingSize = 30;
 vis.zdfData = zdfData;
 vis.allData = allData;
 vis.runVal = runVector;
@@ -122,6 +124,52 @@ vis2.visStart = visStart;
 vis2.visStop = visStop;
 vis2.DAQepoch = DAQepoch;
 disp('got vis2')
+
+
+%% stimTest
+stm.DAQepoch = DAQepoch;
+stm.zdfData = zdfData;
+stm.allData = allData;
+stm.stimID =stimID;
+
+swpStart = ExpStruct.EpochEnterSweep{DAQepoch};
+Hnum = ExpStruct.Holo.Sweeps_holoRequestNumber(swpStart);
+HR =ExpStruct.Holo.holoRequests{Hnum};
+
+stm.holoRequest = HR;
+
+stm.runVal = runVector;
+stm.lowMotionTrials = lowMotionTrials;
+
+stm.holoTargets = HoloTargets;
+stm.rois = roisTargets;
+stm.allCoM = allCoM;
+stm.allDepth = allDepth;
+stm.stimCoM = stimCoM;
+stm.stimDepth = stimDepth;
+stm.targetedCells = targettedCells;
+stm.uniqueStims = uniqueStims;
+stm.outputsInfo = outputPatternTranslator(ExpStruct,uniqueStims);
+
+tempOutputOrder = stm.outputsInfo.OutputOrder;
+tempOutputOrder(tempOutputOrder==0)=[];
+% exp.output_names = ExpStruct.output_names;
+
+stm.stimParams = stimParam;
+try
+stm.stimParams.Hz = holoRequests.holoStimParams.hzList(tempOutputOrder);
+stm.stimParams.numCells = holoRequests.holoStimParams.cellsPerHolo(tempOutputOrder);
+stm.stimParams.powers = holoRequests.holoStimParams.powerList(tempOutputOrder);
+catch
+    disp('no holoStimParams')
+end
+
+stm.Tarray = Tarray; %Motion Correct trace;
+stm.dfData = dfData; %non zscored data;
+
+stm.offsets = offsets; %sometimes different epochs calc subtly different offsets, recorded here
+
+
 %% run to save
 
 out.info = info;
@@ -142,6 +190,7 @@ try out.spk = spk; catch; end
 try out.mani = mani; catch; end
 try out.mani2 = mani2; catch; end
 try out.mani0 = mani0; catch; end
+try out.stm = stm; catch; end
 
 
 save([basePath info.date '_' info.mouse '_outfile'], 'out','-v7.3')

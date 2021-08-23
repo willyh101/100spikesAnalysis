@@ -25,6 +25,8 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'w29_3'
      'w30_2'
      'w32_2'
+     'I143'
+     'I147'
      };
 
  ExpressionTypeList = {
@@ -51,6 +53,8 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'AAV Tre 2s'
      'AAV Tre 2s'
      'AAV Tre 2s'
+     'Ai203'
+     'Ai203'
      };
 
  [uniqueExpressionTypes, ~, ExpressionTypeNum] = unique(ExpressionTypeList);
