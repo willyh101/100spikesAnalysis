@@ -1,11 +1,12 @@
 %%for NOT ai203 mice
 disp('   ')
-pvis_cutoff = 0.2;
+pvis_cutoff = 0.05;
 
 numExpts = numel(All);
 
-clear osis visr percent_vis
+clear osis visr percent_vis tre_expts mean_osi
 c=0;
+cc=0;
 
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 % excludedTypes = {'AAV CamK2' 'Ai203'};
@@ -15,14 +16,17 @@ excludedTypes = {'AAV Tre'};
 % excludedTypes = {};
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
-excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
+excludeExpressionType = ismember(indExpressionType,exprTypeExclNum);
 
-inds2use = unique(ensIndNumber(excludeExpressionType));
+inds2use = find(excludeExpressionType);
 disp(['Total number of Ai203 FOVs ' num2str(numel(inds2use))])
 
 for ind = inds2use
     out = All(ind).out;
     visPercent = out.anal.visPercent;
+    
+    cc = cc + 1;
+    tre_expts{cc} = [out.info.date '_' out.info.mouse '_outfile.mat'];
     
     if visPercent < pvis_cutoff
         continue
@@ -32,6 +36,8 @@ for ind = inds2use
     osis{c} = out.anal.osi;
     visr{c} = out.anal.pVisR < 0.05;
     percent_vis(c) = visPercent;
+    mean_osi(c) = nanmean(out.anal.osi(out.anal.pVisR < 0.05));
+    
 end
 
 osis = cell2mat(osis);
@@ -42,6 +48,7 @@ visr = visr(~isnan(osis));
 osis = osis(visr);
 not_ai203_osis = osis;
 virus_vis_percent = percent_vis;
+virus_session_osi = mean_osi;
 
 disp(['Total number of cells included: ' num2str(numel(osis))])
 
@@ -56,13 +63,14 @@ xlabel('OSI')
 disp(['Mean OSI: ' num2str(mean(osis))])
 disp(['Median OSI: ' num2str(median(osis))])
 
-%% for ai203 mice
+%%for ai203 mice
 
 
 numExpts = numel(All);
 
-clear osis visr percent_vis
+clear osis visr percent_vis ai203_expts mean_osi
 c=0;
+cc=0;
 
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 excludedTypes = {'Ai203'};
@@ -72,14 +80,17 @@ excludedTypes = {'Ai203'};
 % excludedTypes = {};
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
-excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
+excludeExpressionType = ismember(indExpressionType,exprTypeExclNum);
 
-inds2use = unique(ensIndNumber(excludeExpressionType));
+inds2use = find(excludeExpressionType);
 disp(['Total number of virus FOVs ' num2str(numel(inds2use))])
 
 for ind = inds2use
     out = All(ind).out;
     visPercent = out.anal.visPercent;
+    
+    cc=cc+1;
+    ai203_expts{cc} = [out.info.date '_' out.info.mouse '_outfile.mat'];
     
     if visPercent < pvis_cutoff
         continue
@@ -89,7 +100,7 @@ for ind = inds2use
     osis{c} = out.anal.osi;
     visr{c} = out.anal.pVisR < 0.05;
     percent_vis(c) = visPercent;
-    out.info
+    mean_osi(c) = nanmean(out.anal.osi(out.anal.pVisR < 0.05));
 end
 
 osis = cell2mat(osis);
@@ -100,6 +111,7 @@ visr = visr(~isnan(osis));
 osis = osis(visr);
 ai203_osis = osis;
 ai203_vis_percent = percent_vis;
+ai203_session_osi = mean_osi;
 
 disp(['Total number of cells included: ' num2str(numel(osis))])
 
@@ -209,15 +221,50 @@ figure(245)
 clf
 
 % for different FOVs
-beeSwarmPlot({ai203_vis_percent, virus_vis_percent}, {'Ai203', 'AAV'});
+beeswarm({ai203_vis_percent*100, virus_vis_percent*100}, {'Ai203', 'AAV'});
 [h,p] = ttest2(ai203_vis_percent, virus_vis_percent);
 disp(['pVal ttest vis responsive percent: ' num2str(p)])
 
+ylim([0 100])
+ylabel('Percent Visually Responsive')
+
+%%OSI overlay
+
+figure(345);
+clf
+
+data = ai203_osis;
+h = histogram(data);
+h.FaceAlpha = 0.5;
+% h.Normalization = 'pdf';
+h.BinWidth = 0.05;
+
+hold on
+
+data = not_ai203_osis;
+h = histogram(data);
+h.FaceAlpha = 0.5;
+% h.Normalization = 'pdf';
+h.BinWidth = 0.05;
+
+ylabel('PDF')
+xlabel('Orientation Selectivity')
+legend('Ai203', 'AAV')
+
+%%OSI by session
 
 
+figure(246)
+clf
+
+% for different FOVs
+beeswarm({ai203_session_osi, virus_session_osi}, {'Ai203', 'AAV'});
+[h,p] = ttest2(ai203_session_osi, virus_session_osi);
+disp(['pVal ttest OSI by session: ' num2str(p)])
 
 
-
+ylim([0 1])
+ylabel('Mean Session OSI')
 
 disp('.......')
 disp(' ')
