@@ -1,7 +1,8 @@
 ai203LoadList;
+treChroMELoadList
 % testLoadList
 loadPath = 'T:\Outfiles';
-savePath = 'T:\Outfiles';%\temp';
+savePath = 'T:\Outfiles\temp';
 
 %% load
 numExps = numel(loadList);
@@ -83,7 +84,7 @@ for ind = 1:numExps
 %                 return
 %             else
                 disp('Launching...')
-                stm = ExportStm(inputParams);
+                stm = ExportStm(inputParams); %Main Function!
                 out.stm = stm;
                 
                 disp('Saving...')

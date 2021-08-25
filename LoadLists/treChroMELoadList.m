@@ -1,25 +1,7 @@
-% add experiments for ori ensembles here...
-loadListName = 'ai203LoadList'; 
+loadListName = 'treChroMELoadList'; 
 
 loadList = {
-    '191213_W20_1_outfile.mat'
-    '191230_w20_1_outfile.mat' %need raw data
-    '200310_HB95_outfile.mat'
-     '200727_w26_1_outfile.mat' %no equiv to 100spikes
-    '200728_w26_1_outfile.mat' %no equiv to 100spikes
-    '200908_w26_1_outfile.mat' %no equiv to 100spikes %good mani
-    '210426_I143_outfile.mat'  %no equiv to 100spikes %good mani
-    '210511_I147_outfile.mat'  %no equiv to 100spikes
-    '210517_I147_outfile.mat'  %no equiv to 100spikes %good mani
-    '210518_I147_outfile.mat'  %no equiv to 100spikes %good mani
-%     
-%     % will added
-% % %     '191213_W20_1_outfile.mat' % duplicate from above
-% % %     '191230_w20_1_outfile.mat' % duplicate from above
-    '200807_w26_1_outfile.mat' %need raw data
-%     
-%     % tre expts for comparison
-     '191217_mora_tre_outfile.mat' %need raw data
+    '191217_mora_tre_outfile.mat' %need raw data
     
     '200227_W14_1_outfile.mat' %no ori
     '200217_W14_1_outfile.mat' %no ori, only cmn
@@ -50,5 +32,6 @@ loadList = {
 %   '200722_w18_1_outfile.mat' %not yet exported no 100spk
 %   '200724_w18_1_outfile.mat' %not yet exported no 100spk
 %   '201229_w29_1_outfile.mat' %not yet exported %no 100spk
+
     
     }
