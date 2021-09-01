@@ -9,7 +9,7 @@ ncats = numel(data);
 % figure(1111)
 % clf
 
-sdev = 0.1;
+sdev = 0.05;
 for i=1:ncats
     hold on
     % for each category make some jittered x data
@@ -33,6 +33,8 @@ e.MarkerFaceColor = 'k';
 e.MarkerEdgeColor = 'none';
 e.LineStyle = 'none';
 e.Color = 'k';
+
+legend(names)
 
 xlim([0,ncats+1])
 
