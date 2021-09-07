@@ -48,7 +48,7 @@ exp.outputsInfo = outputPatternTranslator(ExpStruct,uniqueStims);
 
 tempOutputOrder = exp.outputsInfo.OutputOrder;
 tempOutputOrder(tempOutputOrder==0)=[];
-% exp.output_names = ExpStruct.output_names;
+try exp.output_names = ExpStruct.output_names; catch; end
 
 exp.stimParams = stimParam;
 try
@@ -102,7 +102,7 @@ mani.CellIDs = unique(cat(2,exp.holoRequest.rois{:}));
 
 %% orientation/vis epoch
 vis.desc = 'Ori';
-vis.gratingSize = 30;
+vis.gratingSize = 50;
 vis.zdfData = zdfData;
 vis.allData = allData;
 vis.runVal = runVector;
@@ -134,9 +134,11 @@ stm.stimID =stimID;
 
 swpStart = ExpStruct.EpochEnterSweep{DAQepoch};
 Hnum = ExpStruct.Holo.Sweeps_holoRequestNumber(swpStart);
-HR =ExpStruct.Holo.holoRequests{Hnum};
+HR =ExpStruct.Holo.holoRequests{Hnum-1};
+HR2 =ExpStruct.Holo.holoRequests{Hnum};
 
 stm.holoRequest = HR;
+stm.holoRequest2 = HR2; %sometimes its putting the wrong HR in save both.
 
 stm.runVal = runVector;
 stm.lowMotionTrials = lowMotionTrials;
@@ -157,11 +159,18 @@ tempOutputOrder(tempOutputOrder==0)=[];
 
 stm.stimParams = stimParam;
 try
-stm.stimParams.Hz = holoRequests.holoStimParams.hzList(tempOutputOrder);
-stm.stimParams.numCells = holoRequests.holoStimParams.cellsPerHolo(tempOutputOrder);
-stm.stimParams.powers = holoRequests.holoStimParams.powerList(tempOutputOrder);
+    stm.stimParams.Hz = holoRequests.holoStimParams.hzList(tempOutputOrder);
+    stm.stimParams.numCells = holoRequests.holoStimParams.cellsPerHolo(tempOutputOrder);
+    stm.stimParams.powers = holoRequests.holoStimParams.powerList(tempOutputOrder);
 catch
-    disp('no holoStimParams')
+    try
+        stm.stimParams.Hz = holoRequests.holoStimParams.hzList(1);
+        stm.stimParams.numCells = holoRequests.holoStimParams.cellsPerHolo(1);
+        stm.stimParams.powers = holoRequests.holoStimParams.powerList(1);
+        disp('holostimparams only one value used')
+    catch
+        disp('no holoStimParams')
+    end
 end
 
 stm.Tarray = Tarray; %Motion Correct trace;

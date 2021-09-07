@@ -13,12 +13,12 @@ addpath(genpath('100spikesAnalysis'), genpath('Ian Code'), genpath('analysis-cod
 
 
 % allLoadList;
-% oriLoadList;
+oriLoadList;
 % SSTOriLoadList;
 % PVOriLoadList;
 % u19LoadList;
 % manifoldLoadList;
-ai203LoadList;
+% ai203LoadList;
 
 % loadPath = 'U:\ioldenburg\outputdata1'
 % loadPath = 'C:\Users\ian\Dropbox\Adesnik\Data\outputdata1'
@@ -1100,7 +1100,7 @@ ylim([-0.1 0.3])
 %% Two Criteria Distance Plots
 %% Plot Distance Plots by criteria
 opts.distType = 'harm'; 'min';
-opts.distBins =[0:50:400];[15:20:150];% [0:25:400];
+opts.distBins =[0:50:400];[15:20:150];% [0:25:400];%[0:50:400];
 
 %things to hold constant
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & outVars.meanEnsOSI>0.25;

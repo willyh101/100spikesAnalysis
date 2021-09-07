@@ -1,7 +1,7 @@
 clear;
-date = '210518';
-mouse = 'I147';%'I138_1';%'I136_1';
-epochs = '2_3_4_5_6_7_8_9_10';
+date = '210825';
+mouse = 'I151_3';%'I138_1';%'I136_1';
+epochs = '1_2_3_5';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -13,7 +13,7 @@ baseName = [mouse '_' date];%'I118a.2_180504';
 loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc']};% ['F_' baseName '_plane4_proc']};
 
 nDepthsTotal = 3;4;%Normally 3;
-physfile = fullfile(basePath,[date '_B' '.mat']);
+physfile = fullfile(basePath,[date '_A' '.mat']);
 % physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 try
     load(physfile)
@@ -23,8 +23,8 @@ catch
 end
 %% Experiment
 
-s2pEpoch = 6 ;
-DAQepoch = 7 ;
+s2pEpoch = 3 ;
+DAQepoch = 3 ;
 
 
 %% Scary Loading Part
@@ -57,6 +57,16 @@ swp =ExpStruct.EpochEnterSweep{DAQepoch};
 hr = ExpStruct.Holo.Sweeps_holoRequestNumber(swp);
 
 holoRequests = ExpStruct.Holo.holoRequests{hr};
+
+if ~isfield(holoRequests,'rois')
+    newHR = ExpStruct.Holo.holoRequests{hr-1}; %catch error where sometimes wrong
+    
+    if isfield(newHR,'rois')
+        disp('HR.rois not detected; replacing HR with newHR') 
+        holoRequests = newHR;
+    end
+end
+
 
 [dfData, zdfData] =  computeDFFwithMovingBaseline(allData);
 
