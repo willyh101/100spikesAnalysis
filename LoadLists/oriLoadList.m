@@ -39,4 +39,7 @@ loadList = {
     '210428_w32_2_outfile.mat' % first of optimizer
     '210830_w37_2_outfile.mat'
     '210903_I151_3_outfile.mat'
+    '210826_i151_3_outfile.mat'
+    '210831_w37_2_outfile.mat'
+    '210901_w37_2_outfile.mat'
 };
