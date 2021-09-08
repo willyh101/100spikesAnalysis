@@ -25,7 +25,7 @@ for ind = 1:numExps
         mRespEns{c} = squeeze(respMat(i, v, :) - ...
            baseMat(i, v, :));
         
-        if i==1
+        if holo==0 ; %i==1 change to account for out of order
             mRespEns{c}(ROIinArtifact) = nan;
         else
 

@@ -183,7 +183,7 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 % excludedTypes = {'AAV CamK2'};
-excludedTypes = {'AAV CamK2' 'Ai203'};
+excludedTypes = {'AAV CamK2' 'Ai203' 'neo-IV Tre 2s'};
 % excludedTypes = {'Ai203'};
 % excludedTypes = {'AAV Tre'};
 % excludedTypes = {};

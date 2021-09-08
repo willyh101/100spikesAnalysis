@@ -398,10 +398,14 @@ opts.posNegThreshold = 0;0.1;
 
 
 %% Plot Distance Curves in different Ori Bands
+% 
+% opts.distType = 'min';
+% opts.distBins =[10:20:150];% [0:25:400];
 
-opts.distType = 'min';
+opts.distType = 'harm'; 
+opts.distBins = [50:50:400];
+
 [outVars] = grandDistanceMaker(opts,All,outVars);
-opts.distBins =[10:20:150];% [0:25:400];
 numEns = numel(outVars.ensStimScore);
 
 
@@ -595,10 +599,10 @@ xlim([0 opts.distBins(end)])
 ylim([-0.1 0.3])
 
 %% Plot Distance Plots by criteria
-% opts.distType = 'harm'; 'min';
-% opts.distBins =[0:50:400];[15:20:150];% [0:25:400];
-opts.distType = 'min';
-opts.distBins =[15:20:150];% [0:25:400];
+opts.distType = 'harm'; 
+opts.distBins =[0:50:400];
+% opts.distType = 'min';
+% opts.distBins =[15:20:150];% [0:25:400];
 
 %things to hold constant
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & outVars.meanEnsOSI>0.25;

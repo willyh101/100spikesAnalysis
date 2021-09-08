@@ -54,7 +54,7 @@ for ind = 1:numExps
     for i= 1:numStims
         holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
         
-        if i~=1
+        if holo~=0 ;%i~=1 %change for if run out of order
             c=c+1;
             Tg=All(ind).out.exp.rois{holo};
             dists = StimDistance(Tg,:);
