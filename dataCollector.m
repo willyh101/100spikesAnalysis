@@ -201,6 +201,7 @@ try out.mani2 = mani2; catch; end
 try out.mani0 = mani0; catch; end
 try out.stm = stm; catch; end
 
+out
 
 save([basePath info.date '_' info.mouse '_outfile'], 'out','-v7.3')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
