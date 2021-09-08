@@ -140,6 +140,14 @@ opts.FractionMissable = 0.33; %what percent of targets are missable before you e
 ensMissedTargetF = outVars.ensMissedTargetF; %Fraction of targets per ensemble Missed
 ensMissedTarget = outVars.ensMissedTarget; %Ensemble is unuseable
 numMatchedTargets = outVars.numMatchedTargets;
+
+%% Determine Date
+ensDate=[];
+for i = 1:numel(ensIndNumber)
+    ensDate(i) = str2num(All(ensIndNumber(i)).out.info.date);
+end
+outVars.ensDate=ensDate;
+
 %% main Ensembles to Use section
 
 numTrialsPerEns =[];numTrialsPerEnsTotal=[]; numTrialsNoStimEns=[];
@@ -167,7 +175,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold =-0.05; %default 0.05
+opts.IndsVisThreshold = 0.25; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -194,7 +202,7 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [75 150];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -215,6 +223,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 3 ...
     ...& ensembleOneSecond ... %cuts off a lot of the earlier
      & numCellsEachEns==10 ...
+     & ensDate >= -210428 ...
     ;
 %& numCellsEachEns>10 ;
 

@@ -567,13 +567,13 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
 end
 disp('Done')
 
-figure(10);clf
-figure(11);clf
+figure(16);clf
+figure(15);clf
 
 colorListOri = colorMapPicker(numel(diffsPossible),'plasma');
 clear ax
 for k = 1:numel(bins)-1
-    figure(10);ax(k) =subplot(1,numel(bins)-1,k);
+    figure(16);ax(k) =subplot(1,numel(bins)-1,k);
     title(['Ens Criteria: ' num2str(bins(k),2) ' to ' num2str(bins(k+1),2) ])
     popToPlotTemp = popToPlot;
     popToPlotTemp(criteria<bins(k) | criteria>bins(k+1),:)=NaN;
@@ -582,21 +582,23 @@ for k = 1:numel(bins)-1
         eHandle{1}.Color = colorListOri{k};
     end
 
-    figure(11); tempax = subplot(1,1,1);
+    figure(15); tempax = subplot(1,1,1);
     [eHandle] = plotDistRespGeneric(popToPlotTemp,outVars,opts,tempax);
     eHandle{1}.Color = colorListOri{k};
 end
 linkaxes(ax)
-figure(11);
+figure(16);
 xlim([0 opts.distBins(end)])
 ylim([-0.1 0.3])
-figure(10);
+figure(15);
 xlim([0 opts.distBins(end)])
 ylim([-0.1 0.3])
 
 %% Plot Distance Plots by criteria
-opts.distType = 'harm'; 'min';
-opts.distBins =[0:50:400];[15:20:150];% [0:25:400];
+% opts.distType = 'harm'; 'min';
+% opts.distBins =[0:50:400];[15:20:150];% [0:25:400];
+opts.distType = 'min';
+opts.distBins =[15:20:150];% [0:25:400];
 
 %things to hold constant
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & outVars.meanEnsOSI>0.25;
