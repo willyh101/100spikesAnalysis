@@ -25,8 +25,8 @@ end
 disp('Loaded')
 %% Experiment
 
-s2pEpoch = 3 ;
-DAQepoch = 3 ;
+s2pEpoch = 7 ;
+DAQepoch = 7 ;
 
 
 %% Scary Loading Part
@@ -306,7 +306,7 @@ for i =1:numel(uniqueStims)
 end
 
 %%Determine Vis Stim Trials
-
+disp('Determine Vis stuff')
 swp =ExpStruct.EpochEnterSweep{DAQepoch};
 if numel(ExpStruct.EpochEnterSweep)<DAQepoch+1
     swp2 = ExpStruct.sweep_counter-1;
@@ -339,6 +339,7 @@ visStop = nanmean(timeOfVisStimEnd(2:end));
 
 uniqueVisStim = unique(visID);
 
+disp('I Beep'); beep
 disp('Ready')
 %%
 

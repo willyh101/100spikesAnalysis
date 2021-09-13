@@ -178,7 +178,7 @@ stm.dfData = dfData; %non zscored data;
 
 stm.offsets = offsets; %sometimes different epochs calc subtly different offsets, recorded here
 
-
+disp('got stim')
 %% run to save
 
 out.info = info;
@@ -203,6 +203,7 @@ try out.stm = stm; catch; end
 
 out
 
+disp('Saving...')
 save([basePath info.date '_' info.mouse '_outfile'], 'out','-v7.3')
 % save(['Z:\willh\outputdata\' info.date '_' info.mouse 'outfile'], 'out')
 % save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
