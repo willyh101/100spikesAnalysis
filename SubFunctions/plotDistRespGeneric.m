@@ -1,4 +1,4 @@
-function [eHandle] = plotDistRespGeneric(RespToPlot,outVars,opts,axesHandle);
+function [eHandle outData] = plotDistRespGeneric(RespToPlot,outVars,opts,axesHandle);
 
 % popResponseDist = outVars.popResponseDist;
 % numSpikesEachStim = outVars.numSpikesEachStim;
@@ -51,6 +51,13 @@ stdDat = nanstd(dat);
 numpDat = sum(~isnan(dat));
 semDat = stdDat./sqrt(numpDat);
 
+temp.dat = dat;
+temp.meanDat = meanDat;
+temp.stdDat = stdDat;
+temp.numpDat = numpDat;
+temp.semDat = semDat;
+
+outData{i} = temp;
 
 hold on
 distBinSize = distBins(2)-distBins(1);

@@ -175,7 +175,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.25; %default 0.05
+opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -183,7 +183,7 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 % excludedTypes = {'AAV CamK2'};
-excludedTypes = {'AAV CamK2' 'Ai203' 'neo-IV Tre 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s'};
 % excludedTypes = {'Ai203'};
 % excludedTypes = {'AAV Tre'};
 % excludedTypes = {};

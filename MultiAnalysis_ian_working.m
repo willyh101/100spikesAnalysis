@@ -402,7 +402,7 @@ opts.posNegThreshold = 0;0.1;
 opts.distType = 'min';
 opts.distBins =[15:15:150];% [0:25:400];
 opts.distBins =[0:25:150];% [0:25:400];
-
+% 
 % opts.distType = 'harm'; 
 % opts.distBins = [0:50:400];
 
@@ -411,14 +411,8 @@ numEns = numel(outVars.ensStimScore);
 
 
 %this is where you change the criteria of what ensembles are included
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66 ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
-% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI<0.23;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
-% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.meanEnsOSI>0.5 &  outVars.ensOSI>0.25  & outVars.ensMaxD<475 ;%& outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
-% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66  & outVars.ensMaxD>500 ;%& outVars.numMatchedTargets>=3;% outVars.numMatchedTargets>=3 &    ;
-% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66  & outVars.ensMaxD<400;
-% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.66 & outVars.ensMaxD>400 & outVars.ensMaxD<500;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7 ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 
-sum(ensemblesToUse)
 
 oriVals = [NaN 0:45:315];
 % numEns = numel(outVars.posCellbyInd);
@@ -426,12 +420,16 @@ oriVals = [NaN 0:45:315];
 ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
 
+disp(['Total of ' num2str(sum(ensemblesToUse)) ' Ensembles Included.'])
+disp([ num2str(numel(unique(ensIndNumber(ensemblesToUse)))) ' FOVs'])
+disp([ num2str(numel(unique(names(unique(ensIndNumber(ensemblesToUse)))))) ' Mice']);
+
 clear popToPlot
 for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
         fprintf('.')
     end
-
+% 
     diffsPossible = [0 45 90 135 180];
 
     if ensemblesToUse(i)
@@ -440,6 +438,9 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
        cellOris = oriVals(outVars.prefOris{ind});
        cellOrisDiff = abs(cellOris-outVars.ensPO(i));
        cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
+% %        
+       cellOrisDiff(cellOrisDiff==135)=45;
+       cellOrisDiff(cellOrisDiff==180)=0;
 
 
        %%This is where you change the criteria of what cells are included
@@ -473,17 +474,22 @@ figure(14);clf
 % ax =subplot(1,1,1);
 %  hold on
 colorListOri = colorMapPicker(numel(diffsPossible),'plasma');
+dataForStats=[];
 clear ax
 for k = 1:numel(diffsPossible)
     figure(10);
     ax(k) =subplot(1,numel(diffsPossible),k);
     title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
-    [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
+    [eHandle outData] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
     if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
         eHandle{1}.Color = colorListOri{k};
     end
+    eHandle{1}.CapSize =0;
     ylabel('Pop Response (Mean \DeltaF/F)')
 
+            dataForStats(k,:) = outData{1}.dat(:,1);
+
+    
     figure(11); tempax = subplot(1,1,1);
     [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
     eHandle{1}.Color = colorListOri{k};
@@ -491,8 +497,9 @@ for k = 1:numel(diffsPossible)
 
     if k ==1 || k==3
         figure(14); tempax = subplot(1,1,1);
-        [eHandle outDat] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
+        [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
         eHandle{1}.Color = colorListOri{k};
+        eHandle{1}.CapSize =0;
         ylabel('Pop Response (Mean \DeltaF/F)')
 
         if k==1
@@ -506,6 +513,7 @@ ylim([-0.1 0.3])
 
 figure(10);
 xlim([0 opts.distBins(end)])
+ylim([-0.25 0.25])
 
 figure(14)
 xlim([0 opts.distBins(end)])
@@ -525,12 +533,17 @@ p2 = signrank(datToPlot(:,1),datToPlot(:,3));
 title({['Pvalue ' num2str(p)]...
     ['Iso vs Ortho PValue: ' num2str(p2)] })
 
+
+p1 = ranksum(squeeze(dataForStats(1,:)),squeeze(dataForStats(3,:)));
+disp(['ranksum iso v ortho p = ' num2str(p1)]);
+
+
 % title('Cells by Tuning')
 % ax2 =subplot(1,2,2);
 % plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
 % title('Cells That go down')
 
-%% Plot Distance Plots by criteria
+%% Plot Distance Plots by Ensemble Tuning
 opts.distType = 'min';
 opts.distBins =[0:25:150]; [15:15:150];[10:20:150];% [0:25:400];
 
@@ -560,7 +573,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         ind = ensIndNumber(i);
 
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
-        & outVars.pVisR{ind} < 0.1 ...
+        & outVars.pVisR{ind} < 0.05 ...
         & outVars.osi{ind} > 0.25 ...
         ;
 
@@ -599,7 +612,7 @@ figure(15);
 xlim([0 opts.distBins(end)])
 ylim([-0.1 0.3])
 
-%% Plot Distance Plots by criteria
+%% Plot Distance Plots by Ensemble Tuning and Spacing
 % opts.distType = 'harm'; 
 % opts.distBins =[0:50:400];
 opts.distType = 'min';
@@ -653,6 +666,7 @@ figure(13);clf
 
 colorListOri = colorMapPicker(numel(diffsPossible),'plasma');
 clear ax
+dataForStats =[];
 c=0;
 for i = 1:numel(bins2)-1
     for k = 1:numel(bins)-1
@@ -663,9 +677,17 @@ for i = 1:numel(bins2)-1
         ensembleExcluder  = criteria>=bins(k) & criteria<bins(k+1) & criteria2>=bins2(i) & criteria2<bins2(i+1) & ensemblesToUse;
         popToPlotTemp(~ensembleExcluder,:)=NaN;
         [eHandle outDat] = plotDistRespGeneric(popToPlotTemp,outVars,opts,ax(c));
+        eHandle{1}.CapSize =0;
         if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
             eHandle{1}.Color = colorListOri{k};
         end
+        dataForStats(i,k,:) = outDat{1}.dat(:,1);
+%         hold on
+%         distBins = opts.distBins;
+%         distBinSize = distBins(2)-distBins(1);
+%         plot(distBins(2:end)-distBinSize/2,outDat{1}.dat','color',rgb('grey'));
+        
+        
         title({...
             ['Ens Dist: ' num2str(bins(k),2) ' to ' num2str(bins(k+1),2) ]...
             ['Ens OSI: ' num2str(bins2(i),2) ' to ' num2str(bins2(i+1),2) ]...
@@ -682,7 +704,157 @@ end
 linkaxes(ax)
 xlim([0 opts.distBins(end)])
 ylim([-0.25 0.3])
+
+p1 = ranksum(squeeze(dataForStats(3,1,:)),squeeze(dataForStats(3,3,:)));
+disp(['Co Tuned Close vs Far p = ' num2str(p1)]);
+p2 = ranksum(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(1,3,:)));
+disp(['UnTuned Close vs Far p = ' num2str(p2)]);
+
+p3 = ranksum(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(3,1,:)));
+disp(['Close Tuned v Untuned p = ' num2str(p3)]);
+p4 = ranksum(squeeze(dataForStats(1,3,:)),squeeze(dataForStats(3,3,:)));
+disp(['Far Tuned v Untuned p = ' num2str(p4)]);
+
 % ylim([-1 1]);
 % figure(11);
 % xlim([0 opts.distBins(end)])
 % ylim([-0.1 0.3])
+
+%% Plot Ori Bands Close vs Far
+
+
+opts.distType = 'min';
+opts.distBins =[15:15:150];% [0:25:400];
+opts.distBins =[0:25:150];% [0:25:400];
+% 
+% opts.distType = 'harm'; 
+% opts.distBins = [0:50:400];
+
+[outVars] = grandDistanceMaker(opts,All,outVars);
+numEns = numel(outVars.ensStimScore);
+
+
+%this is where you change the criteria of what ensembles are included
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 ...
+    &  outVars.ensOSI>0.7 & outVars.ensMaxD >500  ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+
+
+oriVals = [NaN 0:45:315];
+% numEns = numel(outVars.posCellbyInd);
+
+ensIndNumber = outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber;
+
+disp(['Total of ' num2str(sum(ensemblesToUse)) ' Ensembles Included.'])
+disp([ num2str(numel(unique(ensIndNumber(ensemblesToUse)))) ' FOVs'])
+disp([ num2str(numel(unique(names(unique(ensIndNumber(ensemblesToUse)))))) ' Mice']);
+
+clear popToPlot
+for i=1:numEns %i know its slow, but All is big so don't parfor it
+    if mod(i,round(numEns/10))==1
+        fprintf('.')
+    end
+% 
+    diffsPossible = [0 45 90 135 180];
+
+    if ensemblesToUse(i)
+        ind = ensIndNumber(i);
+
+       cellOris = oriVals(outVars.prefOris{ind});
+       cellOrisDiff = abs(cellOris-outVars.ensPO(i));
+       cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
+       
+       cellOrisDiff(cellOrisDiff==135)=45;
+       cellOrisDiff(cellOrisDiff==180)=0;
+
+
+       %%This is where you change the criteria of what cells are included
+    cellToUseVar = ~outVars.offTargetRiskEns{i}...
+        & outVars.pVisR{ind} < 0.05 ...
+        & outVars.osi{ind} > 0.25 ...
+         ...& outVars.posCellbyInd{i} ... %if you want to only include cells that went up
+        ...& outVars.isRedByEns{i} ...  %if you want to excluded red cells (i.e. interneurons)
+        ;
+
+    for k=1:numel(diffsPossible)
+        popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar & abs(cellOrisDiff)==diffsPossible(k),0,ensHNumber(i));
+%         popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar ,0,ensHNumber(i));
+
+    end
+
+
+    else
+        popToPlot(i,:,:) = nan([numel(opts.distBins)-1 1 numel(diffsPossible)]);
+    end
+end
+disp('Done')
+
+%%Plot Dist REsp
+figure(10);clf
+opts.distAxisRang = [0 350];
+
+figure(11);clf;hold on
+figure(14);clf
+
+% ax =subplot(1,1,1);
+%  hold on
+colorListOri = colorMapPicker(numel(diffsPossible),'plasma');
+clear ax
+for k = 1:numel(diffsPossible)
+    figure(10);
+    ax(k) =subplot(1,numel(diffsPossible),k);
+    title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
+    [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
+    if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
+        eHandle{1}.Color = colorListOri{k};
+    end
+    eHandle{1}.CapSize =0;
+    ylabel('Pop Response (Mean \DeltaF/F)')
+
+    figure(11); tempax = subplot(1,1,1);
+    [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
+    eHandle{1}.Color = colorListOri{k};
+    ylabel('Pop Response (Mean \DeltaF/F)')
+
+    if k ==1 || k==3
+        figure(14); tempax = subplot(1,1,1);
+        [eHandle outDat] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
+        eHandle{1}.Color = colorListOri{k};
+        eHandle{1}.CapSize =0;
+        ylabel('Pop Response (Mean \DeltaF/F)')
+
+        if k==1
+        delete(eHandle{end})
+        end
+    end
+end
+linkaxes(ax)
+xlim([0 opts.distBins(end)])
+ylim([-0.1 0.3])
+
+figure(10);
+xlim([0 opts.distBins(end)])
+
+figure(14)
+xlim([0 opts.distBins(end)])
+legend('Iso','Ortho')
+ylim([-0.35 0.35])
+axis square
+
+
+figure(12);clf
+datToPlot = squeeze(popToPlot(ensemblesToUse,1,:));
+ciToPlot = nanstd(datToPlot,[],1)./sqrt(size(datToPlot,1))*1.93;
+errorbar(nanmean(datToPlot),ciToPlot);
+p = anova1(datToPlot,[],'off');
+p2 = signrank(datToPlot(:,1),datToPlot(:,3));
+% p2 = signrank([datToPlot(:,1);datToPlot(:,5)],datToPlot(:,3));
+% [~,p2] = ttest2(datToPlot(:,1),datToPlot(:,3));
+% [~,p2] = ttest2([datToPlot(:,1);datToPlot(:,5)],datToPlot(:,3));
+title({['Pvalue ' num2str(p)]...
+    ['Iso vs Ortho PValue: ' num2str(p2)] })
+
+% title('Cells by Tuning')
+% ax2 =subplot(1,2,2);
+% plotDistRespGeneric(popToPlotNeg,outVars,opts,ax2);
+% title('Cells That go down')

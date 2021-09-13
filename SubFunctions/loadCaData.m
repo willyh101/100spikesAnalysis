@@ -33,6 +33,19 @@ fprintf([ num2str(numel(localFiles)) ' Files Detected... \n']);
 
 %%Determine number of frames per tiff
 fcTime = tic;
+
+try 
+    temp = load(fullfile(dataPath,'FC.mat'));
+catch
+    temp=[];
+end
+
+if isfield(temp,'frameCount')
+    disp('Saved Frame Count Detected, skipping load')
+    frameCount=temp.frameCount;
+else
+disp('No Frame Count Detected Loading Files...')
+    
 frameCount=[];
 for i = 1:numel(localFiles)
     fprintf(['Frame ' num2str(i) '. ']);
@@ -48,6 +61,11 @@ for i = 1:numel(localFiles)
     end
     fprintf([num2str(toc) 's\n']);
 end
+
+disp('Saving frameCount')
+save(fullfile(dataPath,'FC.mat'),'frameCount')
+end
+
 toc(fcTime)
 
 localFiles(frameCount==1)=[];
