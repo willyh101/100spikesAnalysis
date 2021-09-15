@@ -38,8 +38,11 @@ loadList = {
     '201202_w29_3_outfile.mat'
     '210428_w32_2_outfile.mat' % first of optimizer
     '210830_w37_2_outfile.mat'
-    '210903_I151_3_outfile.mat'
+    '210902_I151_3_outfile.mat' %Many random holos at 30hz for SM Proj
+    '210903_I151_3_outfile.mat' 
     '210826_i151_3_outfile.mat'
     '210831_w37_2_outfile.mat'
     '210901_w37_2_outfile.mat'
+    ...'210910_i151_3_outfile.mat' %many random holos at 30Hz, for SM proj, (30c x 10ap)
+    '210914_i151_3_outfile.mat'
 };

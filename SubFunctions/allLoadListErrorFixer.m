@@ -197,6 +197,14 @@ if ~isempty(indToUse)
     end
 end
 
+%% fix exp in sang min style awake and anest
+nameToUse = '210902_I151_3_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    All(indToUse).out.exp = All(indToUse).out.exp1;
+end 
 
 %%
 disp('Done fixing.')
