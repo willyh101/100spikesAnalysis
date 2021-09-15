@@ -1,7 +1,7 @@
 clear;
-date = '210910';
+date = '210914';
 mouse = 'I151_3';%'I138_1';%'I136_1';
-epochs = '1_2_3_4_5_6_7';
+epochs = '1_2_3_4_5_6';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -25,8 +25,8 @@ end
 disp('Loaded')
 %% Experiment
 
-s2pEpoch = 7 ;
-DAQepoch = 7 ;
+s2pEpoch = 2 ;
+DAQepoch = 2 ;
 
 
 %% Scary Loading Part

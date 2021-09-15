@@ -60,7 +60,7 @@ baseMat = All(ind).out.anal.baseMat;
 i= ensID;
 holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
 
-if i~=1
+if i~=1 & holo~=0
     
     Tg=All(ind).out.exp.rois{holo};
     dists = StimDistance(Tg,:);
