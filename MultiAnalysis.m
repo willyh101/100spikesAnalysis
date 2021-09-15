@@ -250,6 +250,8 @@ disp(['Fraction of Control Ens high trial count: ' num2str(mean(~lowBaseLineTria
 disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
 disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpressionType))]);
 disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
+disp(['Fraction of Ens number targets matched >=3: ' num2str(mean(numMatchedTargets >= 3))]);
+disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])

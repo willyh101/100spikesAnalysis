@@ -38,7 +38,7 @@ for ind=1:numExps
         end
         cellList = 1:numel(ROIinArtifact);
         
-        if i==1
+        if  h == 0
             cellsToUse = ~ROIinArtifact' & pVisR<0.05 ;
         else
             cellsToUse = ~ROIinArtifact' &...

@@ -411,7 +411,7 @@ numEns = numel(outVars.ensStimScore);
 
 
 %this is where you change the criteria of what ensembles are included
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7 ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7 ;%& outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 
 
 oriVals = [NaN 0:45:315];
@@ -526,17 +526,17 @@ datToPlot = squeeze(popToPlot(ensemblesToUse,1,:));
 ciToPlot = nanstd(datToPlot,[],1)./sqrt(size(datToPlot,1))*1.93;
 errorbar(nanmean(datToPlot),ciToPlot);
 p = anova1(datToPlot,[],'off');
-p2 = signrank(datToPlot(:,1),datToPlot(:,3));
+% p2 = signrank(datToPlot(:,1),datToPlot(:,3));
 % p2 = signrank([datToPlot(:,1);datToPlot(:,5)],datToPlot(:,3));
 % [~,p2] = ttest2(datToPlot(:,1),datToPlot(:,3));
 % [~,p2] = ttest2([datToPlot(:,1);datToPlot(:,5)],datToPlot(:,3));
+
+
+p2 = ranksum(squeeze(dataForStats(1,:)),squeeze(dataForStats(3,:)));
+disp(['ranksum iso v ortho p = ' num2str(p2)]);
+
 title({['Pvalue ' num2str(p)]...
     ['Iso vs Ortho PValue: ' num2str(p2)] })
-
-
-p1 = ranksum(squeeze(dataForStats(1,:)),squeeze(dataForStats(3,:)));
-disp(['ranksum iso v ortho p = ' num2str(p1)]);
-
 
 % title('Cells by Tuning')
 % ax2 =subplot(1,2,2);
@@ -547,18 +547,16 @@ disp(['ranksum iso v ortho p = ' num2str(p1)]);
 opts.distType = 'min';
 opts.distBins =[0:25:150]; [15:15:150];[10:20:150];% [0:25:400];
 
+plotTraces=0;
 %things to hold constant
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;%  &  outVars.ensOSI>0.75;;
-criteria = outVars.ensOSI;outVars.ensMaxD;outVars.ensOSI; %outVars.ensMaxD;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & outVars.meanEnsOSI>0.5 ;%  &  outVars.ensOSI>0.75;;
+criteria = outVars.ensOSI;outVars.meanEnsOSI;
 useableCriteria = criteria(ensemblesToUse);
 bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
+bins = [0 0.25 0.5 0.75 max(useableCriteria)];
+bins = [0 0.33 0.7 max(useableCriteria)];
+bins = [0 0.3 0.7 max(useableCriteria)];
 
-% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.75;% outVars.numMatchedTargets>=3 &    ;
-% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensMaxD<300;% outVars.numMatchedTargets>=3 &    ;
-
-% criteria = outVars.ensOSI; %outVars.ensMaxD;
-% useableCriteria = criteria(ensemblesToUse);
-% bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
 
 ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
@@ -568,16 +566,16 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
         fprintf('.')
     end
-
+    
     if ensemblesToUse(i)
         ind = ensIndNumber(i);
-
-    cellToUseVar = ~outVars.offTargetRiskEns{i}...
-        & outVars.pVisR{ind} < 0.05 ...
-        ...& outVars.osi{ind} > 0.25 ...
-        ... & outVars.isRedByEns{i} ... 
-        ;
-
+        
+        cellToUseVar = ~outVars.offTargetRiskEns{i}...
+            & outVars.pVisR{ind} < 0.05 ...
+            & outVars.osi{ind} > 0.25 ...
+            ... & outVars.isRedByEns{i} ...
+            ;
+        
         popToPlot(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
     else
@@ -596,11 +594,17 @@ for k = 1:numel(bins)-1
     title(['Ens Criteria: ' num2str(bins(k),2) ' to ' num2str(bins(k+1),2) ])
     popToPlotTemp = popToPlot;
     popToPlotTemp(criteria<bins(k) | criteria>bins(k+1),:)=NaN;
-    [eHandle] = plotDistRespGeneric(popToPlotTemp,outVars,opts,ax(k));
+    [eHandle outDat] = plotDistRespGeneric(popToPlotTemp,outVars,opts,ax(k));
     if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
         eHandle{1}.Color = colorListOri{k};
     end
-
+    if plotTraces
+        hold on
+        distBins = opts.distBins;
+        distBinSize = distBins(2)-distBins(1);
+        plot(distBins(2:end)-distBinSize/2,outDat{1}.dat','color',rgb('grey'));
+    end
+    
     figure(15); tempax = subplot(1,1,1);
     [eHandle] = plotDistRespGeneric(popToPlotTemp,outVars,opts,tempax);
     eHandle{1}.Color = colorListOri{k};
@@ -619,7 +623,7 @@ ylim([-0.1 0.3])
 opts.distType = 'min';
 opts.distBins =[0:25:150];[15:20:150];% [0:25:400];
 
-plotTraces =1;
+plotTraces =0;
 %things to hold constant
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 ;% & outVars.meanEnsOSI>0.5;
 criteria =  outVars.ensMaxD; outVars.ensMeaD;%   outVars.ensMaxD;outVars.ensOSI; %outVars.ensMaxD;
@@ -634,7 +638,7 @@ criteria2 =   outVars.ensOSI; %outVars.ensMaxD;
 useableCriteria = criteria2(ensemblesToUse);
 bins2 = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
 % bins2 = [0 0.33 0.7 inf];
-bins2 = [0 0.33 0.7 inf];
+bins2 = [0 0.3 0.7 inf];
 % bins2 = [0 0.25 0.5 inf];
 
 % bins2 = [linspace(min(useableCriteria),max(useableCriteria),5)];
@@ -653,7 +657,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
 
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
           & outVars.pVisR{ind} < 0.05 ...
-          ...& outVars.osi{ind} > 0.25 ...
+          ... & outVars.osi{ind} > 0.25 ...
         ... & outVars.posCellbyInd{i} ...
         ;
 
@@ -870,7 +874,7 @@ title({['Pvalue ' num2str(p)]...
 opts.distType = 'min';
 opts.distBins =[0:25:150];[15:20:150];% [0:25:400];
 
-plotTraces =1;
+plotTraces =0;
 %things to hold constant
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 % & outVars.meanEnsOSI>0.5;
 criteria =  outVars.meanEnsOSI;  outVars.ensMaxD; outVars.ensMeaD;%   outVars.ensMaxD;outVars.ensOSI; %outVars.ensMaxD;
@@ -886,8 +890,8 @@ criteria2 =   outVars.ensOSI; %outVars.ensMaxD;
 useableCriteria = criteria2(ensemblesToUse);
 bins2 = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
 % bins2 = [0 0.33 0.7 inf];
-bins2 = [0 0.33 0.7 inf];
-% bins2 = [0 0.25 0.5 inf];
+bins2 = [0 0.3 0.7 inf];
+%  bins2 = [0 0.25 0.5 inf];
 
 % bins2 = [linspace(min(useableCriteria),max(useableCriteria),5)];
 
