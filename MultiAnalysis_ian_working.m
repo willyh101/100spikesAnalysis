@@ -160,14 +160,7 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-% excludedTypes = {'AAV CamK2'};
 excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s'};
-% excludedTypes = {'Ai203'};
-% excludedTypes = {'AAV Tre'};
-% excludedTypes = {};
-
-% excludedTypes = {'AAV Tre' 'PHP Tre'};
-% excludedTypes = {'Ai203'};
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -199,10 +192,10 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    ...& ensembleOneSecond ... %cuts off a lot of the earlier
+    ... & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
     & ensDate >= -210428 ...
-    & outVars.hzEachEns ==10;
+    & outVars.hzEachEns ==10...
     ;
 
 % remove repeats
