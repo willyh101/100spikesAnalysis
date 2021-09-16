@@ -116,6 +116,16 @@ opts.FractionMissable = 0.33; %what percent of targets are missable before you e
 ensMissedTargetF = outVars.ensMissedTargetF; %Fraction of targets per ensemble Missed
 ensMissedTarget = outVars.ensMissedTarget; %Ensemble is unuseable
 numMatchedTargets = outVars.numMatchedTargets;
+%% Determine Date
+ensDate=[];
+for i = 1:numel(ensIndNumber)
+    ensDate(i) = str2num(All(ensIndNumber(i)).out.info.date);
+end
+outVars.ensDate=ensDate;
+
+%% Identify duplicate holograms
+[outVars] = identifyDuplicateHolos(All,outVars);
+
 %% main Ensembles to Use section
 
 numTrialsPerEns =[];numTrialsPerEnsTotal=[]; numTrialsNoStimEns=[];
@@ -143,7 +153,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold =-0.05; %default 0.05
+opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -151,7 +161,7 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 % excludedTypes = {'AAV CamK2'};
-excludedTypes = {'AAV CamK2' 'Ai203'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s'};
 % excludedTypes = {'Ai203'};
 % excludedTypes = {'AAV Tre'};
 % excludedTypes = {};
@@ -170,7 +180,7 @@ ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 
 %Options
-opts.numSpikeToUseRange = [75 150];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -189,10 +199,14 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    & ensembleOneSecond ... %cuts off a lot of the earlier
+    ...& ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
+    & ensDate >= -210428 ...
+    & outVars.hzEachEns ==10;
     ;
-%& numCellsEachEns>10 ;
+
+% remove repeats
+[ensemblesToUse, outVars] = removeRepeatsFromEnsemblesToUse(ensemblesToUse,outVars);
 
 indsSub = ensIndNumber(ensemblesToUse);
 IndsUsed = unique(ensIndNumber(ensemblesToUse));
@@ -217,6 +231,9 @@ disp(['Fraction of Control Ens high trial count: ' num2str(mean(~lowBaseLineTria
 disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
 disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpressionType))]);
 disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
+disp(['Fraction of Ens number targets matched >=3: ' num2str(mean(numMatchedTargets >= 3))]);
+disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
+disp(['Fraction of Ens that were not repeats: ' num2str(mean(~outVars.removedRepeats)) ]);
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
@@ -873,6 +890,7 @@ title({['Pvalue ' num2str(p)]...
 % title('Cells That go down')
 
 %% Plot Distance Plots by Ensemble OSI and OSI of ensemble Members
+%GREG LOOK AT THIS
 % opts.distType = 'harm'; 
 % opts.distBins =[0:50:400];
 opts.distType = 'min';
