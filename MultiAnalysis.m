@@ -148,6 +148,9 @@ for i = 1:numel(ensIndNumber)
 end
 outVars.ensDate=ensDate;
 
+%% Identify duplicate holograms
+[outVars] = identifyDuplicateHolos(All,outVars);
+
 %% main Ensembles to Use section
 
 numTrialsPerEns =[];numTrialsPerEnsTotal=[]; numTrialsNoStimEns=[];
@@ -221,11 +224,14 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    & ensembleOneSecond ... %cuts off a lot of the earlier
-     & numCellsEachEns==10 ...
-     & ensDate >= -210428 ...
+    ...& ensembleOneSecond ... %cuts off a lot of the earlier
+    & numCellsEachEns==10 ...
+    & ensDate >= -210428 ...
+    ...& outVars.hzEachEns ==10;
     ;
-%& numCellsEachEns>10 ;
+
+% remove repeats
+[ensemblesToUse, outVars] = removeRepeatsFromEnsemblesToUse(ensemblesToUse,outVars);
 
 indsSub = ensIndNumber(ensemblesToUse);
 IndsUsed = unique(ensIndNumber(ensemblesToUse));
@@ -252,6 +258,7 @@ disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpression
 disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
 disp(['Fraction of Ens number targets matched >=3: ' num2str(mean(numMatchedTargets >= 3))]);
 disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
+disp(['Fraction of Ens that were not repeats: ' num2str(mean(~outVars.removedRepeats)) ]);
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
