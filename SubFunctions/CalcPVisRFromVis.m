@@ -20,6 +20,8 @@ for ind = 1:numExp;
         
         winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
         bwinToUse = max(round([0 All(ind).out.vis.visStart]*All(ind).out.info.FR),[1 1]);
+        All(ind).out.vis.win = winToUse;
+        All(ind).out.vis.bwin = bwinToUse;
         
         vrdata = squeeze(mean(All(ind).out.vis.zdfData(:,winToUse(1):winToUse(2),:),2));
         vbdata = squeeze(mean(All(ind).out.vis.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
