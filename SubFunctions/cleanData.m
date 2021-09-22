@@ -70,7 +70,12 @@ clear ensStimScore
     runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
    
     lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
-    lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
+    if isfield(opts,'runValPercent') %back compatible check, moving runVal Percent out of function
+        runValPercent = opts.runValPercent;
+    else
+        runValPercent = 0.75;
+    end
+    lowRunTrials = lowRunVals>runValPercent; %percent of frames that need to be below run threshold
     if numel(lowRunTrials)>numel(All(ind).out.exp.stimID)
         lowRunTrials = lowRunTrials(1:numel(All(ind).out.exp.stimID));
     end

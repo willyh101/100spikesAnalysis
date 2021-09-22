@@ -41,7 +41,7 @@ end
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
-opts.recWinRange = [0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
+opts.recWinRange = [0 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
 
 
 %Stim Success Thresholds
@@ -50,7 +50,7 @@ opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
 
 %run Threshold
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
-
+opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
 [All, outVars] = cleanData(All,opts);
 
@@ -79,6 +79,7 @@ opts.visAlpha = 0.05;
 opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
+opts.skipVis =1;
 
 [All, outVars] = meanMatrixVisandCorr(All,opts,outVars); %one of the main analysis functions
 
@@ -90,12 +91,13 @@ ensIndNumber =outVars.ensIndNumber;
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 % Always do this!! not all experiments had full orientation data during the
 % experiment epoch (but did during the vis epoch)
-opts.visRecWinRange = [0.5 1.5];
+opts.visRecWinRange = [0.5 1.5]; [0.5 1.5];
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
 outVars.visPercentFromVis = visPercent;
 
-%% if there is a red section (will run even if not...)
+%% Misc Additional Variables:
+% RedSection: if there is a red section (will run even if not...)
 [outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
 
@@ -103,13 +105,13 @@ try
 arrayfun(@(x) sum(~isnan(x.out.red.RedCells)),All)
 arrayfun(@(x) mean(~isnan(x.out.red.RedCells)),All)
 catch end
-%% Identify the Experiment type for comparison or exclusion
+%%Identify the Experiment type for comparison or exclusion
 [All,outVars] = ExpressionTypeIdentifier(All,outVars);
 indExpressionType = outVars.indExpressionType;
 ensExpressionType = indExpressionType(outVars.ensIndNumber);
 outVars.ensExpressionType = ensExpressionType;
 
-%% Missed Target Exclusion Criteria
+%%Missed Target Exclusion Criteria
 %detects if too many targets were not detected in S2p
 opts.FractionMissable = 0.33; %what percent of targets are missable before you exclude the ens
 [outVars] = missedTargetDetector(All,outVars,opts);
@@ -117,14 +119,14 @@ opts.FractionMissable = 0.33; %what percent of targets are missable before you e
 ensMissedTargetF = outVars.ensMissedTargetF; %Fraction of targets per ensemble Missed
 ensMissedTarget = outVars.ensMissedTarget; %Ensemble is unuseable
 numMatchedTargets = outVars.numMatchedTargets;
-%% Determine Date
+%%Determine Date
 ensDate=[];
 for i = 1:numel(ensIndNumber)
     ensDate(i) = str2num(All(ensIndNumber(i)).out.info.date);
 end
 outVars.ensDate=ensDate;
 
-%% Identify duplicate holograms
+%%Identify duplicate holograms
 [outVars] = identifyDuplicateHolos(All,outVars);
 
 %% main Ensembles to Use section
@@ -371,7 +373,7 @@ title('Cells That go down')
 plotEnsembleDistanceResponse(outVars,100,1)
 
 %%
-opts.posNegThreshold = 0;0.1;
+opts.posNegThreshold = 0;%0.1;
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 
 

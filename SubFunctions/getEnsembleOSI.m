@@ -24,7 +24,7 @@ for ind = 1:numel(All)
         cmeanOri(h) = circ_rad2ang(circ_axial(circ_mean(radPref')));
         
         % mean ori by ensemble tuning curve
-        curve = mean(All(ind).out.anal.oriCurve(:, ht), 2);
+        curve = mean(All(ind).out.anal.oriCurve(:, ht), 2); %set in getTuningCurve
         curve2save(:,h) = curve;
         curveSEM(:, h) = sem2(All(ind).out.anal.oriCurve(:, ht), 2);
         [~, ensPOidx] = max(curve);
