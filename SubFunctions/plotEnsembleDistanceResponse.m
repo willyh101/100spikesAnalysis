@@ -12,6 +12,10 @@ ensMinD = outVars.ensMinD;
 
 numPanels = 4;
 
+if ~isfield(outVars,'defaultColorMap')
+    outVars.defaultColorMap = 'viridis';
+end
+
 %%
 ensemblesToUse = outVars.ensemblesToUse;
 figure(figNum);clf

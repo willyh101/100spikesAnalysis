@@ -49,7 +49,7 @@ opts.stimsuccessZ = 0.25; %0.3, 0.25 over this number is a succesfull stim
 opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
 
 %run Threshold
-opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
+opts.runThreshold = inf; 6 ; %trials with runspeed below this will be excluded
 opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
 [All, outVars] = cleanData(All,opts);

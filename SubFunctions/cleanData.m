@@ -4,7 +4,11 @@ function [All,outVars] = cleanData(All,opts)
 FRDefault=opts.FRDefault;%6;
 recWinRange =opts.recWinRange;% [0.5 1.5];% %from vis Start [1.25 2.5];
 
-
+if isfield(opts,'runValPercent') %back compatible check, moving runVal Percent out of function
+    runValPercent = opts.runValPercent;
+else
+    runValPercent = 0.75;
+end
 %Stim Success Thresholds
 stimsuccessZ = opts.stimsuccessZ;%0.25; %over this number is a succesfull stim
 stimEnsSuccess = opts.stimEnsSuccess;% 0.5; %fraction of ensemble that needs to be succsfull
@@ -70,11 +74,7 @@ clear ensStimScore
     runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
    
     lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
-    if isfield(opts,'runValPercent') %back compatible check, moving runVal Percent out of function
-        runValPercent = opts.runValPercent;
-    else
-        runValPercent = 0.75;
-    end
+
     lowRunTrials = lowRunVals>runValPercent; %percent of frames that need to be below run threshold
     if numel(lowRunTrials)>numel(All(ind).out.exp.stimID)
         lowRunTrials = lowRunTrials(1:numel(All(ind).out.exp.stimID));
@@ -118,7 +118,7 @@ clear ensStimScore
                 rnSz = size(runVal);
                 runperiod = [1:min(All(ind).out.anal.recWinUsed(2),rnSz(2))];
                 lowRunVals = mean((runVal(:,runperiod)<runThreshold)');
-                lowRunTrials = lowRunVals>0.75; %percent of frames that need to be below run threshold
+                lowRunTrials = lowRunVals>runValPercent; %percent of frames that need to be below run threshold
                 All(ind).out.vis.lowRunTrials = lowRunTrials;
             catch
                 disp('Vis Run Trial Problem')
