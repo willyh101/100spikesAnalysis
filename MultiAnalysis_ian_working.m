@@ -41,7 +41,7 @@ end
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
-opts.recWinRange = [0 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
+opts.recWinRange = [0.5 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
 
 
 %Stim Success Thresholds
@@ -49,7 +49,7 @@ opts.stimsuccessZ = 0.25; %0.3, 0.25 over this number is a succesfull stim
 opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
 
 %run Threshold
-opts.runThreshold = inf; 6 ; %trials with runspeed below this will be excluded
+opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
 opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
 [All, outVars] = cleanData(All,opts);
@@ -91,10 +91,11 @@ ensIndNumber =outVars.ensIndNumber;
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 % Always do this!! not all experiments had full orientation data during the
 % experiment epoch (but did during the vis epoch)
-opts.visRecWinRange = [0.5 1.5]; [0.5 1.5];
+opts.visRecWinRange = [0 1.5]; [0.5 1.5];
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
 outVars.visPercentFromVis = visPercent;
+mean(visPercent)
 
 %% Misc Additional Variables:
 % RedSection: if there is a red section (will run even if not...)
@@ -357,7 +358,7 @@ disp('Done')
 
 %%Plot Dist REsp
 figure(10);clf
-opts.distAxisRang = [0 350];
+opts.distAxisRange = [0 350];
 
 ax =subplot(1,2,1);
 plotDistRespGeneric(popToPlotPos,outVars,opts,ax);
@@ -477,7 +478,7 @@ disp('Done')
 
 %%Plot Dist REsp
 figure(10);clf
-opts.distAxisRang = [0 350];
+opts.distAxisRange = [0 350];
 
 figure(11);clf;hold on
 figure(14);clf
@@ -815,7 +816,7 @@ disp('Done')
 
 %%Plot Dist REsp
 figure(10);clf
-opts.distAxisRang = [0 350];
+opts.distAxisRange = [0 350];
 
 figure(11);clf;hold on
 figure(14);clf

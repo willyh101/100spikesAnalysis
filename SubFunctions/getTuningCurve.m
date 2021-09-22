@@ -18,8 +18,8 @@ for ind=1:numExps
             All(ind).out.vis.lowMotionTrials &...
             All(ind).out.vis.lowRunTrials;
         
-        oriCurve(i,:) = mean(All(ind).out.vis.rdata(:,trialsToUse), 2);
-        oriCurveSEM(i,:) = sem2(All(ind).out.vis.rdata(:,trialsToUse), 2);
+        oriCurve(i,:) = mean(All(ind).out.vis.rdData(:,trialsToUse), 2);
+        oriCurveSEM(i,:) = sem2(All(ind).out.vis.rdData(:,trialsToUse), 2);
         oriTrialCount(i) = sum(trialsToUse); 
     end
     
