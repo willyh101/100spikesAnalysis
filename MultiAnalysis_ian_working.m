@@ -41,7 +41,7 @@ end
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
-opts.recWinRange = [0.5 1.5];% %from vis Start in s [1.25 2.5];
+opts.recWinRange = [0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
 
 
 %Stim Success Thresholds
@@ -90,6 +90,7 @@ ensIndNumber =outVars.ensIndNumber;
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 % Always do this!! not all experiments had full orientation data during the
 % experiment epoch (but did during the vis epoch)
+opts.visRecWinRange = [0.5 1.5];
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
 outVars.visPercentFromVis = visPercent;
@@ -146,8 +147,6 @@ for ind=1:numExps
             numTrialsNoStimEns(ind) = sum(trialsToUse);
         end
     end
-
-
 end
 numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
@@ -195,7 +194,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     ... & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
     & ensDate >= -210428 ...
-    & outVars.hzEachEns ==10...
+    & outVars.hzEachEns == 10 ...
     ;
 
 % remove repeats
@@ -695,8 +694,8 @@ for i = 1:numel(bins2)-1
         
         ax(c) =subplot(numel(bins2)-1,numel(bins)-1,c);
         popToPlotTemp = popToPlot;
-        ensembleExcluder  = criteria>=bins(k) & criteria<bins(k+1) & criteria2>=bins2(i) & criteria2<bins2(i+1) & ensemblesToUse;
-        popToPlotTemp(~ensembleExcluder,:)=NaN;
+        ensembleSelecter  = criteria>=bins(k) & criteria<bins(k+1) & criteria2>=bins2(i) & criteria2<bins2(i+1) & ensemblesToUse;
+        popToPlotTemp(~ensembleSelecter,:)=NaN;
         [eHandle outDat] = plotDistRespGeneric(popToPlotTemp,outVars,opts,ax(c));
         eHandle{1}.CapSize =0;
         if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
@@ -714,7 +713,7 @@ for i = 1:numel(bins2)-1
         title({...
             ['Ens Dist: ' num2str(bins(k),2) ' to ' num2str(bins(k+1),2) ]...
             ['Ens OSI: ' num2str(bins2(i),2) ' to ' num2str(bins2(i+1),2) ]...
-            ['Num Ens: ' num2str(sum(ensembleExcluder & ensemblesToUse)) ] ...
+            ['Num Ens: ' num2str(sum(ensembleSelecter )) ] ...
             } )
         
         ylabel('Pop Response (Mean \DeltaF/F)')
@@ -948,8 +947,8 @@ for i = 1:numel(bins2)-1
         
         ax(c) =subplot(numel(bins2)-1,numel(bins)-1,c);
         popToPlotTemp = popToPlot;
-        ensembleExcluder  = criteria>=bins(k) & criteria<bins(k+1) & criteria2>=bins2(i) & criteria2<bins2(i+1) & ensemblesToUse;
-        popToPlotTemp(~ensembleExcluder,:)=NaN;
+        ensembleSelecter  = criteria>=bins(k) & criteria<bins(k+1) & criteria2>=bins2(i) & criteria2<bins2(i+1) & ensemblesToUse;
+        popToPlotTemp(~ensembleSelecter,:)=NaN;
         [eHandle outDat] = plotDistRespGeneric(popToPlotTemp,outVars,opts,ax(c));
         eHandle{1}.CapSize =0;
         if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
@@ -967,7 +966,7 @@ for i = 1:numel(bins2)-1
         title({...
             ['Mean OSI: ' num2str(bins(k),2) ' to ' num2str(bins(k+1),2) ]...
             ['Ens OSI: ' num2str(bins2(i),2) ' to ' num2str(bins2(i+1),2) ]...
-            ['Num Ens: ' num2str(sum(ensembleExcluder & ensemblesToUse)) ] ...
+            ['Num Ens: ' num2str(sum(ensembleSelecter & ensemblesToUse)) ] ...
             } )
         
         ylabel('Pop Response (Mean \DeltaF/F)')

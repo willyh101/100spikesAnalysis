@@ -19,6 +19,7 @@ dori = diff(ori(1:2));
 
 % calculations
 ncells = size(data180,1);
+m=[];v=[];
 for c = 1:ncells
     d = data180(c,:);
     % get mean and circular variance
