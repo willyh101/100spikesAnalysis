@@ -91,14 +91,13 @@ ensIndNumber =outVars.ensIndNumber;
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 % Always do this!! not all experiments had full orientation data during the
 % experiment epoch (but did during the vis epoch)
-opts.visRecWinRange = [0.5 2]; [0.5 1.5];
+opts.visRecWinRange = [0.5 1.5]; [0.5 1.5];
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
 outVars.visPercentFromVis = visPercent;
-mean(visPercent)
 
 %% Misc Additional Variables:
-% RedSection: if there is a red section (will run even if not...)
+%%RedSection: if there is a red section (will run even if not...)
 [outVars] = detectShotRedCells(All,outVars);
 ensHasRed = outVars.ensHasRed;
 
