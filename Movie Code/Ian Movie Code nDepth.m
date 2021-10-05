@@ -61,7 +61,7 @@ d3Mov=[];
 
 trialsToUse = lowMotionTrials & ~highRunTrials;
 
-uniqueStims=unique(stimID);
+uniqueStims = unique(stimID);
 uniqueVisStim = unique(visID);
 % trialsToUse = all(trialsToUse);
 

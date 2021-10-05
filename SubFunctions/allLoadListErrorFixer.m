@@ -206,5 +206,18 @@ if ~isempty(indToUse)
     All(indToUse).out.exp = All(indToUse).out.exp1;
 end 
 
+%% fix number of trials error in I143 210426
+
+nameToUse = '210426_I143_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    try All(indToUse).out.vis.runVal = All(indToUse).out.vis.runVal(1:111,:);catch;end
+    All(indToUse).out.vis.visID = All(indToUse).out.vis.visID(1:111);
+end 
+
+
+
 %%
 disp('Done fixing.')

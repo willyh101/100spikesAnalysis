@@ -58,7 +58,7 @@ d2Mov=[];
 d3Mov=[];
 
 
-trialsToUse = lowMotionTrials & ~highRunTrials;
+trialsToUse = lowMotionTrials & ~highRunTrials ;
 
 uniqueStims=unique(stimID);
 uniqueVisStim = unique(visID);
@@ -110,26 +110,57 @@ disp('Computing ZScore 2')
 zMov2 = zscore(mov2,0,3);
 disp('Computing ZScore 3')
 zMov3 = zscore(mov3,0,3);
+
+lowFluorThresh = 0;
+disp('Computing DFF 1')
+f0 = prctile(mov1,10,3);
+f0 = f0-min(f0(:));
+f0(f0<lowFluorThresh)=nan;
+dfMov1 = (mov1-f0)./f0;
+disp('Computing DFF 2')
+f0 = prctile(mov2,10,3);
+f0 = f0-min(f0(:));
+f0(f0<lowFluorThresh)=nan;
+dfMov2 = (mov2-f0)./f0;
+disp('Computing DFF 3')
+f0 = prctile(mov3,10,3);
+f0 = f0-min(f0(:));
+f0(f0<lowFluorThresh)=nan;
+dfMov3 = (mov3-f0)./f0;
 disp('done')
+%%
+mov1 = cat(4,d1Mov{10:13});
+d1Mov{14} = mean(mov1,4);
+
+mov2 = cat(4,d2Mov{10:13});
+d2Mov{14} = mean(mov2,4);
+
+mov3 = cat(4,d3Mov{10:13});
+d3Mov{14} = mean(mov3,4);
+
+log(14,:) =log(13,:);
 
 %% Play Mov
 
 saveVid = 0; %save or do not save, there is no try
-zScoreIt=0; %trialwise zscore, faster but less accurate
-preZScore =1; %Can Take a long time, not to be used with zScoreIt
+zScoreIt = 0; %trialwise zscore, faster but less accurate
+preZScore = 0; %Can Take a long time, not to be used with zScoreIt
+preDFF = 0;1; %plot as DFF mutually exclusive to pre zscoring
 gausfilt = 1; %its helpful to gausian fliter it to reduce noise
-gausfiltVal = 0.75; % How much to gaussian filter typically 0.75 sometimes 1.25
-baselineSubtract = 1; %subtract a prestimulus period
+gausfiltVal = 0.5; 0.75; % How much to gaussian filter typically 0.75 sometimes 1.25
+baselineSubtract = 0; %subtract a prestimulus period
+baselineGaussFilt = 1e-6; %smoothing of baseline; default 2.5;
+baselineMultiplier = 1;0.25; %default 1
 cellsOnly = 0; % only the outlines of cells
 blankEdges = 1; % put white bars over where the artifacts will be
 trimEdges = 1; %simply cut off where the artifacts will be
 rotateIM = 1; %rotate the image 90degrees so that it looks landscape rather than portrait after edge trimming
-useStimCoM=1; %use the location of stimulated holograms, rather than their matched cells to place circles
+useStimCoM = 0; %use the location of stimulated holograms, rather than their matched cells to place circles
 superimposeIMs = 0; %collapse all planes into a single one
 maxFrameDisplay = inf; 18; %Cut off Movie early if you want, default inf
 oneFrameAtATime = 0; % this will pause after each frame if you're trying to pull out a single image
 
-stimToUseList=[19 26 8] ; %[8 26 ];% 17 35 44];%[1:9];% The StimIDs that you want to cycle through
+stimToUseList= 14;10; [2:9];[1 31:6:43]; [1 7 13 19] ; %[8 26 ];% 17 35 44];%[1:9];% The StimIDs that you want to cycle through
 
 aF = 1; %average Factor; How many frames do you want average. default 1
 
@@ -142,23 +173,23 @@ visMarkerColor =  rgb('Magenta');
 
 
 stimstyle = 2;  % if you're not doing any visual stimulus stimstyle 1 and 2 should be the same, otherwise you probably want to use 2
-numHolosPerTrial=1; %if a given sweep (trial type) has more than one hologram set that here. This was last used with only 1 type of hologram and might not work anymore with multiple.
+numHolosPerTrial=99; %if a given sweep (trial type) has more than one hologram set that here. This was last used with only 1 type of hologram and might not work anymore with multiple.
 
-extendStimulus = 5; %frames to extend stim by
-extendColor = rgb('violet');%rgb('grey');
+extendStimulus = 10; %frames to extend stim by
+extendColor = rgb('grey');rgb('violet');%rgb('grey');
 
-offPlaneStim = 1; %draw a circle in the off plane locations
+offPlaneStim = 0; %draw a circle in the off plane locations
 offPlaneStimColor = rgb('darkgray');
 
 drawscalebar = 1; %draw a scalebar
-scaleBarColor = rgb('LightSlateGray');% rgb('White')
+scaleBarColor =rgb('White'); rgb('LightSlateGray');% rgb('White')
 
-playSpeed = 2;%2.5; %Playback faster? only matters for watching not for saving. multiple of FrameRate
+playSpeed = 1;%2.5; %Playback faster? only matters for watching not for saving. multiple of FrameRate
 
 displayTitle = 1; %display title of stimulus (stimID)
 
 depthString = {'-60\mum' '-30\mum' '0\mum'}; % Title of each plane
-clim =[0 2];[-4 4]; % default colormap
+clim =[0 300]; [0 250];[0 2];[0 2];[-4 4]; % default colormap
 asymetricCLIM = 0; % sometimes you want a colormap that isn't smooth, but has different movement <0 and >0 this allows that
 
 % clim = [-100 200];[0 2.5];
@@ -181,8 +212,13 @@ if asymetricCLIM
     % maptouse = b2r(-3.5,3.5,[temp(1,:); [1 1 1]; temp(end,:)]);
     maptouse = temp4;
 else
-    maptouse = viridis; rdbu; flipud(AdvancedColormap('Royal')); viridis; rdbu; viridis; %Set the colormap here rdbu is what i use most often
+    maptouse = AdvancedColormap('kgw');viridis;rdbu; AdvancedColormap('kg'); rdbu; flipud(AdvancedColormap('Royal')); viridis; rdbu; viridis; %Set the colormap here rdbu is what i use most often
 end
+
+%subplot dimensions
+ro = 3;
+co = 1; 
+fixedWindowLoc =1;
 
 %how to make the stimulus marker look
 stimColor = rgb('Magenta');rgb('Magenta');%rgb('MistyRose') ;
@@ -194,7 +230,7 @@ if saveVid
     savePath = 'C:\Users\ian\Documents\DATA\AnalysisOutput';
     %         savePath = 'C:\Users\SabatiniLab\Dropbox\Adesnik\Data To Play With';
     
-    name = '191008_ContrastResponses';
+    name = '210930_Ai203_StimTestViridis';
     
     vid = VideoWriter(fullfile(savePath,[name '.avi']));
     vid.FrameRate =FR*playSpeed;  % Default 30
@@ -216,6 +252,11 @@ for M=1:numel(stimToUseList)
         mov1 = zMov1(:,:,(ind-1)*movFrames+1:ind*movFrames);
         mov2 = zMov2(:,:,(ind-1)*movFrames+1:ind*movFrames);
         mov3 = zMov3(:,:,(ind-1)*movFrames+1:ind*movFrames);
+    elseif preDFF
+        ind = stimToUse; %this might need to change depending on how zMov was built
+        mov1 = dfMov1(:,:,(ind-1)*movFrames+1:ind*movFrames);
+        mov2 = dfMov2(:,:,(ind-1)*movFrames+1:ind*movFrames);
+        mov3 = dfMov3(:,:,(ind-1)*movFrames+1:ind*movFrames);
     else
         mov1 = d1Mov{stimToUse};
         mov2 = d2Mov{stimToUse};
@@ -238,9 +279,9 @@ for M=1:numel(stimToUseList)
     
     strtFrame = round(strt/1000*FR)-1;
     if baselineSubtract
-        mov1= mov1 - imgaussfilt(mean(mov1(:,:,1:strtFrame),3),2.5);
-        mov2= mov2 - imgaussfilt(mean(mov2(:,:,1:strtFrame),3),2.5);
-        mov3= mov3 - imgaussfilt(mean(mov3(:,:,1:strtFrame),3),2.5);
+        mov1= mov1 - imgaussfilt(mean(mov1(:,:,1:strtFrame),3),baselineGaussFilt)*baselineMultiplier;
+        mov2= mov2 - imgaussfilt(mean(mov2(:,:,1:strtFrame),3),baselineGaussFilt)*baselineMultiplier;
+        mov3= mov3 - imgaussfilt(mean(mov3(:,:,1:strtFrame),3),baselineGaussFilt)*baselineMultiplier;
     end
     
     if cellsOnly
@@ -270,9 +311,9 @@ for M=1:numel(stimToUseList)
     whenLong = zeros([1 size(mov1,3)]);
     whenLongVis = zeros(size(whenLong));
     
-    for i=1:numHolosPerTrial
+    if numHolosPerTrial==1
         
-        stimTime= strt/1000 + (i-1)/freq; %onset of stim in s
+        stimTime= strt/1000; %onset of stim in s
         stimLen = dura/1000; %duration of stim in s
         
         strtStim = round((stimTime*FR));
@@ -288,16 +329,25 @@ for M=1:numel(stimToUseList)
             visThisMov = find(log(stimToUse,2)==uniqueVisStim);
             whenLongVis(strtStim:endStim) = visThisMov;
         end
-    end
-    
-    whenLong2 = zeros(size(whenLong));
-    if extendStimulus>0
-        ns = find(whenLong~=0);
         
-        for i =1:numel(ns);
-            n = ns(i);
-            stim = whenLong(n);
-            whenLong2(n+1:n+extendStimulus)=stim;
+    else
+        stimTimes = unique(holoRequests.holoStimParams.bigListOfFirstStimTimes(:,1));
+        stimTimes(isnan(stimTimes))=[];
+        
+        stimThisMov = find(log(stimToUse,1)==uniqueStims);
+        roisThisMov = stimParam.roi{stimThisMov};
+        
+        if numel(stimTimes)~=numel(roisThisMov);
+            disp('ERROR! Help not the right number of ROIs...')
+        end
+        
+        stimFrames = round(stimTimes*FR);
+        
+        for r = 1:numel(roisThisMov)
+            if whenLong(stimFrames(r))~=0
+                disp('Two+ rois per frame')
+            end
+            whenLong(stimFrames(r))=roisThisMov(r);
         end
     end
     
@@ -327,7 +377,38 @@ for M=1:numel(stimToUseList)
     end
     allCoM2 = allCoM2-offsets;
     
-    
+    whenLong2 = zeros(size(whenLong));
+    if extendStimulus>0
+        ns = find(whenLong~=0);
+        
+        for i =1:numel(ns);
+            n = ns(i);
+            stim = whenLong(n);
+            
+            frameRange = max(n+1,1):min(n+extendStimulus,numel(whenLong2));
+            if all(whenLong2(frameRange)==0)
+                whenLong2(frameRange)=stim;
+            else
+                oldWL2 = whenLong2(frameRange);
+                toWrite = zeros([1 numel(frameRange)]);
+                uniqueWhenLong = unique(oldWL2);
+                for W = 1:numel(uniqueWhenLong)
+                    val = uniqueWhenLong(W);
+                    
+                    if val==0
+                        toWrite(oldWL2==val) = stim;
+                    else
+                        ID = numel(tempTargets)+1;
+                        newTargets =[tempTargets{val} tempTargets{stim}];
+                        tempTargets{ID} = newTargets;
+                        toWrite(oldWL2==val) = ID;
+                    end
+                end
+                
+                whenLong2(frameRange)=toWrite;
+            end
+        end
+    end
     if rotateIM
         mov1=permute(mov1,[2 1 3]);
         mov2=permute(mov2,[2 1 3]);
@@ -346,15 +427,21 @@ for M=1:numel(stimToUseList)
     end
     
     if superimposeIMs
-        %         mov1 = max(cat(4,mov1,mov2,mov3),[],4);
-        mov1 = mean(cat(4,mov1,mov2,mov3),4)*3;
+                mov1 = max(cat(4,mov1,mov2,mov3),[],4);
+%         mov1 = mean(cat(4,mov1,mov2,mov3),4)*3;
         
     end
     
     
     F = figure(115);clf
+    if fixedWindowLoc
+    F.Position =[700 50 1000 1300];
+    end
+    
+    backgroundColor = 'k';'w';
+    textColor = rgb('LightGrey')
     imagesc(mov1(:,:,1));
-    set(gcf,'color','w')
+    set(gcf,'color',backgroundColor)
     hold on
     axis tight
     axis square
@@ -410,13 +497,13 @@ for M=1:numel(stimToUseList)
                 visMarker.Color = visMarkerColor;
                 visMarker.MarkerFaceColor = visMarkerColor;
                 visMarker.MarkerSize=visMarkerSize;
-                visMarker.Marker = 's'
+                visMarker.Marker = 's';
             end
             
             
             if extendStimulus>0
                 if whenLong2(i)~=0
-                    cells = tempTargets{whenLong2(i)};
+                    cells = [tempTargets{whenLong2(i)}];
                     for k=1:numel(cells)
                         cell = cells(k);
                         
@@ -457,16 +544,24 @@ for M=1:numel(stimToUseList)
                 end
             end
         else %don't superimpose
-            h1 = subplot(1,3,1);
+            h1 = subplot(ro,co,1);
+            if fixedWindowLoc
+               h1.Position =  [-1 0.7 3 0.25];
+            end
             imagesc(mean(mov1(:,:,i-aF:i),3));
             caxis(clim);
             if ~trimEdges
                 axis square
-                title(depthString{1},'Units','normalized','Position',[0.5 1 1])
+                t1 = title(depthString{1},'Units','normalized','Position',[0.5 1 1]);
             else
-                title(depthString{1},'Units','normalized','Position',[0.5 0.75 1])
+                t1 = title(depthString{1},'Units','normalized','Position',[0.5 0.75 1]);
                 axis equal
             end
+                        if fixedWindowLoc
+                t1.Position = [0.5 1 1];
+            end
+            t1.Color=textColor;
+            
             axis off
             if whenLong(i)~=0
                 cells = tempTargets{whenLong(i)};
@@ -494,12 +589,12 @@ for M=1:numel(stimToUseList)
                 visMarker.Color = visMarkerColor;
                 visMarker.MarkerFaceColor = visMarkerColor;
                 visMarker.MarkerSize=visMarkerSize;
-                visMarker.Marker = 's'
+                visMarker.Marker = 's';
             end
             
             if extendStimulus>0
                 if whenLong2(i)~=0
-                    cells = tempTargets{whenLong2(i)};
+                    cells = [tempTargets{whenLong2(i)}];
                     for k=1:numel(cells)
                         cell = cells(k);
                         
@@ -540,16 +635,23 @@ for M=1:numel(stimToUseList)
                 end
             end
             
-            h2 = subplot(1,3,2);
+            h2 = subplot(ro,co,2);
+             if fixedWindowLoc
+               h2.Position =  [-1 0.4 3 0.25];
+            end
             imagesc(mean(mov2(:,:,i-aF:i),3));
             caxis(clim);
             if ~trimEdges
                 axis square
-                title(depthString{2},'Units','normalized','Position',[0.5 1 1])
+                t2 = title(depthString{2},'Units','normalized','Position',[0.5 1 1]);
             else
-                title(depthString{2},'Units','normalized','Position',[0.5 0.75 1])
+                t2 = title(depthString{2},'Units','normalized','Position',[0.5 0.75 1]);
                 axis equal
             end
+            if fixedWindowLoc
+                t2.Position = [0.5 1 1];
+            end
+            t2.Color=textColor;
             axis off
             if whenLong(i)~=0
                 cells = tempTargets{whenLong(i)};
@@ -575,7 +677,7 @@ for M=1:numel(stimToUseList)
                 visMarker.Color = visMarkerColor;
                 visMarker.MarkerFaceColor = visMarkerColor;
                 visMarker.MarkerSize=visMarkerSize;
-                visMarker.Marker = 's'
+                visMarker.Marker = 's';
                 if useVisStimMarkerText
                     txt= stimMarkerText{whenLongVis(i)};
                     x = get(gca);
@@ -587,7 +689,7 @@ for M=1:numel(stimToUseList)
             
             if extendStimulus>0
                 if whenLong2(i)~=0
-                    cells = tempTargets{whenLong2(i)};
+                    cells = [tempTargets{whenLong2(i)}];
                     for k=1:numel(cells)
                         cell = cells(k);
                         
@@ -606,16 +708,25 @@ for M=1:numel(stimToUseList)
                 end
             end
             
-            h3 = subplot(1,3,3);
+            h3 = subplot(ro,co,3);
+            if fixedWindowLoc
+               h3.Position =  [-1 0.1 3 0.25];
+            end
             imagesc(mean(mov3(:,:,i-aF:i),3));
             caxis(clim);
             if ~trimEdges
                 axis square
-                title(depthString{3},'Units','normalized','Position',[0.5 1 1])
+                t3 = title(depthString{3},'Units','normalized','Position',[0.5 1 1]);
             else
-                title(depthString{3},'Units','normalized','Position',[0.5 0.75 1])
+                t3 = title(depthString{3},'Units','normalized','Position',[0.5 0.75 1]);
                 axis equal
             end
+            
+            if fixedWindowLoc
+                t3.Position = [0.5 1 1];
+            end
+            t3.Color=textColor;
+            
             axis off
             
             %      colorbar
@@ -643,12 +754,12 @@ for M=1:numel(stimToUseList)
                 visMarker.Color = visMarkerColor;
                 visMarker.MarkerFaceColor = visMarkerColor;
                 visMarker.MarkerSize=visMarkerSize;
-                visMarker.Marker = 's'
+                visMarker.Marker = 's';
             end
             
             if extendStimulus>0
                 if whenLong2(i)~=0
-                    cells = tempTargets{whenLong2(i)};
+                    cells = [tempTargets{whenLong2(i)}];
                     for k=1:numel(cells)
                         cell = cells(k);
                         
@@ -673,12 +784,21 @@ for M=1:numel(stimToUseList)
             
             h = colorbar;
             colorbarPos = h.Position;
-            ylabel(h,'\Delta Z-Score Fluorescence');
+            ylabel(h,'Fluorescence (A.U.)');
             set(h.Label,'rotation',-90);
             h.Label.FontSize = 11;
+            h.Label.Color = textColor; %title
+            h.Color = textColor; %ticks
+            h.Box = 'off';
             
+            if fixedWindowLoc
+               h.Position= [0.8 0.1 0.03 0.25] ;%max(colorbarPos+[0 0 0 0],0);
             
-            h.Position= max(colorbarPos+[0.03 .125 0 -.25],0);
+            elseif ro<=co
+                h.Position= max(colorbarPos+[0.03 .25 0 -.5],0);
+            else
+                h.Position= max(colorbarPos+[-0.25 0 0 0],0);
+            end
             h.Label.Position = [2.5 mean(clim) 0];
             set(h3,'position',origPos3);
             axis equal

@@ -54,7 +54,7 @@ clear ensStimScore
      
      
      winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
-     bwinToUse = max(round([0 All(ind).out.exp.visStart]*All(ind).out.info.FR),[1 1]);
+     bwinToUse = max(floor([0 All(ind).out.exp.visStart]*All(ind).out.info.FR),[1 1]);
 
      rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse(1):winToUse(2),:),2));
      bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
