@@ -6,9 +6,6 @@ distBins = opts.distBins; %[0:25:1000];
 numDist =numel(distBins)-1;
 numExps = numel(All);
 
-
-
-
 c=0;
 ind = 1;
 %add additional constraints to cellsToUse
@@ -46,6 +43,32 @@ else
     StimDistance = All(ind).out.anal.StimDistance;
 end
 
+%% Find the distance in feature space between cells and targets
+% Presented angles
+oriVals = [NaN 0:45:315];
+
+% All possible targets and their orientation preferences
+allTargets = All(ind).out.exp.targetedCells;
+targetedCellOris = nan(size(allTargets));
+targetedCellOris(~isnan(allTargets)) = oriVals(All(ind).out.anal.prefOri(allTargets(~isnan(allTargets))));
+
+% All cells in the FOV their orientation preferences
+cellOris = oriVals(All(ind).out.anal.prefOri);
+
+% Feature distance between cells and targets (in radians)
+ThetaDistance = abs(targetedCellOris-cellOris);
+ThetaDistance(ThetaDistance>180) = abs(ThetaDistance(ThetaDistance>180)-360);
+ThetaDistance(ThetaDistance==135)=45;
+ThetaDistance(ThetaDistance==180)=0;
+
+% If either a target or cell prefer the gray screen (denoted by nan, 
+% assign a distance of 90 degrees
+ThetaDistance(isnan(ThetaDistance))=90;
+
+ThetaDistance = ThetaDistance*pi/180;
+
+%%
+
 %load in some variables you'll need
 numStims = numel(All(ind).out.exp.stimParams.Seq);
 offTargetRisk = All(ind).out.anal.offTargetRisk;
@@ -63,6 +86,7 @@ if i~=1
     
     Tg=All(ind).out.exp.rois{holo};
     dists = StimDistance(Tg,:);
+    thetaDists = ThetaDistance(Tg,:);
         
     %             minDistbyHolo(i,:) = minDist;
     %             geoDistbyHolo(i,:) = geoDist;
@@ -90,13 +114,24 @@ if i~=1
             center_of_mass = mean(stimLoc(All(ind).out.exp.rois{holo},:));
             centerDist = sqrt(sum((center_of_mass-allLoc).^2,2))';
             distToUse = centerDist;
+        case 'conn dist'
+            
+            sigma_dist_rossi = 142; % in microns
+            r_0 = 0.44;
+            r_p = 0.6730;
+            sigma_theta_rossi = 0.3665; % in radians
+            
+            cr = (r_0 + r_p *exp(-thetaDists.^2/(2*sigma_theta_rossi^2)));
+            expDist = exp(-dists.^2/(2*sigma_dist_rossi^2));
+            
+            conndist = sum(cr.*expDist);
+            distToUse = conndist;
+                        
         otherwise
             disp('dist type not understood, using min')
             minDist = min(dists,[],1);
             distToUse =minDist;
     end
-    
-    
     
     for d = 1:numel(distBins)-1
         cellsToUse = ~ROIinArtifact' &...
