@@ -1,6 +1,11 @@
 function [All outVars] = CalcPVisRFromVis(All,opts,outVars)
 %%
-recWinRange =opts.recWinRange;%
+try 
+    recWinRange = opts.visRecWinRange;
+catch
+    disp('Might not have the visRecWinRange using recWinRange Instead')
+    recWinRange =opts.recWinRange;%
+end
 visAlpha = opts.visAlpha;
 numExp = numel(All);
 
