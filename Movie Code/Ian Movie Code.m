@@ -89,7 +89,7 @@ for idx = 1:numel(uniqueStims)
             
         else
             for j = 1:nDepthsTotal
-                eval(['d' num2str(j) 'Mov{i}= []'])
+                eval(['d' num2str(j) 'Mov{i}= [];'])
             end
             %         d1Mov{i}= [];
             %         d2Mov{i}=[];
@@ -128,17 +128,19 @@ f0 = f0-min(f0(:));
 f0(f0<lowFluorThresh)=nan;
 dfMov3 = (mov3-f0)./f0;
 disp('done')
-%%
-mov1 = cat(4,d1Mov{10:13});
-d1Mov{14} = mean(mov1,4);
+%% make additional avg movs
+avRange = 1:42;
+saveToVal = 43; 
+mov1 = cat(4,d1Mov{avRange});
+d1Mov{saveToVal} = mean(mov1,4);
 
-mov2 = cat(4,d2Mov{10:13});
-d2Mov{14} = mean(mov2,4);
+mov2 = cat(4,d2Mov{avRange});
+d2Mov{saveToVal} = mean(mov2,4);
 
-mov3 = cat(4,d3Mov{10:13});
-d3Mov{14} = mean(mov3,4);
+mov3 = cat(4,d3Mov{avRange});
+d3Mov{saveToVal} = mean(mov3,4);
 
-log(14,:) =log(13,:);
+log(saveToVal,:) = log(13,:);
 
 %% Play Mov
 
@@ -148,19 +150,19 @@ preZScore = 0; %Can Take a long time, not to be used with zScoreIt
 preDFF = 0;1; %plot as DFF mutually exclusive to pre zscoring
 gausfilt = 1; %its helpful to gausian fliter it to reduce noise
 gausfiltVal = 0.5; 0.75; % How much to gaussian filter typically 0.75 sometimes 1.25
-baselineSubtract = 0; %subtract a prestimulus period
+baselineSubtract = 1; %subtract a prestimulus period
 baselineGaussFilt = 1e-6; %smoothing of baseline; default 2.5;
 baselineMultiplier = 1;0.25; %default 1
 cellsOnly = 0; % only the outlines of cells
-blankEdges = 1; % put white bars over where the artifacts will be
-trimEdges = 1; %simply cut off where the artifacts will be
+blankEdges = 0; % put white bars over where the artifacts will be
+trimEdges = 0; %simply cut off where the artifacts will be
 rotateIM = 1; %rotate the image 90degrees so that it looks landscape rather than portrait after edge trimming
 useStimCoM = 0; %use the location of stimulated holograms, rather than their matched cells to place circles
 superimposeIMs = 0; %collapse all planes into a single one
 maxFrameDisplay = inf; 18; %Cut off Movie early if you want, default inf
 oneFrameAtATime = 0; % this will pause after each frame if you're trying to pull out a single image
 
-stimToUseList= 14;10; [2:9];[1 31:6:43]; [1 7 13 19] ; %[8 26 ];% 17 35 44];%[1:9];% The StimIDs that you want to cycle through
+stimToUseList=2:2:42;%14;10; [2:9];[1 31:6:43]; [1 7 13 19] ; %[8 26 ];% 17 35 44];%[1:9];% The StimIDs that you want to cycle through
 
 aF = 1; %average Factor; How many frames do you want average. default 1
 
@@ -189,7 +191,7 @@ playSpeed = 1;%2.5; %Playback faster? only matters for watching not for saving. 
 displayTitle = 1; %display title of stimulus (stimID)
 
 depthString = {'-60\mum' '-30\mum' '0\mum'}; % Title of each plane
-clim =[0 300]; [0 250];[0 2];[0 2];[-4 4]; % default colormap
+clim =[-15 15]; [0 300]; [0 250];[0 2];[0 2];[-4 4]; % default colormap
 asymetricCLIM = 0; % sometimes you want a colormap that isn't smooth, but has different movement <0 and >0 this allows that
 
 % clim = [-100 200];[0 2.5];
@@ -212,7 +214,7 @@ if asymetricCLIM
     % maptouse = b2r(-3.5,3.5,[temp(1,:); [1 1 1]; temp(end,:)]);
     maptouse = temp4;
 else
-    maptouse = AdvancedColormap('kgw');viridis;rdbu; AdvancedColormap('kg'); rdbu; flipud(AdvancedColormap('Royal')); viridis; rdbu; viridis; %Set the colormap here rdbu is what i use most often
+    maptouse =viridis; AdvancedColormap('kgw');;rdbu; AdvancedColormap('kg'); rdbu; flipud(AdvancedColormap('Royal')); viridis; rdbu; viridis; %Set the colormap here rdbu is what i use most often
 end
 
 %subplot dimensions

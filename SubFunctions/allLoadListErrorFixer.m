@@ -225,9 +225,9 @@ indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
 if ~isempty(indToUse)
     disp(['Correcting from Ind: ' num2str(indToUse)]);
     lengthOfDat = size(All(indToUse).out.exp.allData,3);
-    try All(indToUse).out.exp.runVal = All(indToUse).out.exp.runVal(1:lengthOfDat,:);catch;end
-    All(indToUse).out.exp.visID = All(indToUse).out.exp.visID(1:lengthOfDat);
-    All(indToUse).out.exp.stimID = All(indToUse).out.exp.stimID(1:lengthOfDat);
+    try All(indToUse).out.exp.runVal = All(indToUse).out.exp.runVal(2:end,:);catch;end
+    All(indToUse).out.exp.visID = All(indToUse).out.exp.visID(2:end);
+    All(indToUse).out.exp.stimID = All(indToUse).out.exp.stimID(2:end);
 end 
 
 

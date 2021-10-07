@@ -114,6 +114,8 @@ ensIndNumber =outVars.ensIndNumber;
 
 
 %% Optional: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
+opts.visRecWinRange = [0.5 1.5]; [0.5 1.5];
+
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
 outVars.visPercentFromVis = visPercent;

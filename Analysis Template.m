@@ -26,8 +26,8 @@ end
 disp('Loaded')
 %% Experiment
 
-s2pEpoch = 7 ;
-DAQepoch = 8 ;
+s2pEpoch = 6 ;
+DAQepoch = 7 ;
 
 
 %% Scary Loading Part
