@@ -46,5 +46,5 @@ loadList = {
     ...'210910_i151_3_outfile.mat' %many random holos at 30Hz, for SM proj, (30c x 10ap)
     '210914_i151_3_outfile.mat'
     '210927_I154_2_outfile.mat'
-    '210930_I154_2_outfile.mat'
+    ...'210930_I154_2_outfile.mat' %has a weird not correctable error during respopnse window
 };

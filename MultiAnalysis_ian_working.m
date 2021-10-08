@@ -8,7 +8,8 @@ addpath(genpath('100spikesAnalysis'))
 
 oriLoadList;
 
-loadPath = 'path/to/outfiles/directory';
+% loadPath = 'path/to/outfiles/directory';
+loadPath = 'T:\Outfiles';
 
 addpath(genpath(loadPath))
 
@@ -171,7 +172,7 @@ excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars.hzEachEns;
 
 %spot to add additional Exclusions
-excludeInds = ismember(ensIndNumber,[43]); %Its possible that the visStimIDs got messed up
+excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
@@ -187,7 +188,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
-    & excludeInds ...
+    & ~excludeInds ...
     & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
     & ~lowBaseLineTrialCount ...
     & ~ensHasRed ...
