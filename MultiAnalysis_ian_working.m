@@ -39,6 +39,12 @@ end
 %CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
 
+%% Set Data To use
+for i=1:numExps
+    All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
+end
+disp('Data To Use is set')
+
 %% clean Data, and create fields.
 
 opts.FRDefault=6;

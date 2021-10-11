@@ -9,6 +9,8 @@ warning(['You are replacing the ZDF data with DF data in the All.out ' ...
         'struct entirely, thus breaking any indexing into the loadList, '...
         'so be sure to run this AFTER allLoadListErrorFixer.'])
     
+    computeDFifAbsent =1;
+    
 numExpts = numel(All);
 c=0;
 
@@ -19,9 +21,16 @@ for ind = 1:numExpts
     catch ME
         % if there isn't a dfData field, skip that expt and remove it
         if strcmp(ME.identifier,'MATLAB:nonExistentField')
-            c = c+1;
-            disp(['No dfData for experiment ' num2str(ind) '. Skipping and removing from All(out).'])
-            exptsNoDF(c) = ind; % to be removed
+            if computeDFifAbsent
+                disp(['ind ' num2str(ind) ' No df found, computing from allData'])
+                [dfData, ~] =  computeDFFwithMovingBaseline(All(ind).out.exp.allData);
+                All(ind).out.exp.dfData = dfData;
+                All(ind).out.exp.zdfData = dfData;
+            else
+                c = c+1;
+                disp(['No dfData for experiment ' num2str(ind) '. Skipping and removing from All(out).'])
+                exptsNoDF(c) = ind; % to be removed
+            end
         else
             % if we don't know what happened we want to raise the error
             rethrow(ME)

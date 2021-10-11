@@ -191,6 +191,24 @@ disp('Done')
 
 
 
+%% Compute and add .dfData to outfiles
+savePath = [loadPath '\new'];
+
+for ind=1:numExps;
+    if ~isfield(All(ind).out.exp,'dfData');
+        pTime =tic;
+        fprintf(['Loading Experiment ' num2str(ind) '...']);
+        
+        in = load(fullfile(loadPath,loadList{ind}),'out');
+        out = in.out;
+        [dfData, ~] =  computeDFFwithMovingBaseline(out.exp.allData);
+        out.exp.dfData = dfData;
+        
+        
+        save(fullfile(savePath,loadList{ind}),'out')
+        fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+    end
+end
 
 
 
