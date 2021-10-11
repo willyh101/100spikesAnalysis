@@ -13,7 +13,14 @@ for ind=1:numExps
     us = unique(All(ind).out.exp.stimID);
     vs = unique(All(ind).out.exp.visID);
     vs(vs==0)=[];
-
+    
+    if isfield(All(ind).out.exp, 'dataToUse')
+        dataToUse = All(ind).out.exp.dataToUse;
+    else
+        disp(['ind ' num2str(ind) '. no data to use, using zdfData']);
+        dataToUse = All(ind).out.exp.zdfData;
+    end
+    
     
     ROIinArtifact = All(ind).out.anal.ROIinArtifact;
     offTargetRisk = All(ind).out.anal.offTargetRisk;
@@ -50,7 +57,7 @@ for ind=1:numExps
         for k=1:numel(vs)
             v=vs(k);
             
-            dat = All(ind).out.exp.zdfData(cellsToUse,newStart:end,trialsToUse &...
+            dat = dataToUse(cellsToUse,newStart:end,trialsToUse &...
                 All(ind).out.exp.stimID==s &...
                 All(ind).out.exp.visID==v );
             

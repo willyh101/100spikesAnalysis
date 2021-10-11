@@ -40,7 +40,7 @@ end
 [All] = allLoadListErrorFixer(All,loadList);
 
 %% Set Data To use
-for i=1:numExps
+for ind=1:numExps
     All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
 end
 disp('Data To Use is set')

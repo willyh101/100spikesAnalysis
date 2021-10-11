@@ -5,8 +5,16 @@ for ind = 1:numExps
     pTime =tic;
     fprintf(['Processing Experiment ' num2str(ind) '...']);
     
+    if isfield(All(ind).out.exp, 'dataToUse')
+        dataToUse = All(ind).out.exp.dataToUse;
+    else
+        disp(['ind ' num2str(ind) '. no data to use, using zdfData']);
+        dataToUse = All(ind).out.exp.zdfData;
+    end
+    
+    
     stimCoM = All(ind).out.exp.stimCoM;
-    numCells = size(All(ind).out.exp.zdfData,1);
+    numCells = size(dataToUse,1);
     allCoM = All(ind).out.exp.allCoM;
     stimDepth = All(ind).out.exp.stimDepth;
     allDepth = All(ind).out.exp.allDepth;
