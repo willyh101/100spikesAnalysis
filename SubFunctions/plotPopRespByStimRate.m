@@ -1,4 +1,4 @@
-% function plotPopRespByStimRate(outVars)
+function [outInfo] = plotPopRespByStimRate(outVars)
 
 figure(139);clf
 ensemblesToUse = outVars.ensemblesToUse;
@@ -8,7 +8,7 @@ hzEachEns = outVars.hzEachEns;
 uEns = unique(numCellsEachEns(ensemblesToUse)); 
 popResponseEns = outVars.popResponseEns;
 
-clear mdat err
+clear mdat err outInfo
 for i=1:numel(uEns)
     subplot(1,numel(uEns),i)
     
@@ -20,6 +20,9 @@ for i=1:numel(uEns)
         data{k} = popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & hzEachEns==uRates(k));
         names{k} = string(uRates(k));
     end
+    outInfo{i}.data = data;
+    outInfo{i}.names = names;
+    
     mdat(i) = mean(popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & hzEachEns==uRates(k)));
     err(i) = sem(popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & hzEachEns==uRates(k)));
     a{i} = popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & hzEachEns==uRates(k));

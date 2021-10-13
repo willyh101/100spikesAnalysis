@@ -59,7 +59,6 @@ for ind =1:numExps
     %
     recWinSec = recWinRange + All(ind).out.exp.visStart; %recording window relative to when vis start
     
-    
     winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
     bwinToUse = max(floor([0 All(ind).out.exp.visStart]*All(ind).out.info.FR),[1 1]);
     

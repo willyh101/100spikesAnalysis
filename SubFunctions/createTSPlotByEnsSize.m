@@ -6,7 +6,7 @@ numExps = numel(All);
 ensemblesToUse = outVars.ensemblesToUse; 
 IndsUsed = outVars.IndsUsed;
 
-clim = [-0.15 0.15];
+clim = [-0.05 0.05];
 
 minStrtFrame = min(arrayfun(@(x) x.out.anal.recStartFrame,All));
 
@@ -156,7 +156,12 @@ end
 
 for i = 1:numSizes
     ix(end+1) =subplot(2,numSizes+1,1+i);
-    imagesc(meanTSSquare(ensemblesToUse & numCellsEachEns==uniqueNumCells(i),:))
+    cellsToPlot = find(ensemblesToUse & numCellsEachEns==uniqueNumCells(i)); 
+    val = mean(meanTSSquare(cellsToPlot,6:10),2);
+    [s sidx] = sort(val);
+   cellsToPlot= cellsToPlot(sidx);
+%      cellsToPlot = cellsToPlot(randperm(numel(cellsToPlot)));
+    imagesc(meanTSSquare(cellsToPlot,:))
     ylabel('Ensemble')
     xlabel('Frame')
     
@@ -168,7 +173,7 @@ for i = 1:numSizes
 
     ax(end+1)=subplot(2,numSizes+1,numSizes+2+i);
     
-    rc =rectangle('position',[minStrtFrame -0.025 6 0.045]);
+    rc =rectangle('position',[minStrtFrame -0.03 6 0.055]);
     rc.FaceColor = [rgb('FireBrick') 0.25];
     rc.LineStyle = 'none';
     hold on
@@ -221,7 +226,7 @@ r.LineWidth=2;
 ylabel('\DeltaZ-Scored dF/F')
 xlabel('Frame')
 
-rc =rectangle('position',[minStrtFrame -0.025 6 0.045]);
+rc =rectangle('position',[minStrtFrame -0.03 6 0.045]);
     rc.FaceColor = [rgb('FireBrick') 0.25];
     rc.LineStyle = 'none';
     hold on

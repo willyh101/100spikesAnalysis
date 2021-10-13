@@ -209,6 +209,21 @@ for ind=1:numExps;
         fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
     end
 end
+disp('done')
 
+%%
 
-
+% ind = 55;
+%  pTime =tic;
+%         fprintf(['Loading Experiment ' num2str(ind) '...']);
+%         
+%         in = load(fullfile(loadPath,loadList{ind}),'out');
+%         out = in.out;
+%         out.exp = out.exp1;
+%         
+% %         [dfData, ~] =  computeDFFwithMovingBaseline(out.exp.allData);
+% %         out.exp.dfData = dfData;
+%         
+%         
+%         save(fullfile(savePath,loadList{ind}),'out')
+%         fprintf([' Took ' num2str(toc(pTime)) 's.\n'])

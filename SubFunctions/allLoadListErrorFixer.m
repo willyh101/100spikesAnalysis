@@ -33,6 +33,7 @@ if ~isempty(indToUse)
     badID = All(indToUse).out.exp.stimID==16;
     All(indToUse).out.exp.stimID(badID)=[];
     All(indToUse).out.exp.zdfData(:,:,badID)=[];
+    All(indToUse).out.exp.dfData(:,:,badID)=[];
     All(indToUse).out.exp.allData(:,:,badID)=[];
     All(indToUse).out.exp.runVal(badID,:)=[];
     All(indToUse).out.exp.lowMotionTrials(badID)=[];
@@ -230,6 +231,15 @@ if ~isempty(indToUse)
     All(indToUse).out.exp.stimID = All(indToUse).out.exp.stimID(2:end);
 end 
 
+
+%% fix numCells in 210902_I151_3
+
+nameToUse = '210902_I151_3_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+    All(indToUse).out.exp.stimParams.numCells = All(indToUse).out.exp.stimParams.numCells*10;
+end
 
 %%
 disp('Done fixing.')

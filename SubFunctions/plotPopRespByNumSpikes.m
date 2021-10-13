@@ -1,4 +1,4 @@
-function plotPopRespByNumSpikes(outVars)
+function [outInfo] = plotPopRespByNumSpikes(outVars)
 
 figure(140);clf
 ensemblesToUse = outVars.ensemblesToUse;
@@ -22,6 +22,8 @@ for i=1:numel(uEns)
         data{k} = popResponseEns(ensemblesToUse & numCellsEachEns==uEns(i) & numSpikesEachEns==uSpikes(k));
         names{k} = string(uSpikes(k));
     end
+      outInfo{i}.data = data;
+    outInfo{i}.names = names;
     
     cmap = colorMapPicker(numel(uSpikes),outVars.defaultColorMap);
 
