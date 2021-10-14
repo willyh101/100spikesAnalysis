@@ -167,9 +167,13 @@ for ind =1:numExps
     vs = unique(All(ind).out.exp.visID);
     numTrials = size(dataToUse,3);
     
-    rdata = All(ind).out.exp.rdData;
-    bdata = All(ind).out.exp.bdata;
-    
+    if isfield(opts, 'stimSuccessByZ') && opts.stimSuccessByZ
+        rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse(1):winToUse(2),:),2));
+        bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
+    else
+        rdata = All(ind).out.exp.rdData;
+        bdata = All(ind).out.exp.bdata;
+    end
     
     
     clear stimSuccessTrial

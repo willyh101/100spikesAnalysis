@@ -7,6 +7,7 @@ addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
 oriLoadList;
+allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
 loadPath = 'T:\Outfiles';
@@ -54,6 +55,8 @@ opts.recWinRange = [0.5 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start 
 %Stim Success Thresholds
 opts.stimsuccessZ = 0.25; %0.3, 0.25 over this number is a succesfull stim
 opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
+opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates based on zdfDat;
+
 
 %run Threshold
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
@@ -168,7 +171,7 @@ lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -191,7 +194,7 @@ lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTr
 
 ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    ...& highVisPercentInd ...
+    & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
@@ -201,8 +204,8 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    ... & ensembleOneSecond ... %cuts off a lot of the earlier
-    ... & numCellsEachEns==10 ...
+    ...& ensembleOneSecond ... %cuts off a lot of the earlier
+    & numCellsEachEns==10 ...
     & ensDate >= -210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
@@ -239,7 +242,11 @@ disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ense
 disp(['Fraction of Ens that were not repeats: ' num2str(mean(~outVars.removedRepeats)) ]);
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
-disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
+% disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
+disp(['Total of ' num2str(sum(ensemblesToUse)) ' Ensembles Included.'])
+disp([ num2str(numel(unique(ensIndNumber(ensemblesToUse)))) ' FOVs'])
+disp([ num2str(numel(unique(names(unique(ensIndNumber(ensemblesToUse)))))) ' Mice']);
+
 
 %% Set Default Trials to Use
 for ind=1:numExps
@@ -259,7 +266,7 @@ end
 %% Optional group ensembles into small medium and large
 numCellsEachEns = outVars.numCellsEachEnsBackup;
 numCellsEachEns(numCellsEachEns < 10) = 3;
-numCellsEachEns(numCellsEachEns > 10) = 20;
+numCellsEachEns(numCellsEachEns > 12) = 20;
 
 outVars.numCellsEachEns= numCellsEachEns;
 
