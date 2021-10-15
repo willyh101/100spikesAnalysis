@@ -7,7 +7,7 @@ addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
 oriLoadList;
-allLoadList;
+% % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
 loadPath = 'T:\Outfiles';
