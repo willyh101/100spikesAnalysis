@@ -101,6 +101,7 @@ ensIndNumber =outVars.ensIndNumber;
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 % Always do this!! not all experiments had full orientation data during the
 % experiment epoch (but did during the vis epoch)
+disp('Recalculating Vis stuff...')
 opts.visRecWinRange = [0.5 1.5]; [0.5 1.5];
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
@@ -288,7 +289,7 @@ plotPopResponseByExpressionType(All,outVars);
 % [All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
 
 %% Distance Response Plots
-opts.distBins = 0:25:1000;
+opts.distBins = 0:25:1000; %must be set to match popDist
 plotResponseByDistance(outVars,opts);
 
 
@@ -299,6 +300,7 @@ distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
 for i =1:6
     disp(['working on ' distTypes{i}])
     opts.distType = distTypes{i}; %options: min geo mean harm
+    opts.distBins = 0:1:350; %can be set variably 0:25:1000 is defaultt
     CellToUseVar = [];
     [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
     ax = subplot(2,3,i);
@@ -438,7 +440,9 @@ numEns = numel(outVars.ensStimScore);
 
 
 %this is where you change the criteria of what ensembles are included
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7 ;%& outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+% ensemblesToUse = outVars.ensemblesToUse &  outVars.ensOSI>0.7 & outVars.meanEnsOSI>0.5;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+% ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 
 
 oriVals = [NaN 0:45:315];
@@ -648,9 +652,10 @@ ylim([-0.1 0.3])
 % opts.distType = 'harm'; 
 % opts.distBins =[0:50:400];
 opts.distType = 'min';
-opts.distBins =[0:25:150];[15:20:150];% [0:25:400];
+opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
+opts.plotTraces =0;
+plotSpaceAndFeature(All,outVars,opts)
 
-plotTraces =0;
 %things to hold constant
 ensemblesToUse = ...
     outVars.ensemblesToUse ...
@@ -660,7 +665,7 @@ ensemblesToUse = ...
 criteria =  outVars.ensMaxD; outVars.ensMeaD;%   outVars.ensMaxD;outVars.ensOSI; %outVars.ensMaxD;
 useableCriteria = criteria(ensemblesToUse);
 bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
-bins = [0  400 500 inf];
+bins = [0 400 500 inf];
 % bins = [0 400  inf];
 % bins = [0 400 500 inf];%bins = [0 200 250 inf];
 
@@ -721,7 +726,7 @@ for i = 1:numel(bins2)-1
         end
         dataForStats(i,k,:) = outDat{1}.dat(:,1);
         
-        if plotTraces
+        if opts.plotTraces
         hold on
         distBins = opts.distBins;
         distBinSize = distBins(2)-distBins(1);
@@ -776,7 +781,7 @@ numEns = numel(outVars.ensStimScore);
 
 %this is where you change the criteria of what ensembles are included
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 ...
-    &  outVars.ensOSI>0.7 & outVars.ensMaxD >500  ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+    &  outVars.ensOSI>0.7;% & outVars.ensMaxD >400 & outVars.ensMaxD <500  ;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 
 
 oriVals = [NaN 0:45:315];
