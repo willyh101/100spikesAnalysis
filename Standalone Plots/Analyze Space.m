@@ -305,6 +305,7 @@ disp('done')
 
 %% Just a few with different binning
 figure(103);clf;
+dataInPlots =[];
 
 ax = subplot(1,2,1);
 opts.distType = 'min';
@@ -313,9 +314,9 @@ opts.distAxisRange = [0 250]; %[0 350] is stand
 CellToUseVar = [];
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
 [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
-dataInPlots{i}=outDat{1};
+dataInPlots{1}=outDat{1};
 eHandle{1}.CapSize =0;
-title(distTypes{i})
+title('min')
 
 ax = subplot(1,2,2);
 opts.distType = 'mean';
@@ -324,7 +325,7 @@ opts.distAxisRange = [0 450]; %[0 350] is stand
 CellToUseVar = [];
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
 [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
-dataInPlots{i}=outDat{1};
+dataInPlots{2}=outDat{1};
 eHandle{1}.CapSize =0;
-title(distTypes{i})
+title('mean')
 ylim([-0.075 0.075])
