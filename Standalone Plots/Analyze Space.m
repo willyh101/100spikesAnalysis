@@ -272,12 +272,59 @@ end
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 
-%% Plot Space and Feature
 
+%% Plot Mean Distance Responses
+
+plotEnsembleDistanceResponse(outVars,100,1)
+
+%% Plot Distance Plots
+
+opts.distBins = 0:25:1000; %must be set to match popDist
+plotResponseByDistance(outVars,opts);
+
+%% Compare Distance responses
+figure(102);clf
+
+dataInPlots=[];
+distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
+for i =[1 3]; %1:6
+    disp(['working on ' distTypes{i}])
+    opts.distType = distTypes{i}; %options: min geo mean harm
+    opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+    CellToUseVar = [];
+    [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+    ax = subplot(2,3,i);
+    opts.distAxisRange = [0 350]; %[0 350] is stand
+    [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+    dataInPlots{i}=outDat{1};
+    eHandle{1}.CapSize =0;
+    title(distTypes{i})
+    drawnow
+end
+disp('done')
+
+%% Just a few with different binning
+figure(103);clf;
+
+ax = subplot(1,2,1);
 opts.distType = 'min';
-opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
-opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
-opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts)
+opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 250]; %[0 350] is stand
+CellToUseVar = [];
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{i}=outDat{1};
+eHandle{1}.CapSize =0;
+title(distTypes{i})
 
-toc(masterTic)
+ax = subplot(1,2,2);
+opts.distType = 'mean';
+opts.distBins = 0:10:500; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 450]; %[0 350] is stand
+CellToUseVar = [];
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{i}=outDat{1};
+eHandle{1}.CapSize =0;
+title(distTypes{i})
+ylim([-0.075 0.075])

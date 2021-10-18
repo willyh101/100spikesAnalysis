@@ -654,7 +654,7 @@ ylim([-0.1 0.3])
 opts.distType = 'min';
 opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
 opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts)
+% plotSpaceAndFeature(All,outVars,opts)
 
 %things to hold constant
 ensemblesToUse = ...
@@ -682,6 +682,7 @@ bins2 = [0 0.3 0.7 inf];
 ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
 
+f = figure(555);
 clear popToPlot
 for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
@@ -694,7 +695,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
           & outVars.pVisR{ind} < 0.05 ...
           ... & outVars.osi{ind} > 0.25 ...
-        ... & outVars.posCellbyInd{i} ...
+         ...& outVars.posCellbyInd{i} ...
         ;
 
         popToPlot(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
@@ -703,6 +704,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         popToPlot(i,:) = nan([numel(opts.distBins)-1 1]);
     end
 end
+close(f)
 disp('Done')
 
 figure(13);clf
@@ -751,13 +753,19 @@ xlim([0 opts.distBins(end)])
 ylim([-0.25 0.3])
 
 p1 = ranksum(squeeze(dataForStats(3,1,:)),squeeze(dataForStats(3,3,:)));
+% [a p1] = ttest2(squeeze(dataForStats(3,1,:)),squeeze(dataForStats(3,3,:)));
 disp(['Co Tuned Close vs Far p = ' num2str(p1)]);
+
 p2 = ranksum(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(1,3,:)));
+% [a p2] = ttest2(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(1,3,:)));
 disp(['UnTuned Close vs Far p = ' num2str(p2)]);
 
 p3 = ranksum(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(3,1,:)));
+% [a p3] = ttest2(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(3,1,:)));
 disp(['Close Tuned v Untuned p = ' num2str(p3)]);
+
 p4 = ranksum(squeeze(dataForStats(1,3,:)),squeeze(dataForStats(3,3,:)));
+% [a p4] = ttest2(squeeze(dataForStats(1,3,:)),squeeze(dataForStats(3,3,:)));
 disp(['Far Tuned v Untuned p = ' num2str(p4)]);
 
 % ylim([-1 1]);
