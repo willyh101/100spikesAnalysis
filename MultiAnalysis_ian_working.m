@@ -440,7 +440,7 @@ numEns = numel(outVars.ensStimScore);
 
 
 %this is where you change the criteria of what ensembles are included
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==1 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse &  outVars.ensOSI>0.7 & outVars.meanEnsOSI>0.5;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 
@@ -469,7 +469,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
        cellOris = oriVals(outVars.prefOris{ind});
        cellOrisDiff = abs(cellOris-outVars.ensPO(i));
        cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
-% %        
+%        
        cellOrisDiff(cellOrisDiff==135)=45;
        cellOrisDiff(cellOrisDiff==180)=0;
 

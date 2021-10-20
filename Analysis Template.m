@@ -1,7 +1,7 @@
 clear;
-date = '210930';
-mouse = 'I154_2';%'I138_1';%'I136_1';
-epochs = '1_2_3_5_6_7_8';
+date = '211019';
+mouse = 'I154_1';%'I138_1';%'I136_1';
+epochs = '1_2_3_4';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -14,20 +14,20 @@ baseName = [mouse '_' date];%'I118a.2_180504';
 loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc']};% ['F_' baseName '_plane4_proc']};
 
 nDepthsTotal = 3;4;%Normally 3;
-physfile = fullfile(basePath,[date '_A' '.mat']);
+physfile = fullfile(basePath,[date '_B' '.mat']);
 % physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 disp('Loading...')
 try
     load(physfile)
 catch
-    physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
+    physfile = fullfile(basePath,[date(3:end) '_B' '.mat']);
     load(physfile)
 end
 disp('Loaded')
 %% Experiment
 
-s2pEpoch = 6 ;
-DAQepoch = 7 ;
+s2pEpoch = 4 ;
+DAQepoch = 4 ;
 
 
 %% Scary Loading Part
@@ -240,23 +240,26 @@ try
     HoloTargets=[];
 
     numHolos = numel(roisTargets);
-
+    
     for i = 1:numHolos
         HoloTargets{i} = targettedCells(roisTargets{i})';
     end
-
-
-    TargetRois = unique(cat(2,roisTargets{:}));
+    
+    try
+        TargetRois = unique(cat(2,roisTargets{:}));
+    catch
+        TargetRois = unique(cat(1,roisTargets{:}));
+    end
     allRoiWeights = holoRequests.roiWeights;
     TargetRoiWeights = allRoiWeights(TargetRois);
-
+    
     TargetCells = unique([HoloTargets{:}]);
     TargetCells(isnan(TargetCells))=[];
     cellList = 1:numCells;
     notTargetCells = ~ismember(cellList,TargetCells);
-
+    
     TargetCellsWithNan = [HoloTargets{:}];
-
+    
     disp([num2str(numel(TargetCells)) ' Detected Targeted Cells out of ' num2str(numel(TargetRois)) ' ROIs. ' num2str(numel(TargetCells)/numel(TargetRois)*100) '%']);
 catch
     disp('problem with rois, maybe no holo epoch? line 232')
