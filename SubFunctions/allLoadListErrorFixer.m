@@ -241,5 +241,16 @@ if ~isempty(indToUse)
     All(indToUse).out.exp.stimParams.numCells = All(indToUse).out.exp.stimParams.numCells*10;
 end
 
+
+%% fix vis Window 211014_I156_1
+
+nameToUse = '211014_I156_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+   All(indToUse).out.vis.visStart   = 0.98;
+   All(indToUse).out.vis.visStop    = 1.98;
+end
+
 %%
 disp('Done fixing.')
