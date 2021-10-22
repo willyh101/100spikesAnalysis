@@ -322,6 +322,8 @@ disp('done')
 opts.ensOSImethod = 'ensOSI';% 'ensOSI'; 'meanEnsOSI'
 
 plotOSIdists(outVars, opts);
+
+opts.plotFit=1;
 plotPopResponseEnsOSI(outVars, opts)
 
 %% within pyramids cell analysis
