@@ -252,5 +252,15 @@ if ~isempty(indToUse)
    All(indToUse).out.vis.visStop    = 1.98;
 end
 
+%% fix 190521_HB42_1
+
+nameToUse = '190521_HB42_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+  All(indToUse).out.exp.stimParams.numCells = ones([1 60])*10;
+end
+
+
 %%
 disp('Done fixing.')

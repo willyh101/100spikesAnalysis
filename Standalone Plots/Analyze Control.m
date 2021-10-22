@@ -7,7 +7,7 @@ masterTic = tic;
 addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
-oriLoadList;
+controlLoadList;
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
@@ -54,8 +54,8 @@ opts.recWinRange = [0.5 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start 
 
 
 %Stim Success Thresholds
-opts.stimsuccessZ = 0.25; %0.3, 0.25 over this number is a succesfull stim
-opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
+opts.stimsuccessZ = 0; 0.25; %0.3, 0.25 over this number is a succesfull stim
+opts.stimEnsSuccess = 0; 0.5; %0.5, fraction of ensemble that needs to be succsfull
 opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates based on zdfDat;
 
 
@@ -189,7 +189,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 0;5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -198,15 +198,15 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
     & highVisPercentInd ...
     & lowRunInds ...
-    & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
+    ... & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
     & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
     & ~lowBaseLineTrialCount ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
-    & ~ensMissedTarget ...
+    ...& ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    & ensembleOneSecond ... %cuts off a lot of the earlier
+    ...& ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
     ...& ensDate >= -210428 ...
     ...& outVars.hzEachEns == 10 ...
@@ -272,12 +272,67 @@ end
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 
-%% Plot Space and Feature
+%% basic funs
+outVars.defaultColorMap = 'viridis';
+plotAllEnsResponse(outVars)
+plotResponseBySize(outVars,0)
+plotPopResponseBySession(All,outVars)
+plotPopResponseByExpressionType(All,outVars);
+[All, outVars] = createTSPlotByEnsSize(All,outVars);
+[All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
+%% Plot Mean Distance Responses
 
+plotEnsembleDistanceResponse(outVars,100,1)
+
+%% Plot Distance Plots
+
+opts.distBins = 0:25:1000; %must be set to match popDist
+plotResponseByDistance(outVars,opts);
+
+%% Compare Distance responses
+figure(102);clf
+
+dataInPlots=[];
+distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
+for i =[1 3]; %1:6
+    disp(['working on ' distTypes{i}])
+    opts.distType = distTypes{i}; %options: min geo mean harm
+    opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+    CellToUseVar = [];
+    [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+    ax = subplot(2,3,i);
+    opts.distAxisRange = [0 350]; %[0 350] is stand
+    [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+    dataInPlots{i}=outDat{1};
+    eHandle{1}.CapSize =0;
+    title(distTypes{i})
+    drawnow
+end
+disp('done')
+
+%% Just a few with different binning
+figure(103);clf;
+dataInPlots =[];
+
+ax = subplot(1,2,1);
 opts.distType = 'min';
-opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
-opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
-opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts)
+opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 250]; %[0 350] is stand
+CellToUseVar = [];
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{1}=outDat{1};
+eHandle{1}.CapSize =0;
+title('min')
 
-toc(masterTic)
+ax = subplot(1,2,2);
+opts.distType = 'mean';
+opts.distBins = 0:10:500; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 450]; %[0 350] is stand
+CellToUseVar = [];
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{2}=outDat{1};
+eHandle{1}.CapSize =0;
+title('mean')
+ylim([-0.075 0.075])
