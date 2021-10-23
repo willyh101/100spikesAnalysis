@@ -442,7 +442,7 @@ numEns = numel(outVars.ensStimScore);
 
 
 %this is where you change the criteria of what ensembles are included
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==1 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse &  outVars.ensOSI>0.7 & outVars.meanEnsOSI>0.5;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 % ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
 
