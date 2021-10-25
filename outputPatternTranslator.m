@@ -8,6 +8,7 @@ for i =1:numel(uniqueStims)
 %     t = find(stimID==S,1);
     
     thisOutput = ExpStruct.stimlog{S}{1};
+    thisSize =size(thisOutput);
     
     isFound=0;
     c=0;
@@ -23,7 +24,13 @@ for i =1:numel(uniqueStims)
             
             if numel(testOutput) == numel(thisOutput)
                 isFound=  all(thisOutput(:)==testOutput(:));
-                
+            elseif numel(testOutput)>numel(thisOutput);
+                try
+                    testOutput = testOutput(1:thisSize(1),:);
+                    isFound=  all(thisOutput(:)==testOutput(:));
+                catch
+                    isFound =0;
+                end
             end
         end
         
