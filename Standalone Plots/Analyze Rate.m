@@ -201,11 +201,11 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
 indsSub = ensIndNumber(ensemblesToUse);
 IndsUsed = unique(ensIndNumber(ensemblesToUse));
 
-sum(ensemblesToUse)
+% sum(ensemblesToUse)
 
 outVars.ensemblesToUse      = ensemblesToUse;
 outVars.IndsUsed            = IndsUsed;
-outVars.indsSub             = indsSub;s
+outVars.indsSub             = indsSub;
 outVars.numTrialsPerEns     = numTrialsPerEns;
 outVars.highVisPercentInd   = highVisPercentInd;
 outVars.lowRunInds          = lowRunInds;
@@ -213,7 +213,7 @@ outVars.lowRunInds          = lowRunInds;
 %%Optional: Where are the losses comming from
 
 disp(['Fraction of Ens correct Size: ' num2str(mean(numSpikesEachEns > opts.numSpikeToUseRange(1) & numSpikesEachEns < opts.numSpikeToUseRange(2)))]);
-disp(['Fraction of Ens highVis: ' num2str(mean(highVisPercentInd))]);
+...disp(['Fraction of Ens highVis: ' num2str(mean(highVisPercentInd))]);
 disp(['Fraction of Ens lowRun: ' num2str(mean(lowRunInds))]);
 disp(['Fraction of Ens high stimScore: ' num2str(mean(ensStimScore>opts.ensStimScoreThreshold))]);
 disp(['Fraction of Ens high trial count: ' num2str(mean(numTrialsPerEns>opts.numTrialsPerEnsThreshold))]);
