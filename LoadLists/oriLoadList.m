@@ -12,7 +12,7 @@ loadList = {
     '190604_I127_1_outfile.mat'
     ...'190606_HB47_outfile.mat' %ai203 (exclude)
     '191017_I136_1_outfile.mat'
-    '191126_I138_1_outfile.mat'
+    '191126_I138_1_outfile.mat' %rate exp, but several valid
     '191206_I138_1_outfile.mat'
     '191212_I138_1_outfile.mat'
     ...'191213_W20_1_outfile.mat' %ai203 (exclude)
@@ -47,4 +47,5 @@ loadList = {
     '210914_i151_3_outfile.mat'
     '210927_I154_2_outfile.mat'
     ...'210930_I154_2_outfile.mat' %has a weird not correctable error during respopnse window
+    '211021_W40_2_outfile.mat' %rate Exp, but several valid
 };
