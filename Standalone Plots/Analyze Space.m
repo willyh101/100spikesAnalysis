@@ -63,7 +63,7 @@ opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates ba
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
 opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
-[All, outVars] = cleanData(All,opts);
+[All, outVars] = cleanData(All,opts); 
 
 ensStimScore        = outVars.ensStimScore;
 hzEachEns           = outVars.hzEachEns;
@@ -80,6 +80,20 @@ for Ind = 1:numel(All)
     names{Ind}=lower(strrep(All(Ind).out.info.mouse, '_', '.'));
 end
 outVars.names = names;
+
+%% restrict Cells to use
+opts.minMeanThreshold = 0.25;
+opts.maxMeanThreshold = inf;
+
+opts.verbose =1;
+[All, cellExcludeResults] = cellExcluder(All,opts); 
+allResults = cat(1,cellExcludeResults{:});
+disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
+
+opts.minNumCellsInd=250;
+tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
+disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
+
 
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
@@ -171,6 +185,8 @@ opts.IndsVisThreshold = 0.05; %default 0.05
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 
+lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
+
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
@@ -211,6 +227,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     ...& ensDate >= -210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
+    & ~lowCellCount ...
     ;
 
 %%remove repeats
@@ -242,6 +259,8 @@ disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissed
 disp(['Fraction of Ens number targets matched >=3: ' num2str(mean(numMatchedTargets >= 3))]);
 disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
 disp(['Fraction of Ens that were not repeats: ' num2str(mean(~outVars.removedRepeats)) ]);
+disp(['Fraction of Ens high Cell Count: ' num2str(mean(~lowCellCount))]);
+
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 % disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
@@ -282,26 +301,26 @@ plotEnsembleDistanceResponse(outVars,100,1)
 opts.distBins = 0:25:1000; %must be set to match popDist
 plotResponseByDistance(outVars,opts);
 
-%% Compare Distance responses
-figure(102);clf
-
-dataInPlots=[];
-distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
-for i =[1 3]; %1:6
-    disp(['working on ' distTypes{i}])
-    opts.distType = distTypes{i}; %options: min geo mean harm
-    opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
-    CellToUseVar = [];
-    [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
-    ax = subplot(2,3,i);
-    opts.distAxisRange = [0 350]; %[0 350] is stand
-    [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
-    dataInPlots{i}=outDat{1};
-    eHandle{1}.CapSize =0;
-    title(distTypes{i})
-    drawnow
-end
-disp('done')
+% %% Compare Distance responses
+% figure(102);clf
+% 
+% dataInPlots=[];
+% distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
+% for i =[1 3]; %1:6
+%     disp(['working on ' distTypes{i}])
+%     opts.distType = distTypes{i}; %options: min geo mean harm
+%     opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+%     CellToUseVar = 'anal.cellsToInclude'; %[];
+%     [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+%     ax = subplot(2,3,i);
+%     opts.distAxisRange = [0 350]; %[0 350] is stand
+%     [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+%     dataInPlots{i}=outDat{1};
+%     eHandle{1}.CapSize =0;
+%     title(distTypes{i})
+%     drawnow
+% end
+% disp('done')
 
 %% Just a few with different binning
 figure(103);clf;
@@ -311,7 +330,7 @@ ax = subplot(1,2,1);
 opts.distType = 'min';
 opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
 opts.distAxisRange = [0 250]; %[0 350] is stand
-CellToUseVar = [];
+CellToUseVar = 'anal.cellsToInclude';%[];
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
 [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
 dataInPlots{1}=outDat{1};
@@ -322,7 +341,7 @@ ax = subplot(1,2,2);
 opts.distType = 'mean';
 opts.distBins = 0:10:500; %can be set variably 0:25:1000 is defaultt
 opts.distAxisRange = [0 450]; %[0 350] is stand
-CellToUseVar = [];
+CellToUseVar = 'anal.cellsToInclude';%[];
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
 [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
 dataInPlots{2}=outDat{1};

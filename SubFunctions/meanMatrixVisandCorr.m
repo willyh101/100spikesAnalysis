@@ -189,9 +189,9 @@ for ind=1:numExps
         for i= 1:numStims
             holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
             if i==1 || holo == 0;
-                cellsToUse = ~ROIinArtifact';
+                cellsToUse = ~ROIinArtifact' & ~All(ind).out.anal.cellsToExclude;
             else
-                cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:);
+                cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:) & ~All(ind).out.anal.cellsToExclude;
             end
             popResp(i,v) = mean(squeeze(respMat(i,v ,cellsToUse) - baseMat(i,v,cellsToUse)));
             
@@ -225,13 +225,14 @@ for ind=1:numExps
                     cellsToUse = ~ROIinArtifact' &...
                         ~offTargetRisk(holo,:) &...
                         distToUse > distBins(d) &...
-                        distToUse <= distBins(d+1) ;
+                        distToUse <= distBins(d+1) & ...
+                        ~All(ind).out.anal.cellsToExclude;
                     popRespDist(i,v,d) = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                     popRespDistNumCells(i,v,d) = sum(cellsToUse);
                     noHoloPopResponse = mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse)));
                     popRespDistSubtracted(i,v,d) = popRespDist(i,v,d) - noHoloPopResponse;
                     
-                    cellsToUse = cellsToUse & pVisR<visAlpha;
+                    cellsToUse = cellsToUse & pVisR<visAlpha & ~All(ind).out.anal.cellsToExclude;
                     tempResp = mean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                     noHoloPopResponse = mean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse)));
                     popRespDistSubVis(i,v,d) = tempResp - noHoloPopResponse;
