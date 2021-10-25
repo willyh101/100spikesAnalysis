@@ -81,6 +81,8 @@ for Ind = 1:numel(All)
 end
 outVars.names = names;
 
+c
+
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
 
@@ -170,6 +172,7 @@ opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
+lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
@@ -211,6 +214,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     ...& ensDate >= -210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
+    & ~lowCellCount ...
     ;
 
 %%remove repeats
@@ -242,6 +246,8 @@ disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissed
 disp(['Fraction of Ens number targets matched >=3: ' num2str(mean(numMatchedTargets >= 3))]);
 disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
 disp(['Fraction of Ens that were not repeats: ' num2str(mean(~outVars.removedRepeats)) ]);
+disp(['Fraction of Ens high Cell Count: ' num2str(mean(~lowCellCount))]);
+
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 % disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])

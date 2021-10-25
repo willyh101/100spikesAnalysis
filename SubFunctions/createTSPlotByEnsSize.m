@@ -3,7 +3,7 @@ function [All outVars] = createTSPlotByEnsSize(All,outVars)
 %% Create time series plot
 
 numExps = numel(All);
-ensemblesToUse = outVars.ensemblesToUse; 
+ensemblesToUse = outVars.ensemblesToUse;
 IndsUsed = outVars.IndsUsed;
 
 clim = [-0.05 0.05];
@@ -15,7 +15,7 @@ for ind=1:numExps
     us = unique(All(ind).out.exp.stimID);
     vs = unique(All(ind).out.exp.visID);
     vs(vs==0)=[];
-
+    
     if isfield(All(ind).out.exp, 'dataToUse')
         dataToUse = All(ind).out.exp.dataToUse;
     else
@@ -32,7 +32,7 @@ for ind=1:numExps
     
     pVisR = All(ind).out.anal.pVisR;
     
-    trialsToUse = All(ind).out.anal.defaultTrialsToUse; 
+    trialsToUse = All(ind).out.anal.defaultTrialsToUse;
     
     clear mRespTS sRespTS nResp
     for i = 1:numel(us)
@@ -48,11 +48,12 @@ for ind=1:numExps
         cellList = 1:numel(ROIinArtifact);
         
         if h==0 %changed to account for when things don't run in order
-            cellsToUse = ~ROIinArtifact';% & pVisR<0.05 ;
+            cellsToUse = ~ROIinArtifact' & All(ind).out.anal.cellsToInclude;% & pVisR<0.05 ;
         else
             cellsToUse = ~ROIinArtifact' &...
                 ~offTargetRisk(h,:) &...
-                ~ismember(cellList,tg);% & pVisR<0.05;
+                ~ismember(cellList,tg) &...
+                All(ind).out.anal.cellsToInclude;% & pVisR<0.05;
         end
         
         for k=1:numel(vs)
@@ -151,16 +152,16 @@ xlabel('Frame')
 if numSizes==1
     colorList{1} = rgb('FireBrick')
 else
-colorList = colorMapPicker(numSizes,outVars.defaultColorMap);
+    colorList = colorMapPicker(numSizes,outVars.defaultColorMap);
 end
 
 for i = 1:numSizes
     ix(end+1) =subplot(2,numSizes+1,1+i);
-    cellsToPlot = find(ensemblesToUse & numCellsEachEns==uniqueNumCells(i)); 
+    cellsToPlot = find(ensemblesToUse & numCellsEachEns==uniqueNumCells(i));
     val = mean(meanTSSquare(cellsToPlot,6:10),2);
     [s sidx] = sort(val);
-   cellsToPlot= cellsToPlot(sidx);
-%      cellsToPlot = cellsToPlot(randperm(numel(cellsToPlot)));
+    cellsToPlot= cellsToPlot(sidx);
+    %      cellsToPlot = cellsToPlot(randperm(numel(cellsToPlot)));
     imagesc(meanTSSquare(cellsToPlot,:))
     ylabel('Ensemble')
     xlabel('Frame')
@@ -170,7 +171,7 @@ for i = 1:numSizes
     
     colormap rdbu
     caxis(clim)
-
+    
     ax(end+1)=subplot(2,numSizes+1,numSizes+2+i);
     
     rc =rectangle('position',[minStrtFrame -0.03 6 0.055]);
@@ -227,13 +228,13 @@ ylabel('\DeltaZ-Scored dF/F')
 xlabel('Frame')
 
 rc =rectangle('position',[minStrtFrame -0.03 6 0.045]);
-    rc.FaceColor = [rgb('FireBrick') 0.25];
-    rc.LineStyle = 'none';
-    hold on
+rc.FaceColor = [rgb('FireBrick') 0.25];
+rc.LineStyle = 'none';
+hold on
 
 for i = 1:numSizes
-
-
+    
+    
     
     lineCol = colorList{i};
     faceCol = colorList{i};

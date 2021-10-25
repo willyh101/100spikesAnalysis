@@ -85,14 +85,17 @@ outVars.names = names;
 opts.minMeanThreshold = 0.25;
 opts.maxMeanThreshold = inf;
 
-opts.verbose =1;
+opts.verbose =0;
 [All, cellExcludeResults] = cellExcluder(All,opts); 
 allResults = cat(1,cellExcludeResults{:});
 disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
+disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
 
 opts.minNumCellsInd=250;
 tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
 disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
+
+
 
 
 %% Make all dataPlots into matrixes of mean responses

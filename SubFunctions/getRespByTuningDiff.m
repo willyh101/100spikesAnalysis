@@ -27,7 +27,8 @@ for i=1:numel(ensemblesToUseList)
     thisOri = oriToUse(ens);
     cellToUse = ~All(ind).out.anal.offTargetRisk(hNum-1,:) & ...
         ~All(ind).out.anal.ROIinArtifact' & ...
-        All(ind).out.anal.pVisR < 0.05 ;
+        All(ind).out.anal.pVisR < 0.05  & ...
+        All(ind).out.anal.cellsToInclude;
     if opts.restrictToHighOSICells >0
         cellToUse = cellToUse & outVars.osi{ind} > opts.restrictToHighOSICells;
     end

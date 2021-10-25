@@ -46,11 +46,12 @@ for ind=1:numExps
         cellList = 1:numel(ROIinArtifact);
         
         if  h ==0
-            cellsToUse = ~ROIinArtifact';% & pVisR<0.05 ;
+            cellsToUse = ~ROIinArtifact' & All(ind).out.anal.cellsToInclude;% & pVisR<0.05 ;
         else
             cellsToUse = ~ROIinArtifact' &...
                 ~offTargetRisk(h,:) &...
-                ~ismember(cellList,tg);% & pVisR<0.05;
+                ~ismember(cellList,tg) & ...
+                All(ind).out.anal.cellsToInclude;% & pVisR<0.05;
 
         end
         
