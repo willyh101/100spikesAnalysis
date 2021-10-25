@@ -190,7 +190,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 3 ...
     ... & ensembleOneSecond ... %cuts off a lot of the earlier
      & numCellsEachEns==10 ...
-    ...& ensDate >= -210428 ...
+    ...& ensDate >= 210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     ;
@@ -205,10 +205,10 @@ sum(ensemblesToUse)
 
 outVars.ensemblesToUse      = ensemblesToUse;
 outVars.IndsUsed            = IndsUsed;
-outVars.indsSub             = indsSub;
+outVars.indsSub             = indsSub;s
 outVars.numTrialsPerEns     = numTrialsPerEns;
-outVars.highVisPercentInd    = highVisPercentInd;
-outVars.lowRunInds           = lowRunInds;
+outVars.highVisPercentInd   = highVisPercentInd;
+outVars.lowRunInds          = lowRunInds;
 
 %%Optional: Where are the losses comming from
 
@@ -222,7 +222,7 @@ disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
 disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpressionType))]);
 disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
 disp(['Fraction of Ens number targets matched >=3: ' num2str(mean(numMatchedTargets >= 3))]);
-disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
+%disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
 % disp(['Fraction of Ens that were not repeats: ' num2str(mean(~outVars.removedRepeats)) ]);
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
