@@ -15,3 +15,18 @@ for k=1:numTrials
         htg(isnan(htg))=[];
     end
 end
+
+
+%% the right way to ID holos / holoTargets
+
+for i  = 1:ensToUse
+    e = ensToUse(i);
+    ind = ensIndNumber(e);
+    
+    s = outVars.ensHNumber(e);
+    h = All(ind).out.exp.stimParams.roi{s};
+    htg = All(ind).out.exp.holoTargets{h};
+    htg(isnan(htg))=[];
+    
+    rtg = All(ind).out.exp.rois{h};
+end

@@ -81,7 +81,7 @@ for Ind = 1:numel(All)
 end
 outVars.names = names;
 %% restrict Cells to use
-opts.minMeanThreshold = 0.25;
+opts.minMeanThreshold = -0.25;
 opts.maxMeanThreshold = inf;
 
 opts.verbose =0;
@@ -110,6 +110,7 @@ opts.skipVis =1;
 visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
 ensIndNumber =outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber; %in order of uniqueStims
 
 
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
@@ -179,7 +180,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.05; %default 0.05
+opts.IndsVisThreshold = 0.10; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -204,7 +205,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 7; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -223,7 +224,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 3 ...
     & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
-    ...& ensDate >= -210428 ...
+    ...& ensDate <= 210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...
@@ -302,7 +303,65 @@ opts.plotFit=1;
 opts.figToUse1 = 45;
 result = plotPopResponseEnsOSI(outVars, opts);
 
-%%
+%% Plot Distance Curves in different Ori Bands
+
+opts.distType = 'min';
+opts.distBins =[0:25:150];% [0:25:400];
+opts.plotOrientation =1;%as opposed to Direction
+opts.minNumberOfCellsPerCondition =-1; %set to -1 to ignore
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
+
+
+ plotDistByOri(All,outVars,opts)
+
+ figure(10);
+ylim([-0.175 0.1])
+
+%% Plot Split by Mean OSI
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3;
+opts.criteriaToSplit = outVars.meanEnsOSI;
+opts.criteriaBins = [0 0.5 inf];
+opts.useVisAndTunedCells =1; 
+
+plotDistByCriteria(All,outVars,opts,15)
+figure(16);
+ylim([-0.15 0.15]);
+
+%%  Plot Split by Ensemble OSI
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.meanEnsOSI>0.5;
+opts.criteriaToSplit = outVars.ensOSI;
+opts.criteriaBins = [0 0.3 0.7 inf];
+opts.useVisAndTunedCells =1; 
+
+plotDistByCriteria(All,outVars,opts,17)
+figure(18);
+ylim([-0.15 0.1]);
+
+%% Plot Dist by Two Criteria
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.criteriaName = 'ensOSI';
+opts.criteria = outVars.ensOSI;
+opts.criteriaBins = [0 0.3 0.7 inf]
+
+opts.criteria2Name = 'meanOSI';
+opts.criteria2 = outVars.meanEnsOSI;
+opts.criteria2Bins = [0 0.5 inf];
+opts.useVisAndTunedCells =0; 
+
+plotDistByTwoCriteria(All,outVars,opts,13)
+figure(13)
+ylim([-0.15 0.1]);
+
+
 
 %% Plot Space and Feature
 
@@ -310,6 +369,7 @@ opts.distType = 'min';
 opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
 opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
 opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts)
+plotSpaceAndFeature(All,outVars,opts,11)
 
+%%
 toc(masterTic)

@@ -1,7 +1,7 @@
 clear;
-date = '211021';
-mouse = 'W40_2';%'I138_1';%'I136_1';
-epochs = '1_2_3_4_5';
+date = '211026';
+mouse = 'I149_2';%'I138_1';%'I136_1';
+epochs = '1_2_3_4';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -36,7 +36,7 @@ theList=[];
 theList = {
     2 2 'stim'
     3 3 'vis'
-    5 5 'exp'
+    4 4 'exp'
     ...5 5 'info'
     };
 listSize = size(theList);

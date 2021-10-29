@@ -1,4 +1,4 @@
-function plotSpaceAndFeature(All,outVars,opts)
+function plotSpaceAndFeature(All,outVars,opts,figNum)
 numEns = numel(outVars.ensStimScore);
 
 ensemblesToUse = ...
@@ -47,7 +47,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
 end
 disp('Done')
 
-figure(13);clf
+figure(figNum);clf
 
 colorListOri = colorMapPicker(numel(bins),'plasma');
 clear ax
