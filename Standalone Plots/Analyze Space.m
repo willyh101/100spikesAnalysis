@@ -351,3 +351,18 @@ dataInPlots{2}=outDat{1};
 eHandle{1}.CapSize =0;
 title('mean')
 ylim([-0.075 0.075])
+
+
+%%
+%% Plot Split by Mean OSI
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & outVars.ensOSI>0.3 & outVars.ensOSI<0.7;
+opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [0 400 500 inf];
+opts.useVisAndTunedCells =1; 
+
+plotDistByCriteria(All,outVars,opts,15)
+figure(16);
+ylim([-0.15 0.15]);

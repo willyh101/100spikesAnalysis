@@ -306,7 +306,7 @@ result = plotPopResponseEnsOSI(outVars, opts);
 %% Plot Distance Curves in different Ori Bands
 
 opts.distType = 'min';
-opts.distBins =[0:25:150];% [0:25:400];
+opts.distBins =[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 opts.plotOrientation =1;%as opposed to Direction
 opts.minNumberOfCellsPerCondition =-1; %set to -1 to ignore
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
@@ -370,6 +370,7 @@ opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
 opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
 opts.plotTraces =0;
 plotSpaceAndFeature(All,outVars,opts,11)
+ylim([-0.15 0.15]);
 
 %%
 toc(masterTic)
