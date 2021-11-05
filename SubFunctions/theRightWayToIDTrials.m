@@ -23,7 +23,7 @@ for i  = 1:ensToUse
     e = ensToUse(i);
     ind = ensIndNumber(e);
     
-    s = outVars.ensHNumber(e);
+    s = outVars.ensHNumber(e); %i think this is the order of resp
     h = All(ind).out.exp.stimParams.roi{s};
     htg = All(ind).out.exp.holoTargets{h};
     htg(isnan(htg))=[];

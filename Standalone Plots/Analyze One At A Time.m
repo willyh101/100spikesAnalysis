@@ -41,6 +41,11 @@ end
 %CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
 
+%% one at a time Error Checks
+nameToUse = '211102_I158_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+All(indToUse).out.exp = All(indToUse).out.exp2;
 %% Set Data To use
 for ind=1:numExps
     All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
@@ -189,7 +194,7 @@ lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -224,7 +229,7 @@ ensemblesToUse = ... numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 1 ...
     ...& ensembleOneSecond ... %cuts off a lot of the earlier
     ...& numCellsEachEns==10 ...
-    ...& ensDate >= -210428 ...
+    & ensDate >= 211101 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...

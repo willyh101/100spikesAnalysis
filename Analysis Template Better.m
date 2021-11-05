@@ -35,8 +35,9 @@ theList=[];
 % 'info' ('info' is included in 'exp' but can also be overwritten alone)
 theList = {
     2 2 'stim'
-    3 3 'vis'
-    4 4 'exp'
+    4 4 'vis'
+    5 5 'exp'
+    6 6 'exp2'
     ...5 5 'info'
     };
 listSize = size(theList);

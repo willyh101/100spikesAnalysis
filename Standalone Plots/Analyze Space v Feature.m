@@ -284,6 +284,48 @@ opts.distType = 'min';
 opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
 opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
 opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts)
+plotSpaceAndFeature(All,outVars,opts,5)
 
+
+%% Plot Sparsity by Distance
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.useVisCells =0;
+opts.subtractBaseline = 1;
+
+figure(3);
+ax = subplot(1,1,1);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+[outData] = plotSparsityByDist(All,outVars,opts,ax);
+
+yrange =[-0.15 0.15];
+
+figure(4);clf
+ax1 = subplot(2,2,1);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI <0.3;
+[outData] = plotSparsityByDist(All,outVars,opts,ax1);
+title(['close and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
+
+ax2 = subplot(2,2,2);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI <0.3;
+[outData] = plotSparsityByDist(All,outVars,opts,ax2);
+% ylim(yrange)
+title(['far and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
+
+ax3= subplot(2,2,3);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI >0.7;
+[outData] = plotSparsityByDist(All,outVars,opts,ax3);
+% ylim(yrange)
+title(['close and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
+
+ax4 = subplot(2,2,4);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI >0.7;
+[outData] = plotSparsityByDist(All,outVars,opts,ax4);
+% ylim(yrange)
+title(['far and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
+
+linkaxes([ax1,ax2,ax3,ax4])
+
+
+%%
 toc(masterTic)

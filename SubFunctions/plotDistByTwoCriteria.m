@@ -26,11 +26,11 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
         fprintf('.')
     end
-
+    
     if ensemblesToUse(i)
         ind = ensIndNumber(i);
-
-    if opts.useVisAndTunedCells
+        
+        if opts.useVisAndTunedCells
             cellToUseVar = ~outVars.offTargetRiskEns{i}...
                 & outVars.pVisR{ind} < 0.05 ...
                 & outVars.osi{ind} > 0.25 ...
@@ -45,9 +45,9 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
                 ... & outVars.isRedByEns{i} ...
                 ;
         end
-
+        
         popToPlot(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
-
+        
     else
         popToPlot(i,:) = nan([numel(opts.distBins)-1 1]);
     end
@@ -76,10 +76,10 @@ for i = 1:numel(bins2)-1
         dataForStats(i,k,:) = outDat{1}.dat(:,1);
         
         if opts.plotTraces
-        hold on
-        distBins = opts.distBins;
-        distBinSize = distBins(2)-distBins(1);
-        plot(distBins(2:end)-distBinSize/2,outDat{1}.dat','color',rgb('grey'));
+            hold on
+            distBins = opts.distBins;
+            distBinSize = distBins(2)-distBins(1);
+            plot(distBins(2:end)-distBinSize/2,outDat{1}.dat','color',rgb('grey'));
         end
         
         title({...
@@ -102,15 +102,15 @@ ylim([-0.25 0.3])
 % p1 = ranksum(squeeze(dataForStats(3,1,:)),squeeze(dataForStats(3,3,:)));
 % % [a p1] = ttest2(squeeze(dataForStats(3,1,:)),squeeze(dataForStats(3,3,:)));
 % disp(['Co Tuned Close vs Far p = ' num2str(p1)]);
-% 
+%
 % p2 = ranksum(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(1,3,:)));
 % % [a p2] = ttest2(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(1,3,:)));
 % disp(['UnTuned Close vs Far p = ' num2str(p2)]);
-% 
+%
 % p3 = ranksum(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(3,1,:)));
 % % [a p3] = ttest2(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(3,1,:)));
 % disp(['Close Tuned v Untuned p = ' num2str(p3)]);
-% 
+%
 % p4 = ranksum(squeeze(dataForStats(1,3,:)),squeeze(dataForStats(3,3,:)));
 % % [a p4] = ttest2(squeeze(dataForStats(1,3,:)),squeeze(dataForStats(3,3,:)));
 % disp(['Far Tuned v Untuned p = ' num2str(p4)]);
