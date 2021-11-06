@@ -290,10 +290,10 @@ plotSpaceAndFeature(All,outVars,opts,5)
 %% Plot Sparsity by Distance
 opts.distType = 'min';
 opts.distBins =[0:25:150]; 
-opts.useVisCells =0;
+opts.useVisCells =1;
 opts.subtractBaseline = 1;
 
-figure(3);
+figure(3);clf
 ax = subplot(1,1,1);
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
 [outData] = plotSparsityByDist(All,outVars,opts,ax);

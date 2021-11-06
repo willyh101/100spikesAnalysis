@@ -17,7 +17,7 @@ for i=1:numel(ensemblesToUseList)
     
     holo = All(ind).out.exp.stimParams.roi{hNum}; % Better Identifying ensemble
     Tg=All(ind).out.exp.rois{holo};
-   
+    
     
     if opts.useVisCells
         cellToUse = ~outVars.offTargetRiskEns{ens}...
@@ -34,18 +34,20 @@ for i=1:numel(ensemblesToUseList)
             ... & outVars.isRedByEns{i} ...
             ;
     end
+   
     
+    %the not by distance part
     theseData = squeeze(All(ind).out.anal.respMat(hNum,1,cellToUse));
     if subtractBaseline
         baseData = squeeze(All(ind).out.anal.baseMat(hNum,1,cellToUse));
         theseData = theseData-baseData;
     end
-    
+   
     L2 = sqrt(sum(theseData.^2))/numel(theseData);
-    L1 = sum(abs(theseData))/numel(theseData); 
+    L1 = sum(abs(theseData))/numel(theseData);
     
     allL1(i) = L1;
-    allL2(i) = L2; 
+    allL2(i) = L2;
     allSparse(i) = L2/L1;
     
     
@@ -62,7 +64,7 @@ for i=1:numel(ensemblesToUseList)
         StimDistance = All(ind).out.anal.StimDistance;
     end
     
-     dists = StimDistance(Tg,:);
+    dists = StimDistance(Tg,:);
     
     switch opts.distType
         case 'min'
@@ -97,6 +99,9 @@ for i=1:numel(ensemblesToUseList)
             distToUse =minDist;
     end
     
+   roisInOrder =  [All(ind).out.exp.stimParams.roi{:}]';
+   noStimIdx = find(roisInOrder==0);
+    
     clear L2byDist L1byDist allSparse mnByDist
     for k = 1:numel(opts.distBins)-1
         d0 = opts.distBins(k);
@@ -108,31 +113,50 @@ for i=1:numel(ensemblesToUseList)
             baseData = squeeze(All(ind).out.anal.baseMat(hNum,1,cell2use));
             theseData = theseData-baseData;
         end
-%         theseData = theseData>0;
+        
+        theseNoStimData = squeeze(All(ind).out.anal.respMat(noStimIdx,1,cell2use));
+        if subtractBaseline
+            baseData = squeeze(All(ind).out.anal.baseMat(noStimIdx,1,cell2use));
+            theseNoStimData = theseNoStimData-baseData;
+
+        end
+%                                 theseNoStimData = baseData;
+
+        %         theseData = theseData>0;
         
         L2 = sqrt(sum(theseData.^2))/numel(theseData);
         L1 = sum(abs(theseData))/numel(theseData);
-%         
-% 
-% %Rolls and Tovee
-% L1 = (sum(abs(theseData))/numel(theseData))^2;
-% L2 = sum(theseData.^2)/numel(theseData); 
-
         mnDat = nanmean(theseData);
+
+        %
+        %
+        % %Rolls and Tovee
+        % L1 = (sum(abs(theseData))/numel(theseData))^2;
+        % L2 = sum(theseData.^2)/numel(theseData);
+        
+        L2NS = sqrt(sum(theseNoStimData.^2))/numel(theseNoStimData);
+        L1NS = sum(abs(theseNoStimData))/numel(theseNoStimData);
+        mnDatNS = nanmean(theseNoStimData);
+
         
         if sum(cell2use)==0
             L1byDist(k) = nan;
             L2byDist(k) = nan;
             allSparse(k) = nan;
             mnByDist(k) = nan;
+            allSparseNS(k) = nan;
+
         else
             
             L1byDist(k) = L1;
             L2byDist(k) = L2;
             allSparse(k) = L2/L1;
-%             allSparse(k) = L1/L2;
+            %             allSparse(k) = L1/L2;
+            allSparseNS(k) = L2NS/L1NS;
 
+            
             mnByDist(k) = mnDat;
+            mnNSByDist(k) = mnDatNS;
         end
     end
     
@@ -140,6 +164,9 @@ for i=1:numel(ensemblesToUseList)
     allL2byDist(:,i) = L1byDist;
     allSparseByDist(:,i) = allSparse;
     allMnByDist(:,i) = mnByDist;
+    allSparseNSByDist(:,i) = allSparseNS;
+        allMnNSByDist(:,i) = mnNSByDist;
+
 end
 
 outData.allL1 = allL1;
@@ -148,11 +175,12 @@ outData.allSparse = allSparse;
 outData.alllL1byDist = allL1byDist;
 outData.alllL2byDist = allL2byDist;
 outData.alllSparseByDist = allSparseByDist;
+outData.alllSparseNSByDist = allSparseNSByDist;
 
 
 if nargin>3
     subplot(ax);
-    toPlot = allSparseByDist;%allSparseByDist;
+    toPlot =allSparseByDist;% allMnByDist; ;%allSparseByDist;
     mn = nanmean(toPlot,2);
     sd = nanstd(toPlot,[],2);
     nm = sum(~isnan(toPlot),2);
@@ -162,6 +190,19 @@ if nargin>3
     e.CapSize=0;
     e.LineWidth=2;
     outData.figHandle = e;
+    
+    hold on
+    toPlot =allSparseNSByDist;  allMnNSByDist; ;
+    mn = nanmean(toPlot,2);
+    sd = nanstd(toPlot,[],2);
+    nm = sum(~isnan(toPlot),2);
+    se = sd./sqrt(nm);
+    
+    e2 = errorbar(opts.distBins(1:numel(mn)),mn,se);
+    e2.CapSize=0;
+    e2.LineWidth=2;
+    e2.Color = rgb('grey');
+    
 end
 
 
