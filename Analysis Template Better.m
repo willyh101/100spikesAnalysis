@@ -1,7 +1,7 @@
 clear;
-date = '211102';
-mouse = 'I158_1';%'I138_1';%'I136_1';
-epochs = '1_2_3_4_5_6';
+date = '211108';
+mouse = 'I156_1';%'I138_1';%'I136_1';
+epochs = '1_2_3';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -34,10 +34,10 @@ theList=[];
 % condition options are 'stim' 'exp' 'vis' 'vis2' 'exp2' 'mani' 'spk' or
 % 'info' ('info' is included in 'exp' but can also be overwritten alone)
 theList = {
-    2 2 'stim'
-    4 4 'vis'
-    5 5 'exp'
-    6 6 'exp2'
+    1 1 'stim'
+    2 2 'vis'
+    3 3 'exp'
+    ...6 6 'exp2'
     ...5 5 'info'
     };
 listSize = size(theList);

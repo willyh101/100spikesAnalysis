@@ -292,6 +292,7 @@ opts.distType = 'min';
 opts.distBins =[0:25:150]; 
 opts.useVisCells =1;
 opts.subtractBaseline = 1;
+opts.subSampleN = 10;
 
 figure(3);clf
 ax = subplot(1,1,1);

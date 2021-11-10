@@ -4,6 +4,9 @@ subtractBaseline = opts.subtractBaseline;
 
 ensemblesToUseList = find(opts.ensemblesToPlot );
 
+omitFlag =0;
+
+
 for i=1:numel(ensemblesToUseList)
     if mod(i,50)==0
         disp('.')
@@ -34,7 +37,10 @@ for i=1:numel(ensemblesToUseList)
             ... & outVars.isRedByEns{i} ...
             ;
     end
-   
+    
+    
+    
+    
     
     %the not by distance part
     theseData = squeeze(All(ind).out.anal.respMat(hNum,1,cellToUse));
@@ -42,7 +48,7 @@ for i=1:numel(ensemblesToUseList)
         baseData = squeeze(All(ind).out.anal.baseMat(hNum,1,cellToUse));
         theseData = theseData-baseData;
     end
-   
+    
     L2 = sqrt(sum(theseData.^2))/numel(theseData);
     L1 = sum(abs(theseData))/numel(theseData);
     
@@ -99,8 +105,8 @@ for i=1:numel(ensemblesToUseList)
             distToUse =minDist;
     end
     
-   roisInOrder =  [All(ind).out.exp.stimParams.roi{:}]';
-   noStimIdx = find(roisInOrder==0);
+    roisInOrder =  [All(ind).out.exp.stimParams.roi{:}]';
+    noStimIdx = find(roisInOrder==0);
     
     clear L2byDist L1byDist allSparse mnByDist
     for k = 1:numel(opts.distBins)-1
@@ -108,6 +114,22 @@ for i=1:numel(ensemblesToUseList)
         d1 = opts.distBins(k+1);
         
         cell2use = cellToUse & distToUse>=d0 & distToUse<d1;
+        if opts.subSampleN>0
+            if sum(cell2use) < opts.subSampleN
+                %                 disp('Error Not enough Cells this bin.. blanking')
+                omitFlag = omitFlag+1;
+                cell2use = logical(zeros(size(cell2use)));
+            else
+                cellList = find(cell2use);
+                newCells = cellList(randperm(numel(cellList),opts.subSampleN));
+                cell2use = zeros(size(cell2use));
+                cell2use(newCells)=1;
+                cell2use = logical(cell2use);
+                
+            end
+        end
+        %         disp(num2str(sum(cell2use)));
+        
         theseData = squeeze(All(ind).out.anal.respMat(hNum,1,cell2use));
         if subtractBaseline
             baseData = squeeze(All(ind).out.anal.baseMat(hNum,1,cell2use));
@@ -118,16 +140,16 @@ for i=1:numel(ensemblesToUseList)
         if subtractBaseline
             baseData = squeeze(All(ind).out.anal.baseMat(noStimIdx,1,cell2use));
             theseNoStimData = theseNoStimData-baseData;
-
+            
         end
-%                                 theseNoStimData = baseData;
-
+        %                                 theseNoStimData = baseData;
+        
         %         theseData = theseData>0;
         
         L2 = sqrt(sum(theseData.^2))/numel(theseData);
         L1 = sum(abs(theseData))/numel(theseData);
         mnDat = nanmean(theseData);
-
+        
         %
         %
         % %Rolls and Tovee
@@ -137,7 +159,7 @@ for i=1:numel(ensemblesToUseList)
         L2NS = sqrt(sum(theseNoStimData.^2))/numel(theseNoStimData);
         L1NS = sum(abs(theseNoStimData))/numel(theseNoStimData);
         mnDatNS = nanmean(theseNoStimData);
-
+        
         
         if sum(cell2use)==0
             L1byDist(k) = nan;
@@ -145,7 +167,7 @@ for i=1:numel(ensemblesToUseList)
             allSparse(k) = nan;
             mnByDist(k) = nan;
             allSparseNS(k) = nan;
-
+            
         else
             
             L1byDist(k) = L1;
@@ -153,7 +175,7 @@ for i=1:numel(ensemblesToUseList)
             allSparse(k) = L2/L1;
             %             allSparse(k) = L1/L2;
             allSparseNS(k) = L2NS/L1NS;
-
+            
             
             mnByDist(k) = mnDat;
             mnNSByDist(k) = mnDatNS;
@@ -165,8 +187,12 @@ for i=1:numel(ensemblesToUseList)
     allSparseByDist(:,i) = allSparse;
     allMnByDist(:,i) = mnByDist;
     allSparseNSByDist(:,i) = allSparseNS;
-        allMnNSByDist(:,i) = mnNSByDist;
+    allMnNSByDist(:,i) = mnNSByDist;
+    
+end
 
+if opts.subSampleN>0
+    disp([num2str(omitFlag) ' bin(s) did not have enough data to include'])
 end
 
 outData.allL1 = allL1;
