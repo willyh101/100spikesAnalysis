@@ -192,7 +192,7 @@ lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };%'SepW1 CAG 2s'};
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -366,3 +366,77 @@ opts.useVisAndTunedCells =1;
 plotDistByCriteria(All,outVars,opts,15)
 figure(16);
 ylim([-0.15 0.15]);
+
+
+%% Fail StimTest Vs Not Plots
+countUSC=[]
+for ind = 1:numExps
+    allStimmedCells = unique([All(ind).out.exp.holoTargets{:}]);
+    allStimmedCells(isnan(allStimmedCells)) = [];
+    tempCells = 1:size(All(ind).out.exp.zdfData,1);
+    asc = ismember(tempCells,allStimmedCells);
+    All(ind).out.anal.allStimmedCells = asc;
+    All(ind).out.anal.neverStimmedCells = ~asc;
+
+     tc = ismember(tempCells,All(ind).out.exp.targetedCells);
+     All(ind).out.anal.allTargetedCells = tc;
+     All(ind).out.anal.neverTargetedCells = ~tc;
+
+     if isfield(All(ind).out.exp,'holoRequest')
+         roiNaN =isnan(All(ind).out.exp.holoRequest.roiWeights);% | All(ind).out.exp.holoRequest.roiWeights>1.5;
+         unstimableCells = All(ind).out.exp.targetedCells(roiNaN);
+         usc = ismember(tempCells,unstimableCells);
+     else
+         usc = zeros(size(tempCells));
+     end
+
+     countUSC(ind) = sum(usc);
+     disp(['Ind: ' num2str(ind) '. ' num2str(sum(usc)) ' cells unstimmable'])
+
+     All(ind).out.anal.unstimableCells= usc;
+
+end
+disp('made new stimmed vs neverstimmed cells')
+
+%% Plot
+figure(104);clf
+ax = subplot(1,1,1);
+
+opts.distBins = 10:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distType = 'min';
+opts.distAxisRange = [0 250]; %[0 350] is stand
+
+backupEnsemblesToUse = outVars.ensemblesToUse;
+noUnstimableCount = find(countUSC==0);
+limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,noUnstimableCount);
+outVars.ensemblesToUse = limEnsembleToUse;
+disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar = [];
+[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('black');
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+
+% CellToUseVar = 'anal.neverTargetedCells';
+% [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+% p2 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+% p2{1}.Color=rgb('Mediumblue');
+
+drawnow
+
+CellToUseVar = 'anal.unstimableCells';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+p3 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+p3{1}.Color=rgb('ForestGreen');
+% legend([p1{1} p2{1} p3{1}],'All Cells','Not Tested', 'Unstimable');
+legend([p1{1}  p3{1}],'All Cells', 'Unstimable');
+
+ylim([-0.05 0.11])
+
+tempDat1 = popRespDistDefault(limEnsembleToUse,1);
+tempDat2 = popRespDist(limEnsembleToUse,1);
+
+ranksum(tempDat1,tempDat2)

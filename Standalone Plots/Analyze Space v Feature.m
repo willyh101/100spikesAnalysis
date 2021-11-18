@@ -168,7 +168,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.05; %default 0.05
+opts.IndsVisThreshold = 0.10; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -190,9 +190,9 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
-opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [98 101];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 7; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 

@@ -224,7 +224,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 3 ...
     & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
-    ...& ensDate <= 210428 ...
+    ... & ensDate > 210420 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...
@@ -320,11 +320,14 @@ ylim([-0.175 0.1])
 %% Plot Split by Mean OSI
 opts.distType = 'min';
 opts.distBins =[0:25:150]; 
+opts.distAxisRange = [0 150];
 opts.plotTraces = 0; 
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3;
 opts.criteriaToSplit = outVars.meanEnsOSI;
 opts.criteriaBins = [0 0.5 inf];
-opts.useVisAndTunedCells =1; 
+% opts.useVisAndTunedCells =1; 
+opts.useVisCells =1;
+opts.useTunedCells =0; %don't use tuned without vis
 
 plotDistByCriteria(All,outVars,opts,15)
 figure(16);
@@ -337,7 +340,9 @@ opts.plotTraces = 0;
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.meanEnsOSI>0.5;
 opts.criteriaToSplit = outVars.ensOSI;
 opts.criteriaBins = [0 0.3 0.7 inf];
-opts.useVisAndTunedCells =1; 
+% opts.useVisAndTunedCells =1; 
+opts.useVisCells =1;
+opts.useTunedCells =0; %don't use tuned without vis
 
 plotDistByCriteria(All,outVars,opts,17)
 figure(18);
@@ -355,7 +360,9 @@ opts.criteriaBins = [0 0.3 0.7 inf]
 opts.criteria2Name = 'meanOSI';
 opts.criteria2 = outVars.meanEnsOSI;
 opts.criteria2Bins = [0 0.5 inf];
-opts.useVisAndTunedCells =0; 
+% opts.useVisAndTunedCells =1; 
+opts.useVisCells =1;
+opts.useTunedCells =0; %don't use tuned without vis
 
 plotDistByTwoCriteria(All,outVars,opts,13)
 figure(13)
@@ -369,8 +376,33 @@ opts.distType = 'min';
 opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
 opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
 opts.plotTraces =0;
+opts.useVisCells =1;
+opts.useTunedCells =0; %don't use tuned without vis
+
 plotSpaceAndFeature(All,outVars,opts,11)
 ylim([-0.15 0.15]);
+
+
+%% Plot Space and  Feature v2
+%% Plot Dist by Two Criteria
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.criteria2Name = 'ensOSI';
+opts.criteria2 = outVars.ensOSI;
+opts.criteria2Bins = [0 0.3 0.7 inf]
+
+opts.criteriaName = 'Spread';
+opts.criteria = outVars.ensMaxD;
+opts.criteriaBins = [0 400 500 inf];
+opts.useVisCells =1; 
+opts.useTunedCells =0; 
+
+plotDistByTwoCriteria(All,outVars,opts,21)
+figure(13)
+ylim([-0.15 0.1]);
+
 
 %%
 toc(masterTic)

@@ -279,12 +279,12 @@ for ind=1:numExps
     All(ind).out.anal.defaultTrialsToUse = trialsToUse;
 end
 
-%% Orientation Tuning and OSI
-
-[All, outVars] = getTuningCurve(All, opts, outVars);
-[All, outVars] = calcOSI(All, outVars);
-[All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
-[All, outVars] = getEnsembleOSI(All, outVars); % for ensembles specifically
+% %% Orientation Tuning and OSI
+% 
+% [All, outVars] = getTuningCurve(All, opts, outVars);
+% [All, outVars] = calcOSI(All, outVars);
+% [All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
+% [All, outVars] = getEnsembleOSI(All, outVars); % for ensembles specifically
 
 %% Distance of Ensemble
 [All, outVars] = defineDistanceTypes(All, outVars);
@@ -348,3 +348,27 @@ dataInPlots{2}=outDat{1};
 eHandle{1}.CapSize =0;
 title('mean')
 ylim([-0.075 0.075])
+
+%% to match  other plots
+figure(104);clf
+ax = subplot(1,1,1);
+
+opts.distBins = 10:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distType = 'min';
+opts.distAxisRange = [0 250]; %[0 350] is stand
+
+backupEnsemblesToUse = outVars.ensemblesToUse;
+% noUnstimableCount = find(countUSC==0);
+% limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,noUnstimableCount);
+% outVars.ensemblesToUse = limEnsembleToUse;
+disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar = [];
+[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('red');
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+ylim([-0.05 0.11])
+
