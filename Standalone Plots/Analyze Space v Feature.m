@@ -289,10 +289,14 @@ plotSpaceAndFeature(All,outVars,opts,5)
 
 %% Plot Sparsity by Distance
 opts.distType = 'min';
-opts.distBins =[0:25:150]; 
-opts.useVisCells =1;
-opts.subtractBaseline = 1;
-opts.subSampleN = 10;
+opts.distBins =[0:25:250]; 
+opts.useVisCells =0;
+opts.subtractBaseline =1;
+opts.subSampleN = -1; %negative to disable
+opts.minSampleN = -1; %nan bins with less than this; set to 0 to ignore
+
+
+opts.sparseAlgo = 'popKurtosis'; 'treves-Rolls'; % %options: 'L2/L1' 'popKurtosis' 'treves-Rolls'
 
 figure(3);clf
 ax = subplot(1,1,1);

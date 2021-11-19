@@ -52,7 +52,7 @@ rawRed1020Img=rawRed1020Img(:,:,2:2:end);
 alignIt =0; %register the two images together
 gfilt = 0; %Gaussian filter. 0 is no filter
 
-alignMov = 0;
+alignMov = 1;
 
 pregfilt = 0; %sometimes gaussian filtering before motion correcting is important to remove noise. Currently only opperates on the green channel
 
@@ -231,9 +231,9 @@ additionalOffsets = zeros([nDepthsTotal 2]);
 %offset is just a single average number, but sometimes you can tell that
 %one plane is more offset then the rest ad that now
 % 
-additionalOffsets(1,:)=[0 0];
-additionalOffsets(2,:)=[0 0];
-additionalOffsets(3,:)=[0 0];
+additionalOffsets(1,:)=[-12 11];
+additionalOffsets(2,:)=[-10 9];
+additionalOffsets(3,:)=[-10 12];
 % additionalOffsets(1,:)=[0 2];
 % additionalOffsets(2,:)=[0 2];
 % additionalOffsets(3,:)=[0 0];

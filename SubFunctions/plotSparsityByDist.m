@@ -21,7 +21,17 @@ for i=1:numel(ensemblesToUseList)
     holo = All(ind).out.exp.stimParams.roi{hNum}; % Better Identifying ensemble
     Tg=All(ind).out.exp.rois{holo};
     
+%     try
+%         Tg=All(ind).out.exp.rois{holo+1};
+%     catch
+%         Tg=All(ind).out.exp.rois{holo-1};
+%     end
+
+% try rand targets
+% Tg = randi(numel(All(ind).out.exp.targetedCells),[1 10]);
     
+% Tg = randi(numel(outVars.pVisR{ind}),[1 10]);
+     
     if opts.useVisCells
         cellToUse = ~outVars.offTargetRiskEns{ens}...
             & outVars.pVisR{ind} < 0.05 ...
@@ -56,7 +66,8 @@ for i=1:numel(ensemblesToUseList)
     allL2(i) = L2;
     allSparse(i) = L2/L1;
     
-    
+    numCells = All(ind).out.anal.numCells;
+    allLoc = [All(ind).out.exp.allCoM (All(ind).out.exp.allDepth-1)*30];
     %by distance
     %First create stimDistance
     if ~isfield(All(ind).out.anal,'StimDistance')
@@ -70,8 +81,16 @@ for i=1:numel(ensemblesToUseList)
         StimDistance = All(ind).out.anal.StimDistance;
     end
     
-    dists = StimDistance(Tg,:);
+%     allCoM = All(ind).out.exp.allCoM;
+%     StimDistance = zeros([size(allCoM,1) numCells]);
+%     for ii=1:size(allCoM,1);
+%         for k=1:numCells;
+%             StimDistance(ii,k) = sqrt(sum((allLoc(ii,:)-allLoc(k,:)).^2));
+%         end
+%     end
     
+        dists = StimDistance(Tg,:);
+
     switch opts.distType
         case 'min'
             minDist = min(dists,[],1);
@@ -128,6 +147,13 @@ for i=1:numel(ensemblesToUseList)
                 
             end
         end
+        
+        if opts.minSampleN>0
+            if sum(cell2use) < opts.minSampleN
+                omitFlag = omitFlag+1;
+                cell2use = logical(zeros(size(cell2use)));
+            end
+        end
         %         disp(num2str(sum(cell2use)));
         
         theseData = squeeze(All(ind).out.anal.respMat(hNum,1,cell2use));
@@ -142,66 +168,94 @@ for i=1:numel(ensemblesToUseList)
             theseNoStimData = theseNoStimData-baseData;
             
         end
-        %                                 theseNoStimData = baseData;
-        
-        %         theseData = theseData>0;
-        
-        L2 = sqrt(sum(theseData.^2))/numel(theseData);
-        L1 = sum(abs(theseData))/numel(theseData);
-        mnDat = nanmean(theseData);
-        
-        %
-        %
-        % %Rolls and Tovee
-        % L1 = (sum(abs(theseData))/numel(theseData))^2;
-        % L2 = sum(theseData.^2)/numel(theseData);
-        
-        L2NS = sqrt(sum(theseNoStimData.^2))/numel(theseNoStimData);
-        L1NS = sum(abs(theseNoStimData))/numel(theseNoStimData);
-        mnDatNS = nanmean(theseNoStimData);
         
         
-        if sum(cell2use)==0
-            L1byDist(k) = nan;
-            L2byDist(k) = nan;
-            allSparse(k) = nan;
-            mnByDist(k) = nan;
-            allSparseNS(k) = nan;
-            
-        else
-            
-            L1byDist(k) = L1;
-            L2byDist(k) = L2;
-            allSparse(k) = L2/L1;
-            %             allSparse(k) = L1/L2;
-            allSparseNS(k) = L2NS/L1NS;
-            
-            
-            mnByDist(k) = mnDat;
-            mnNSByDist(k) = mnDatNS;
+        switch opts.sparseAlgo
+            case 'L2/L1'
+                L2 = sqrt(sum(theseData.^2))/numel(theseData);
+                L1 = sum(abs(theseData))/numel(theseData);
+                
+                L2NS = sqrt(sum(theseNoStimData.^2))/numel(theseNoStimData);
+                L1NS = sum(abs(theseNoStimData))/numel(theseNoStimData);
+                
+                if sum(cell2use)==0
+                    allSparse(k) = nan;
+                    allSparseNS(k) = nan;
+                else
+                    allSparse(k) = L2/L1;
+                    allSparseNS(k) = L2NS/L1NS;
+                end
+            case 'popKurtosis'
+                mn = mean(theseData);
+                sd = std(theseData);
+                nm = numel(theseData);
+                
+                Kp = sum( ((theseData-mn)/sd) .^4)/nm - 3;
+%                 Kp = (sum((theseData-mn)/sd ).^4 )/nm - 3;
+                
+                mn = mean(theseNoStimData);
+                sd = std(theseNoStimData);
+                nm = numel(theseNoStimData);
+                
+                KpNS = sum( ((theseNoStimData-mn)/sd) .^4)/nm - 3;
+%                 KpNS = (sum((theseNoStimData-mn)/sd ).^4 )/nm - 3;
+
+                if sum(cell2use)==0
+                    allSparse(k) = nan;
+                    allSparseNS(k) = nan;
+                else
+                    allSparse(k) = Kp;
+                    allSparseNS(k) =KpNS;
+                end
+            case 'treves-Rolls'
+                mn = mean(theseData);
+                sd = std(theseData);
+                nm = numel(theseData);
+                
+                S = 1 - (( sum(abs(theseData)./nm)^2 ) / (sum(theseData.^2 / nm)) );
+                
+                mn = mean(theseNoStimData);
+                sd = std(theseNoStimData);
+                nm = numel(theseNoStimData);
+                
+                SNS = 1 - (( sum(abs(theseNoStimData)./nm)^2 ) / (sum(theseNoStimData.^2 / nm)) );
+
+                if sum(cell2use)==0
+                    allSparse(k) = nan;
+                    allSparseNS(k) = nan;
+                else
+                    allSparse(k) = S;
+                    allSparseNS(k) =SNS;
+                end
+                
+            case 'mean'
+                if sum(cell2use)==0
+                    allSparse(k) = nan;
+                    allSparseNS(k) = nan;
+                else
+                    allSparse(k) = mean(theseData);
+                    allSparseNS(k) =mean(theseNoStimData);
+                end
+            otherwise
+                disp('did not understand sparse algo')
         end
     end
     
-    allL1byDist(:,i) = L1byDist;
-    allL2byDist(:,i) = L1byDist;
+    
+    
+    %the inportant ones
     allSparseByDist(:,i) = allSparse;
-    allMnByDist(:,i) = mnByDist;
-    allSparseNSByDist(:,i) = allSparseNS;
-    allMnNSByDist(:,i) = mnNSByDist;
+    allSparseNSByDist(:,i) = allSparseNS; %no stim
     
 end
 
-if opts.subSampleN>0
+if opts.subSampleN>0 || opts.minSampleN>0
     disp([num2str(omitFlag) ' bin(s) did not have enough data to include'])
 end
 
-outData.allL1 = allL1;
-outData.allL2 = allL2;
-outData.allSparse = allSparse;
-outData.alllL1byDist = allL1byDist;
-outData.alllL2byDist = allL2byDist;
+
+
 outData.alllSparseByDist = allSparseByDist;
-outData.alllSparseNSByDist = allSparseNSByDist;
 
 
 if nargin>3
@@ -218,7 +272,7 @@ if nargin>3
     outData.figHandle = e;
     
     hold on
-    toPlot =allSparseNSByDist;  allMnNSByDist; ;
+    toPlot =allSparseNSByDist;
     mn = nanmean(toPlot,2);
     sd = nanstd(toPlot,[],2);
     nm = sum(~isnan(toPlot),2);
