@@ -621,6 +621,7 @@ opts.posNegThreshold = 0.0;
 [All outVars] = posNegIdentifiers(All,outVars,opts);
 opts.distType = 'min';
 opts.distBins = [0:25:1000];
+opts.distAxisRange = [0 350];
 
 numEns = numel(outVars.ensStimScore);
 

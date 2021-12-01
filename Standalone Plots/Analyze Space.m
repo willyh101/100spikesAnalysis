@@ -63,7 +63,7 @@ opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates ba
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
 opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
-[All, outVars] = cleanData(All,opts);
+[All, outVars] = cleanData(All,opts); 
 
 ensStimScore        = outVars.ensStimScore;
 hzEachEns           = outVars.hzEachEns;
@@ -81,7 +81,22 @@ for Ind = 1:numel(All)
 end
 outVars.names = names;
 
-c
+%% restrict Cells to use
+opts.minMeanThreshold = 0.25;
+opts.maxMeanThreshold = inf;
+
+opts.verbose =0;
+[All, cellExcludeResults] = cellExcluder(All,opts); 
+allResults = cat(1,cellExcludeResults{:});
+disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
+disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
+
+opts.minNumCellsInd=250;
+tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
+disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
+
+
+
 
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
@@ -168,15 +183,16 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.10; %default 0.05
+opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
+
 lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };%'SepW1 CAG 2s'};
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -190,9 +206,9 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
-opts.numSpikeToUseRange = [98 101];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 7; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -278,59 +294,149 @@ end
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 
-%% Plot Space and Feature
 
+%% Plot Mean Distance Responses
+
+plotEnsembleDistanceResponse(outVars,100,1)
+
+%% Plot Distance Plots
+
+opts.distBins = 0:25:1000; %must be set to match popDist
+plotResponseByDistance(outVars,opts);
+
+% %% Compare Distance responses
+% figure(102);clf
+% 
+% dataInPlots=[];
+% distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
+% for i =[1 3]; %1:6
+%     disp(['working on ' distTypes{i}])
+%     opts.distType = distTypes{i}; %options: min geo mean harm
+%     opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+%     CellToUseVar = 'anal.cellsToInclude'; %[];
+%     [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+%     ax = subplot(2,3,i);
+%     opts.distAxisRange = [0 350]; %[0 350] is stand
+%     [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+%     dataInPlots{i}=outDat{1};
+%     eHandle{1}.CapSize =0;
+%     title(distTypes{i})
+%     drawnow
+% end
+% disp('done')
+
+%% Just a few with different binning
+figure(103);clf;
+dataInPlots =[];
+
+ax = subplot(1,2,1);
 opts.distType = 'min';
-opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
-opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
-opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts,5)
+opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 250]; %[0 350] is stand
+CellToUseVar = 'anal.cellsToInclude';%[];
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{1}=outDat{1};
+eHandle{1}.CapSize =0;
+title('min')
 
-
-%% Plot Sparsity by Distance
-opts.distType = 'min';
-opts.distBins =[0:25:250]; 
-opts.useVisCells =0;
-opts.subtractBaseline =1;
-opts.subSampleN = -1; %negative to disable
-opts.minSampleN = -1; %nan bins with less than this; set to 0 to ignore
-
-
-opts.sparseAlgo = 'popKurtosis'; 'treves-Rolls'; % %options: 'L2/L1' 'popKurtosis' 'treves-Rolls'
-
-figure(3);clf
-ax = subplot(1,1,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
-[outData] = plotSparsityByDist(All,outVars,opts,ax);
-
-yrange =[-0.15 0.15];
-
-figure(4);clf
-ax1 = subplot(2,2,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax1);
-title(['close and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax2 = subplot(2,2,2);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax2);
-% ylim(yrange)
-title(['far and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax3= subplot(2,2,3);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI >0.7;
-[outData] = plotSparsityByDist(All,outVars,opts,ax3);
-% ylim(yrange)
-title(['close and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax4 = subplot(2,2,4);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI >0.7;
-[outData] = plotSparsityByDist(All,outVars,opts,ax4);
-% ylim(yrange)
-title(['far and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-linkaxes([ax1,ax2,ax3,ax4])
+ax = subplot(1,2,2);
+opts.distType = 'mean';
+opts.distBins = 0:10:500; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 450]; %[0 350] is stand
+CellToUseVar = 'anal.cellsToInclude';%[];
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{2}=outDat{1};
+eHandle{1}.CapSize =0;
+title('mean')
+ylim([-0.075 0.075])
 
 
 %%
-toc(masterTic)
+%% Plot Split by Mean OSI
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & outVars.ensOSI>0.3 & outVars.ensOSI<0.7;
+opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [0 400 500 inf];
+opts.useVisAndTunedCells =1; 
+
+plotDistByCriteria(All,outVars,opts,15)
+figure(16);
+ylim([-0.15 0.15]);
+
+
+%% Fail StimTest Vs Not Plots
+countUSC=[]
+for ind = 1:numExps
+    allStimmedCells = unique([All(ind).out.exp.holoTargets{:}]);
+    allStimmedCells(isnan(allStimmedCells)) = [];
+    tempCells = 1:size(All(ind).out.exp.zdfData,1);
+    asc = ismember(tempCells,allStimmedCells);
+    All(ind).out.anal.allStimmedCells = asc;
+    All(ind).out.anal.neverStimmedCells = ~asc;
+
+     tc = ismember(tempCells,All(ind).out.exp.targetedCells);
+     All(ind).out.anal.allTargetedCells = tc;
+     All(ind).out.anal.neverTargetedCells = ~tc;
+
+     if isfield(All(ind).out.exp,'holoRequest')
+         roiNaN =isnan(All(ind).out.exp.holoRequest.roiWeights);% | All(ind).out.exp.holoRequest.roiWeights>1.5;
+         unstimableCells = All(ind).out.exp.targetedCells(roiNaN);
+         usc = ismember(tempCells,unstimableCells);
+     else
+         usc = zeros(size(tempCells));
+     end
+
+     countUSC(ind) = sum(usc);
+     disp(['Ind: ' num2str(ind) '. ' num2str(sum(usc)) ' cells unstimmable'])
+
+     All(ind).out.anal.unstimableCells= usc;
+
+end
+disp('made new stimmed vs neverstimmed cells')
+
+%% Plot
+figure(104);clf
+ax = subplot(1,1,1);
+
+opts.distBins = 10:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distType = 'min';
+opts.distAxisRange = [0 250]; %[0 350] is stand
+
+backupEnsemblesToUse = outVars.ensemblesToUse;
+noUnstimableCount = find(countUSC==0);
+limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,noUnstimableCount);
+outVars.ensemblesToUse = limEnsembleToUse;
+disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar = [];
+[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('black');
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+
+% CellToUseVar = 'anal.neverTargetedCells';
+% [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+% p2 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+% p2{1}.Color=rgb('Mediumblue');
+
+drawnow
+
+CellToUseVar = 'anal.unstimableCells';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+p3 = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+p3{1}.Color=rgb('ForestGreen');
+% legend([p1{1} p2{1} p3{1}],'All Cells','Not Tested', 'Unstimable');
+legend([p1{1}  p3{1}],'All Cells', 'Unstimable');
+
+ylim([-0.05 0.11])
+
+tempDat1 = popRespDistDefault(limEnsembleToUse,1);
+tempDat2 = popRespDist(limEnsembleToUse,1);
+
+ranksum(tempDat1,tempDat2)

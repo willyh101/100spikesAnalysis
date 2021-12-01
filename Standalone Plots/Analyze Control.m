@@ -7,7 +7,7 @@ masterTic = tic;
 addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
-oriLoadList;
+controlLoadList;
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
@@ -54,8 +54,8 @@ opts.recWinRange = [0.5 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start 
 
 
 %Stim Success Thresholds
-opts.stimsuccessZ = 0.25; %0.3, 0.25 over this number is a succesfull stim
-opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
+opts.stimsuccessZ = 0; 0.25; %0.3, 0.25 over this number is a succesfull stim
+opts.stimEnsSuccess = 0; 0.5; %0.5, fraction of ensemble that needs to be succsfull
 opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates based on zdfDat;
 
 
@@ -81,7 +81,19 @@ for Ind = 1:numel(All)
 end
 outVars.names = names;
 
-c
+%% restrict Cells to use
+opts.minMeanThreshold = 0.25;
+opts.maxMeanThreshold = inf;
+
+opts.verbose =0;
+[All, cellExcludeResults] = cellExcluder(All,opts); 
+allResults = cat(1,cellExcludeResults{:});
+disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
+disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
+
+opts.minNumCellsInd=250;
+tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
+disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
 
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
@@ -168,7 +180,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.10; %default 0.05
+opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -190,9 +202,9 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
-opts.numSpikeToUseRange = [98 101];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 7; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 3;5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -201,17 +213,17 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
     & highVisPercentInd ...
     & lowRunInds ...
-    & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
+    ... & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
     & numTrialsPerEns > opts.numTrialsPerEnsThreshold ... ;%10;%&...
     & ~lowBaseLineTrialCount ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
-    & ~ensMissedTarget ...
+    ...& ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    & ensembleOneSecond ... %cuts off a lot of the earlier
+    ...& ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
-    ...& ensDate >= -210428 ...
+    ... & ensDate >= 210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...
@@ -278,59 +290,67 @@ end
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 
-%% Plot Space and Feature
+%% basic funs
+outVars.defaultColorMap = 'viridis';
+plotAllEnsResponse(outVars)
+plotResponseBySize(outVars,0)
+plotPopResponseBySession(All,outVars)
+plotPopResponseByExpressionType(All,outVars);
+[All, outVars] = createTSPlotByEnsSize(All,outVars);
+[All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
+%% Plot Mean Distance Responses
 
+plotEnsembleDistanceResponse(outVars,100,1)
+
+%% Plot Distance Plots
+
+opts.distBins = 0:25:1000; %must be set to match popDist
+plotResponseByDistance(outVars,opts);
+
+%% Compare Distance responses
+figure(102);clf
+
+dataInPlots=[];
+distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
+for i =[1 3]; %1:6
+    disp(['working on ' distTypes{i}])
+    opts.distType = distTypes{i}; %options: min geo mean harm
+    opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+    CellToUseVar = 'anal.cellsToInclude';
+    [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+    ax = subplot(2,3,i);
+    opts.distAxisRange = [0 350]; %[0 350] is stand
+    [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+    dataInPlots{i}=outDat{1};
+    eHandle{1}.CapSize =0;
+    title(distTypes{i})
+    drawnow
+end
+disp('done')
+
+%% Just a few with different binning
+figure(103);clf;
+dataInPlots =[];
+
+ax = subplot(1,2,1);
 opts.distType = 'min';
-opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
-opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
-opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts,5)
+opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 250]; %[0 350] is stand
+CellToUseVar = 'anal.cellsToInclude';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{1}=outDat{1};
+eHandle{1}.CapSize =0;
+title('min')
 
-
-%% Plot Sparsity by Distance
-opts.distType = 'min';
-opts.distBins =[0:25:250]; 
-opts.useVisCells =0;
-opts.subtractBaseline =1;
-opts.subSampleN = -1; %negative to disable
-opts.minSampleN = -1; %nan bins with less than this; set to 0 to ignore
-
-
-opts.sparseAlgo = 'popKurtosis'; 'treves-Rolls'; % %options: 'L2/L1' 'popKurtosis' 'treves-Rolls'
-
-figure(3);clf
-ax = subplot(1,1,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
-[outData] = plotSparsityByDist(All,outVars,opts,ax);
-
-yrange =[-0.15 0.15];
-
-figure(4);clf
-ax1 = subplot(2,2,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax1);
-title(['close and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax2 = subplot(2,2,2);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax2);
-% ylim(yrange)
-title(['far and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax3= subplot(2,2,3);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI >0.7;
-[outData] = plotSparsityByDist(All,outVars,opts,ax3);
-% ylim(yrange)
-title(['close and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax4 = subplot(2,2,4);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI >0.7;
-[outData] = plotSparsityByDist(All,outVars,opts,ax4);
-% ylim(yrange)
-title(['far and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-linkaxes([ax1,ax2,ax3,ax4])
-
-
-%%
-toc(masterTic)
+ax = subplot(1,2,2);
+opts.distType = 'mean';
+opts.distBins = 0:10:500; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 450]; %[0 350] is stand
+CellToUseVar = 'anal.cellsToInclude';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{2}=outDat{1};
+eHandle{1}.CapSize =0;
+title('mean')
+ylim([-0.075 0.075])

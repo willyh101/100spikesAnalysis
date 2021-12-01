@@ -80,8 +80,19 @@ for Ind = 1:numel(All)
     names{Ind}=lower(strrep(All(Ind).out.info.mouse, '_', '.'));
 end
 outVars.names = names;
+%% restrict Cells to use
+opts.minMeanThreshold = -0.25;
+opts.maxMeanThreshold = inf;
 
-c
+opts.verbose =0;
+[All, cellExcludeResults] = cellExcluder(All,opts); 
+allResults = cat(1,cellExcludeResults{:});
+disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
+disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
+
+opts.minNumCellsInd=250;
+tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
+disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
 
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
@@ -99,6 +110,7 @@ opts.skipVis =1;
 visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
 ensIndNumber =outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber; %in order of uniqueStims
 
 
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
@@ -174,6 +186,7 @@ highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
+
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
 excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
@@ -190,7 +203,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
-opts.numSpikeToUseRange = [98 101];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 7; % changed from 10 by wh 4/23 for testing stuff
 
@@ -211,7 +224,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 3 ...
     & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
-    ...& ensDate >= -210428 ...
+    ... & ensDate > 210420 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...
@@ -278,58 +291,117 @@ end
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 
+%% Plot Mean Responses
+opts.ensOSImethod = 'ensOSI';
+opts.plotFit=1;
+opts.figToUse1 = 44;
+result = plotPopResponseEnsOSI(outVars, opts);
+
+%%
+opts.ensOSImethod = 'meanEnsOSI';
+opts.plotFit=1;
+opts.figToUse1 = 45;
+result = plotPopResponseEnsOSI(outVars, opts);
+
+%% Plot Distance Curves in different Ori Bands
+
+opts.distType = 'min';
+opts.distBins =[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
+opts.plotOrientation =1;%as opposed to Direction
+opts.minNumberOfCellsPerCondition =-1; %set to -1 to ignore
+opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
+
+
+ plotDistByOri(All,outVars,opts)
+
+ figure(10);
+ylim([-0.175 0.1])
+
+%% Plot Split by Mean OSI
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.distAxisRange = [0 150];
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3;
+opts.criteriaToSplit = outVars.meanEnsOSI;
+opts.criteriaBins = [0 0.5 inf];
+% opts.useVisAndTunedCells =1; 
+opts.useVisCells =1;
+opts.useTunedCells =0; %don't use tuned without vis
+
+plotDistByCriteria(All,outVars,opts,15)
+figure(16);
+ylim([-0.15 0.15]);
+
+%%  Plot Split by Ensemble OSI
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.meanEnsOSI>0.5;
+opts.criteriaToSplit = outVars.ensOSI;
+opts.criteriaBins = [0 0.3 0.7 inf];
+% opts.useVisAndTunedCells =1; 
+opts.useVisCells =1;
+opts.useTunedCells =0; %don't use tuned without vis
+
+plotDistByCriteria(All,outVars,opts,17)
+figure(18);
+ylim([-0.15 0.1]);
+
+%% Plot Dist by Two Criteria
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.criteriaName = 'ensOSI';
+opts.criteria = outVars.ensOSI;
+opts.criteriaBins = [0 0.3 0.7 inf]
+
+opts.criteria2Name = 'meanOSI';
+opts.criteria2 = outVars.meanEnsOSI;
+opts.criteria2Bins = [0 0.5 inf];
+% opts.useVisAndTunedCells =1; 
+opts.useVisCells =1;
+opts.useTunedCells =0; %don't use tuned without vis
+
+plotDistByTwoCriteria(All,outVars,opts,13)
+figure(13)
+ylim([-0.15 0.1]);
+
+
+
 %% Plot Space and Feature
 
 opts.distType = 'min';
 opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
 opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
 opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts,5)
+opts.useVisCells =1;
+opts.useTunedCells =0; %don't use tuned without vis
+
+plotSpaceAndFeature(All,outVars,opts,11)
+ylim([-0.15 0.15]);
 
 
-%% Plot Sparsity by Distance
+%% Plot Space and  Feature v2
+%% Plot Dist by Two Criteria
 opts.distType = 'min';
-opts.distBins =[0:25:250]; 
-opts.useVisCells =0;
-opts.subtractBaseline =1;
-opts.subSampleN = -1; %negative to disable
-opts.minSampleN = -1; %nan bins with less than this; set to 0 to ignore
-
-
-opts.sparseAlgo = 'popKurtosis'; 'treves-Rolls'; % %options: 'L2/L1' 'popKurtosis' 'treves-Rolls'
-
-figure(3);clf
-ax = subplot(1,1,1);
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0; 
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
-[outData] = plotSparsityByDist(All,outVars,opts,ax);
+opts.criteria2Name = 'ensOSI';
+opts.criteria2 = outVars.ensOSI;
+opts.criteria2Bins = [0 0.3 0.7 inf]
 
-yrange =[-0.15 0.15];
+opts.criteriaName = 'Spread';
+opts.criteria = outVars.ensMaxD;
+opts.criteriaBins = [0 400 500 inf];
+opts.useVisCells =1; 
+opts.useTunedCells =0; 
 
-figure(4);clf
-ax1 = subplot(2,2,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax1);
-title(['close and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax2 = subplot(2,2,2);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax2);
-% ylim(yrange)
-title(['far and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax3= subplot(2,2,3);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI >0.7;
-[outData] = plotSparsityByDist(All,outVars,opts,ax3);
-% ylim(yrange)
-title(['close and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax4 = subplot(2,2,4);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI >0.7;
-[outData] = plotSparsityByDist(All,outVars,opts,ax4);
-% ylim(yrange)
-title(['far and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-linkaxes([ax1,ax2,ax3,ax4])
+plotDistByTwoCriteria(All,outVars,opts,21)
+figure(13)
+ylim([-0.15 0.1]);
 
 
 %%

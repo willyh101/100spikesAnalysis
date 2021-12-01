@@ -26,10 +26,10 @@ for ind = 1:numExps
            baseMat(i, v, :));
         
         if holo==0 ; %i==1 change to account for out of order
-            mRespEns{c}(ROIinArtifact) = nan;
+            mRespEns{c}(ROIinArtifact | All(ind).out.anal.cellsToExclude') = nan;
         else
 
-            mRespEns{c}(offTargetRisk(holo, :)' | ROIinArtifact) = nan; % was 'and' but bc we're removing here, should not be an or asi is elsewhere in code
+            mRespEns{c}(offTargetRisk(holo, :)' | ROIinArtifact | All(ind).out.anal.cellsToExclude') = nan; % was 'and' but bc we're removing here, should not be an or asi is elsewhere in code
         end
         
         isControl(c) = i==1; % no stim condition

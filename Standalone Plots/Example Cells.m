@@ -306,7 +306,7 @@ caxisLim =[-0.5 3];
 
 % [dfData, zdfData] =  computeDFFwithMovingBaseline(All(ind).out.exp.allData);
 
-rawDat =dfData;% All(ind).out.exp.zdfData;
+rawDat =All(ind).out.exp.dfData;% All(ind).out.exp.zdfData;
 rawDatForCellVal = All(ind).out.exp.zdfData;
 
 us = unique(All(ind).out.exp.stimID);

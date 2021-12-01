@@ -80,6 +80,20 @@ for Ind = 1:numel(All)
 end
 outVars.names = names;
 
+%% restrict Cells to use
+opts.minMeanThreshold = 0.25;
+opts.maxMeanThreshold = inf;
+
+opts.verbose =0;
+[All, cellExcludeResults] = cellExcluder(All,opts); 
+allResults = cat(1,cellExcludeResults{:});
+disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
+disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
+
+opts.minNumCellsInd=250;
+tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
+disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
+
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
 
@@ -169,6 +183,7 @@ opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
+lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
@@ -188,7 +203,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 10; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -210,6 +225,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ensDate >= -210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
+    & ~lowCellCount ...
     ;
 
 %%remove repeats
@@ -241,6 +257,8 @@ disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissed
 disp(['Fraction of Ens number targets matched >=3: ' num2str(mean(numMatchedTargets >= 3))]);
 disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
 disp(['Fraction of Ens that were not repeats: ' num2str(mean(~outVars.removedRepeats)) ]);
+disp(['Fraction of Ens high Cell Count: ' num2str(mean(~lowCellCount))]);
+
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 % disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
@@ -301,7 +319,7 @@ for i =1:6
     disp(['working on ' distTypes{i}])
     opts.distType = distTypes{i}; %options: min geo mean harm
     opts.distBins = 0:1:350; %can be set variably 0:25:1000 is defaultt
-    CellToUseVar = [];
+    CellToUseVar = 'anal.cellsToInclude';
     [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
     ax = subplot(2,3,i);
     opts.distAxisRange = [0 350]; %[0 350] is stand
@@ -322,6 +340,8 @@ disp('done')
 opts.ensOSImethod = 'ensOSI';% 'ensOSI'; 'meanEnsOSI'
 
 plotOSIdists(outVars, opts);
+
+opts.plotFit=1;
 plotPopResponseEnsOSI(outVars, opts)
 
 %% within pyramids cell analysis
@@ -360,10 +380,10 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         fprintf('.')
     end
     if outVars.ensemblesToUse(i)
-    cellToUseVar = outVars.posCellbyInd{i};
+    cellToUseVar = outVars.posCellbyInd{i} & All(ensIndNumber(i)).out.anal.cellsToInclude;
     popToPlotPos(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
-     cellToUseVar = outVars.negCellbyInd{i};
+     cellToUseVar = outVars.negCellbyInd{i} & All(ensIndNumber(i)).out.anal.cellsToInclude;
     popToPlotNeg(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
     else
@@ -429,8 +449,8 @@ opts.posNegThreshold = 0;%0.1;
 %% Plot Distance Curves in different Ori Bands
 
 opts.distType = 'min';
-opts.distBins =[15:15:150];% [0:25:400];
 opts.distBins =[0:25:150];% [0:25:400];
+% opts.distBins =[0:25:150];% [0:25:400];
 % 
 % opts.distType = 'harm'; 
 % opts.distBins = [0:50:400];
@@ -438,6 +458,9 @@ opts.distBins =[0:25:150];% [0:25:400];
 [outVars] = grandDistanceMaker(opts,All,outVars);
 numEns = numel(outVars.ensStimScore);
 
+plotOrientation =0; %as opposed to Direction
+
+minNumberOfCellsPerCondition =-1; %set to -1 to ignore
 
 %this is where you change the criteria of what ensembles are included
 ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.ensOSI>0.7;% & outVars.meanEnsOSI>0.25;% & outVars.numMatchedTargets>=3 & outVars.ensMaxD>-475;% outVars.numMatchedTargets>=3 &    ;
@@ -455,45 +478,58 @@ disp(['Total of ' num2str(sum(ensemblesToUse)) ' Ensembles Included.'])
 disp([ num2str(numel(unique(ensIndNumber(ensemblesToUse)))) ' FOVs'])
 disp([ num2str(numel(unique(names(unique(ensIndNumber(ensemblesToUse)))))) ' Mice']);
 
-clear popToPlot
+clear popToPlot cellsPerEnsCount
 for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
         fprintf('.')
     end
 % 
     diffsPossible = [0 45 90 135 180];
-
+    
     if ensemblesToUse(i)
         ind = ensIndNumber(i);
-
-       cellOris = oriVals(outVars.prefOris{ind});
-       cellOrisDiff = abs(cellOris-outVars.ensPO(i));
-       cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
-% %        
-       cellOrisDiff(cellOrisDiff==135)=45;
-       cellOrisDiff(cellOrisDiff==180)=0;
-
-
-       %%This is where you change the criteria of what cells are included
-    cellToUseVar = ~outVars.offTargetRiskEns{i}...
-        & outVars.pVisR{ind} < 0.05 ...
-        & outVars.osi{ind} > 0.25 ...
-         ...& outVars.posCellbyInd{i} ... %if you want to only include cells that went up
-        ...& outVars.isRedByEns{i} ...  %if you want to excluded red cells (i.e. interneurons)
+        
+        cellOris = oriVals(outVars.prefOris{ind});
+        cellOrisDiff = abs(cellOris-outVars.ensPO(i));
+        cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
+        %
+        if plotOrientation
+            cellOrisDiff(cellOrisDiff==135)=45;
+            cellOrisDiff(cellOrisDiff==180)=0;
+            diffsPossible = [0 45 90];
+        end
+        
+        %%This is where you change the criteria of what cells are included
+        cellToUseVar = ~outVars.offTargetRiskEns{i}...
+            & outVars.pVisR{ind} < 0.05 ...
+            & outVars.osi{ind} > 0.25 ...
+            & All(ind).out.anal.cellsToInclude ...
+            ...& outVars.posCellbyInd{i} ... %if you want to only include cells that went up
+            ...& outVars.isRedByEns{i} ...  %if you want to excluded red cells (i.e. interneurons)
         ;
 
     for k=1:numel(diffsPossible)
-        popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar & abs(cellOrisDiff)==diffsPossible(k),0,ensHNumber(i));
-%         popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar ,0,ensHNumber(i));
-
+        
+        cells2Plot =cellToUseVar & abs(cellOrisDiff)==diffsPossible(k);
+        cellsPerEnsCount(i,k) = sum(cells2Plot);
     end
-
-
+    for k=1:numel(diffsPossible)
+        
+        if all(cellsPerEnsCount(i,:)>minNumberOfCellsPerCondition)
+            cells2Plot =cellToUseVar & abs(cellOrisDiff)==diffsPossible(k);
+            popToPlot(i,:,k) = popDistMakerSingle(opts,All(ensIndNumber(i)),cells2Plot,0,ensHNumber(i));
+        else 
+            cellsPerEnsCount(i,:) =zeros([1 numel(diffsPossible)]);
+        end        
+    end
+    
+    
     else
         popToPlot(i,:,:) = nan([numel(opts.distBins)-1 1 numel(diffsPossible)]);
     end
 end
 disp('Done')
+sum(cellsPerEnsCount(:,1)>0)
 
 %%Plot Dist REsp
 figure(10);clf
@@ -507,9 +543,16 @@ figure(14);clf
 colorListOri = colorMapPicker(numel(diffsPossible),'plasma');
 dataForStats=[];
 clear ax
-for k = 1:numel(diffsPossible)
+
+if plotOrientation
+    diffsPossible = [0 45 90];
+end
+numToPlot = numel(diffsPossible);
+
+
+for k = 1:numToPlot
     figure(10);
-    ax(k) =subplot(1,numel(diffsPossible),k);
+    ax(k) =subplot(1,numToPlot,k);
     title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
     [eHandle outData] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
     if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
@@ -580,13 +623,16 @@ opts.distBins =[0:25:150]; [15:15:150];[10:20:150];% [0:25:400];
 
 plotTraces=0;
 %things to hold constant
-ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;% & outVars.meanEnsOSI>0.5 ;%  &  outVars.ensOSI>0.75;;
-criteria = outVars.ensOSI;outVars.meanEnsOSI;
+ensemblesToUse = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.5; % & outVars.meanEnsOSI<0.5 ;%  &  outVars.ensOSI>0.75;;
+criteria =outVars.meanEnsOSI;% outVars.ensOSI;outVars.meanEnsOSI;
 useableCriteria = criteria(ensemblesToUse);
-bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
-bins = [0 0.25 0.5 0.75 max(useableCriteria)];
-bins = [0 0.33 0.7 max(useableCriteria)];
-bins = [0 0.3 0.7 max(useableCriteria)];
+% bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
+% bins = [0 prctile(useableCriteria,33) prctile(useableCriteria,66) max(useableCriteria)];
+
+% bins = [0 0.25 0.5 0.75 max(useableCriteria)];
+% bins = [0 0.33 0.7 max(useableCriteria)];
+% bins = [0 0.3 0.7 max(useableCriteria)];
+bins = [0 0.5 inf];
 
 
 ensIndNumber = outVars.ensIndNumber;
@@ -603,7 +649,8 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         
         cellToUseVar = ~outVars.offTargetRiskEns{i}...
             & outVars.pVisR{ind} < 0.05 ...
-            & outVars.osi{ind} > 0.25 ...
+            ... & outVars.osi{ind} > 0.25 ...
+             ...& All(ind).out.anal.cellsToInclude ...
             ... & outVars.isRedByEns{i} ...
             ;
         
@@ -654,7 +701,7 @@ ylim([-0.1 0.3])
 opts.distType = 'min';
 opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
 opts.plotTraces =0;
-plotSpaceAndFeature(All,outVars,opts)
+% plotSpaceAndFeature(All,outVars,opts)
 
 %things to hold constant
 ensemblesToUse = ...
@@ -682,6 +729,7 @@ bins2 = [0 0.3 0.7 inf];
 ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
 
+f = figure(555);
 clear popToPlot
 for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
@@ -694,7 +742,8 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
           & outVars.pVisR{ind} < 0.05 ...
           ... & outVars.osi{ind} > 0.25 ...
-        ... & outVars.posCellbyInd{i} ...
+          & All(ind).out.anal.cellsToInclude ...
+         ...& outVars.posCellbyInd{i} ...
         ;
 
         popToPlot(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
@@ -703,6 +752,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         popToPlot(i,:) = nan([numel(opts.distBins)-1 1]);
     end
 end
+close(f)
 disp('Done')
 
 figure(13);clf
@@ -751,13 +801,19 @@ xlim([0 opts.distBins(end)])
 ylim([-0.25 0.3])
 
 p1 = ranksum(squeeze(dataForStats(3,1,:)),squeeze(dataForStats(3,3,:)));
+% [a p1] = ttest2(squeeze(dataForStats(3,1,:)),squeeze(dataForStats(3,3,:)));
 disp(['Co Tuned Close vs Far p = ' num2str(p1)]);
+
 p2 = ranksum(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(1,3,:)));
+% [a p2] = ttest2(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(1,3,:)));
 disp(['UnTuned Close vs Far p = ' num2str(p2)]);
 
 p3 = ranksum(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(3,1,:)));
+% [a p3] = ttest2(squeeze(dataForStats(1,1,:)),squeeze(dataForStats(3,1,:)));
 disp(['Close Tuned v Untuned p = ' num2str(p3)]);
+
 p4 = ranksum(squeeze(dataForStats(1,3,:)),squeeze(dataForStats(3,3,:)));
+% [a p4] = ttest2(squeeze(dataForStats(1,3,:)),squeeze(dataForStats(3,3,:)));
 disp(['Far Tuned v Untuned p = ' num2str(p4)]);
 
 % ylim([-1 1]);
@@ -817,6 +873,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
         & outVars.pVisR{ind} < 0.05 ...
         & outVars.osi{ind} > 0.25 ...
+        & All(ind).out.anal.cellsToInclude ...
          ...& outVars.posCellbyInd{i} ... %if you want to only include cells that went up
         ...& outVars.isRedByEns{i} ...  %if you want to excluded red cells (i.e. interneurons)
         ;
@@ -948,6 +1005,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
           & outVars.pVisR{ind} < 0.05 ...
           ...& outVars.osi{ind} > 0.25 ...
         ... & outVars.posCellbyInd{i} ...
+        & All(ind).out.anal.cellsToInclude ...
         ;
 
         popToPlot(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));

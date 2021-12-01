@@ -241,5 +241,37 @@ if ~isempty(indToUse)
     All(indToUse).out.exp.stimParams.numCells = All(indToUse).out.exp.stimParams.numCells*10;
 end
 
+
+%% fix vis Window 211014_I156_1
+
+nameToUse = '211014_I156_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+   All(indToUse).out.vis.visStart   = 0.98;
+   All(indToUse).out.vis.visStop    = 1.98;
+end
+
+%% fix 190521_HB42_1
+
+nameToUse = '190521_HB42_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+  All(indToUse).out.exp.stimParams.numCells = ones([1 60])*10;
+end
+
+%% fix 211102
+
+nameToUse = '211102_I158_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+if ~isempty(indToUse)
+    All(indToUse).out.exp2.runVal = All(indToUse).out.exp2.runVal(1:899,:);
+    All(indToUse).out.exp2.stimID = All(indToUse).out.exp2.stimID(1:899);
+    All(indToUse).out.exp2.visID = All(indToUse).out.exp2.visID(1:899);
+
+
+end
+
 %%
 disp('Done fixing.')

@@ -62,7 +62,8 @@ outData{i} = temp;
 
 hold on
 distBinSize = distBins(2)-distBins(1);
-eHandle{i} = errorbar(distBins(2:end)-distBinSize/2,meanDat,semDat,'linewidth',2,'color',colorList{i});
+xBins = distBins(2:end)-distBinSize/2; 
+eHandle{i} = errorbar(xBins(1:numel(meanDat)),meanDat,semDat,'linewidth',2,'color',colorList{i});
 end
 eHandle{end+1} = refline(0);
 r = eHandle{end};
