@@ -12,7 +12,6 @@ for ind = 1:numExps
         dataToUse = All(ind).out.exp.zdfData;
     end
     
-    
     stimCoM = All(ind).out.exp.stimCoM;
     numCells = size(dataToUse,1);
     allCoM = All(ind).out.exp.allCoM;
