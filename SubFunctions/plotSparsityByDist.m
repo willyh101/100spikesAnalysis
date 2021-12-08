@@ -166,7 +166,6 @@ for i=1:numel(ensemblesToUseList)
         if subtractBaseline
             baseData = squeeze(All(ind).out.anal.baseMat(noStimIdx,1,cell2use));
             theseNoStimData = theseNoStimData-baseData;
-            
         end
         
         

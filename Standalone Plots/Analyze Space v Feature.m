@@ -81,7 +81,21 @@ for Ind = 1:numel(All)
 end
 outVars.names = names;
 
-c
+%% restrict Cells to use
+opts.minMeanThreshold = 0.25;
+opts.maxMeanThreshold = inf;
+
+opts.verbose =0;
+[All, cellExcludeResults] = cellExcluder(All,opts); 
+allResults = cat(1,cellExcludeResults{:});
+disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
+disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
+
+opts.minNumCellsInd=250;
+tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
+disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
+
+
 
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
@@ -284,19 +298,22 @@ opts.distType = 'min';
 opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
 opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
 opts.plotTraces =0;
+opts.useVisCells = 1;
+opts.useTunedCells = 0;
+
 plotSpaceAndFeature(All,outVars,opts,5)
 
 
 %% Plot Sparsity by Distance
 opts.distType = 'min';
-opts.distBins =[0:50:250]; 
+opts.distBins =[0:25:250]; 
 opts.useVisCells =1;
 opts.subtractBaseline =1;
 opts.subSampleN = -1; %negative to disable
 opts.minSampleN = -1; %nan bins with less than this; set to 0 to ignore
 
 
-opts.sparseAlgo =  'treves-Rolls'; % %options: 'L2/L1' 'popKurtosis' 'treves-Rolls'
+opts.sparseAlgo =  'mean'; 'treves-Rolls'; % %options: 'L2/L1' 'popKurtosis' 'treves-Rolls' 'mean'
 
 figure(3);clf
 ax = subplot(1,1,1);
@@ -331,6 +348,14 @@ title(['far and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
 
 linkaxes([ax1,ax2,ax3,ax4])
 
+
+%% Plot Neuropil stuff
+
+figure(4);clf
+ax1 = subplot(2,2,1);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI <0.3;
+[outData] = plotSparsityByDist(All,outVars,opts,ax1);
+title(['Close and Untuned. ' num2str(sum(opts.ensemblesToPlot)) ' Ens'])
 
 %%
 toc(masterTic)

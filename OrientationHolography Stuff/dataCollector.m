@@ -22,6 +22,8 @@ disp('got info')
 %%experiment epoch
 exp.zdfData = zdfData;
 exp.allData = allData;
+exp.dfData = dfData; 
+
 exp.runVal = runVector;
 exp.lowMotionTrials = lowMotionTrials;
 exp.stimID = stimID;
@@ -51,6 +53,8 @@ disp('got exp')
 %% orientation/vis epoch
 vis.zdfData = zdfData;
 vis.allData = allData;
+vis.dfData = dfData;
+
 vis.runVal = runVector;
 vis.lowMotionTrials = lowMotionTrials;
 vis.visID = visID;
