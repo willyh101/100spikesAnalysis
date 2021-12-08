@@ -31,7 +31,9 @@ end
 %% add neuropil and neuropil coefficient to out
 savePath = [loadPath '\new'];
 
-for ind=5:numExps;
+willexps = [11 14 15 16];
+
+for ind=17:numExps;
     dataPathBackup=[];
     if ~isfield(All(ind).out.exp,'allNP');
         pTime =tic;
@@ -82,6 +84,7 @@ for ind=5:numExps;
             All(ind).out.info.epochText2
             expNumFiles = size(All(ind).out.exp.allData,3);
             disp(['Expect ' num2str(expNumFiles) ' Files.']);
+            disp([All(ind).out.info.mouse ' ' All(ind).out.info.date])
             e = input('What was the DAQepoch Num?');
             DAQepoch = e;
             out.exp.DAQepoch = e;
@@ -98,7 +101,7 @@ for ind=5:numExps;
             dataPathBackup = dataPath;
             out.info.dataPath2 = dataPath; 
             
-        elseif ~isempty(out.info.dataPath2)
+        elseif isfield(out.info,'dataPath2') && ~isempty(out.info.dataPath2)
             disp('using out.info.dataPath2')
             dataPath = out.info.dataPath2;
         elseif ~isempty(dataPathBackup)
@@ -135,7 +138,7 @@ for ind=5:numExps;
             
             frameCount=[];
             for i = 1:numel(localFiles)
-                fprintf(['Frame ' num2str(i) '. ']);
+                fprintf(['Frame ' num2str(i) ' of ' num2str(numel(localFiles)) '. ']);
                 tic;
                 try
                     x = ScanImageTiffReader(localFiles{i}).descriptions();
