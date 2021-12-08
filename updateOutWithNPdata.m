@@ -5,10 +5,33 @@ addpath(genpath(loadPath))
 
 numExps = numel(loadList);
 
+%% Load data
+
+numExps = numel(loadList);
+disp(['There are ' num2str(numExps) ' Exps in this LoadList'])
+if numExps ~= 0
+    clear All
+    if ~iscell(loadList)
+        numExps=1;
+        temp = loadList;
+        clear loadList;
+        loadList{1} = temp;
+    end
+    for ind = 1:numExps
+        pTime =tic;
+        fprintf(['Loading Experiment ' num2str(ind) '...']);
+        All(ind) = load(fullfile(loadPath,loadList{ind}),'out');
+        fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+    end
+else
+    disp('Did you press this by accident?')
+end
+
+
 %% add neuropil and neuropil coefficient to out
 savePath = [loadPath '\new'];
 
-for ind=1:numExps;
+for ind=5:numExps;
     dataPathBackup=[];
     if ~isfield(All(ind).out.exp,'allNP');
         pTime =tic;
@@ -57,6 +80,8 @@ for ind=1:numExps;
             All(ind).out.info.epochText1
             disp('Epoch Text 2')
             All(ind).out.info.epochText2
+            expNumFiles = size(All(ind).out.exp.allData,3);
+            disp(['Expect ' num2str(expNumFiles) ' Files.']);
             e = input('What was the DAQepoch Num?');
             DAQepoch = e;
             out.exp.DAQepoch = e;
@@ -65,13 +90,17 @@ for ind=1:numExps;
         rootpath = dat.ops.RootDir;
         dataPath = fullfile(rootpath,num2str(DAQepoch));
         
-        if ~exist(dataPath) & isempty(dataPathBackup)
+        if ~exist(dataPath) && isempty(dataPathBackup) && ( ~isfield(out.info,'dataPath2') || isempty(out.info.dataPath2))
             disp('Path Not Found')
             disp(dataPath)
-            dataPath = uigetdir('C:\Users\ian\Documents\DATA\DataStorage\','Select Data Path');
+            dataPath = uigetdir('Y:\frankenshare\ian','Select Data Path');
+%             dataPath = uigetdir('Set_best_guess_path','Select Data Path');
             dataPathBackup = dataPath;
             out.info.dataPath2 = dataPath; 
             
+        elseif ~isempty(out.info.dataPath2)
+            disp('using out.info.dataPath2')
+            dataPath = out.info.dataPath2;
         elseif ~isempty(dataPathBackup)
             disp('pulling path from backup')
             dataPath = dataPathBackup;
@@ -135,6 +164,7 @@ for ind=1:numExps;
         s2pEpoch =find(dat.ops.expts==DAQepoch);
         
          allDataNoNP=[];  allNP=[];
+         clear FdataNew FdataNoNPNew FNPNew
         for d=1:max(allDepth);
             eval(['dat = All(ind).out.dat' num2str(d) ';'])
             
