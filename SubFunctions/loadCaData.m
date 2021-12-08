@@ -166,7 +166,6 @@ for DepthToLoad=1:nDepthsTotal;
         FdataNew{i} = Fdata(:,sum(frameCount(1:i-1))+1 : min(sum(frameCount(1:i)),sz(2)) );
         FdataNoNPNew{i} = FdataNoNP(:,sum(frameCount(1:i-1))+1 : min(sum(frameCount(1:i)),sz(2)) );
         FNPNew{i} = Fnp(:,sum(frameCount(1:i-1))+1 : min(sum(frameCount(1:i)),sz(2)) );
-
     end
     
     temp=[];

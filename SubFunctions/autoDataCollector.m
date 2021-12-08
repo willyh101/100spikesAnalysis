@@ -27,6 +27,8 @@ switch option
         exp.DAQepoch = DAQepoch;
         exp.zdfData = zdfData;
         exp.allData = allData;
+        exp.dfData = dfData;
+        
         exp.runVal = runVector;
         exp.lowMotionTrials = lowMotionTrials;
         exp.stimID = stimID;
@@ -75,6 +77,8 @@ switch option
         stm.DAQepoch = DAQepoch;
         stm.zdfData = zdfData;
         stm.allData = allData;
+        stm.dfData = dfData;
+        
         stm.stimID =stimID;
         
         swpStart = ExpStruct.EpochEnterSweep{DAQepoch};
@@ -131,6 +135,7 @@ switch option
         vis.gratingSize = 50;
         vis.zdfData = zdfData;
         vis.allData = allData;
+        vis.dfData = dfData;
         vis.runVal = runVector;
         vis.lowMotionTrials = lowMotionTrials;
         vis.visID = visID;
@@ -143,6 +148,8 @@ switch option
         vis2.desc = 'GMN';
         vis2.zdfData = zdfData;
         vis2.allData = allData;
+        vis2.dfData = dfData;
+        
         vis2.runVal = runVector;
         vis2.lowMotionTrials = lowMotionTrials;
         vis2.visID = visID;
@@ -187,6 +194,8 @@ switch option
         exp2.DAQepoch = DAQepoch;
         exp2.zdfData = zdfData;
         exp2.allData = allData;
+        exp2.dfData = dfData;
+        
         exp2.runVal = runVector;
         exp2.lowMotionTrials = lowMotionTrials;
         exp2.stimID = stimID;
