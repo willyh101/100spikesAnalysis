@@ -29,6 +29,11 @@ switch option
         exp.allData = allData;
         exp.dfData = dfData;
         
+        exp.NPcoef = allNPC;
+        exp.allNP = allNP;
+        exp.allDataNoNP = allDataNoNP;
+              
+        
         exp.runVal = runVector;
         exp.lowMotionTrials = lowMotionTrials;
         exp.stimID = stimID;
@@ -78,6 +83,10 @@ switch option
         stm.zdfData = zdfData;
         stm.allData = allData;
         stm.dfData = dfData;
+        
+        stm.NPcoef = allNPC;
+        stm.allNP = allNP;
+        stm.allDataNoNP = allDataNoNP;
         
         stm.stimID =stimID;
         
@@ -136,6 +145,11 @@ switch option
         vis.zdfData = zdfData;
         vis.allData = allData;
         vis.dfData = dfData;
+        
+        vis.NPcoef = allNPC;
+        vis.allNP = allNP;
+        vis.allDataNoNP = allDataNoNP;
+        
         vis.runVal = runVector;
         vis.lowMotionTrials = lowMotionTrials;
         vis.visID = visID;
@@ -149,6 +163,10 @@ switch option
         vis2.zdfData = zdfData;
         vis2.allData = allData;
         vis2.dfData = dfData;
+        
+        vis2.NPcoef = allNPC;
+        vis2.allNP = allNP;
+        vis2.allDataNoNP = allDataNoNP;
         
         vis2.runVal = runVector;
         vis2.lowMotionTrials = lowMotionTrials;
@@ -195,6 +213,10 @@ switch option
         exp2.zdfData = zdfData;
         exp2.allData = allData;
         exp2.dfData = dfData;
+        
+        exp2.NPcoef = allNPC;
+        exp2.allNP = allNP;
+        exp2.allDataNoNP = allDataNoNP;
         
         exp2.runVal = runVector;
         exp2.lowMotionTrials = lowMotionTrials;
