@@ -349,26 +349,166 @@ eHandle{1}.CapSize =0;
 title('mean')
 ylim([-0.075 0.075])
 
+
+%% create new 
+
+for ind = 1:numExps
+   vals = All(ind).out.info.value1020;
+   defPosThresh = prctile(vals,80);
+   All(ind).out.info.defPos = vals>=defPosThresh;
+    
+   defNegThresh = prctile(vals,20);
+   All(ind).out.info.defNeg = vals<=defNegThresh;
+   
+end
+
+
 %% to match  other plots
 figure(104);clf
+hold on
 ax = subplot(1,1,1);
 
-opts.distBins = 10:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 00:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
 opts.distAxisRange = [0 250]; %[0 350] is stand
 
 backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
-% limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,noUnstimableCount);
-% outVars.ensemblesToUse = limEnsembleToUse;
+%  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
+%  outVars.ensemblesToUse = limEnsembleToUse;
 disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
 % 
-CellToUseVar = [];
+CellToUseVar =[];
 [popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
 p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
-p1{1}.Color=rgb('red');
+p1{1}.Color=rgb('black');
+p1{1}.CapSize = 0;
 outVars.ensemblesToUse = backupEnsemblesToUse;
 hold on
 drawnow
 ylim([-0.05 0.11])
 
+
+backupEnsemblesToUse = outVars.ensemblesToUse;
+% noUnstimableCount = find(countUSC==0);
+%  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
+%  outVars.ensemblesToUse = limEnsembleToUse;
+disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar ='info.defPos';%[];
+[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('red');
+p1{1}.CapSize = 0;
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+ylim([-0.05 0.11])
+
+backupEnsemblesToUse = outVars.ensemblesToUse;
+% noUnstimableCount = find(countUSC==0);
+%  limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[1 2 5]);
+%  outVars.ensemblesToUse = limEnsembleToUse;
+% disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar ='info.defNeg'; %'info.opsinNegative';% [];
+[popRespDistData] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistData,outVars,opts,ax);
+p1{1}.Color=rgb('ForestGreen');
+p1{1}.CapSize = 0;
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+ylim([-0.05 0.11])
+
+%% 
+
+figure(104);clf
+hold on
+ax = subplot(1,1,1);
+
+opts.distBins = 00:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distType = 'min';
+opts.distAxisRange = [0 250]; %[0 350] is stand
+
+backupEnsemblesToUse = outVars.ensemblesToUse;
+% noUnstimableCount = find(countUSC==0);
+%  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
+%  outVars.ensemblesToUse = limEnsembleToUse;
+disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar =[];
+[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('black');
+p1{1}.CapSize = 0;
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+ylim([-0.05 0.11])
+
+for i=1:5
+backupEnsemblesToUse = outVars.ensemblesToUse;
+% noUnstimableCount = find(countUSC==0);
+ limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[i]);
+ outVars.ensemblesToUse = limEnsembleToUse;
+disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar ='info.opsinNegative';% [];
+[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('forestgreen');
+p1{1}.CapSize = 0;
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+ylim([-0.05 0.11])
+
+pause
+end
+
+
+%%
+%% to match  other plots
+figure(104);clf
+hold on
+ax = subplot(1,1,1);
+
+opts.distBins = 00:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distType = 'min';
+opts.distAxisRange = [0 250]; %[0 350] is stand
+
+backupEnsemblesToUse = outVars.ensemblesToUse;
+% noUnstimableCount = find(countUSC==0);
+%  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
+%  outVars.ensemblesToUse = limEnsembleToUse;
+disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar =[];
+[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+p1{1}.Color=rgb('black');
+p1{1}.CapSize = 0;
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+ylim([-0.05 0.11])
+
+
+
+
+backupEnsemblesToUse = outVars.ensemblesToUse;
+% noUnstimableCount = find(countUSC==0);
+ limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[3]);
+ outVars.ensemblesToUse = limEnsembleToUse;
+disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+% 
+CellToUseVar ='info.opsinNegative';% [];
+[popRespDistData] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistData,outVars,opts,ax);
+p1{1}.Color=rgb('ForestGreen');
+p1{1}.CapSize = 0;
+outVars.ensemblesToUse = backupEnsemblesToUse;
+hold on
+drawnow
+ylim([-0.05 0.11])

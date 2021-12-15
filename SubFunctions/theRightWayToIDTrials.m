@@ -29,4 +29,8 @@ for i  = 1:ensToUse
     htg(isnan(htg))=[];
     
     rtg = All(ind).out.exp.rois{h};
+    
+    us = unique(All(ind).out.exp.stimID);
+
+    sID = us(s); %StimID value for this ensemble
 end
