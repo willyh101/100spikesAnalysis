@@ -44,6 +44,10 @@ loadList = {
     '201102_w29_1_outfile.mat' %need raw data 
     '201103_w29_1_outfile.mat' %need raw data 
 
+%     '210902_I151_3_outfile.mat'
+%     '210903_I151_3_outfile.mat'
+%     '210428_w32_2_outfile.mat'
+
     %not yet exported
 %   '200728_I140_2_outfile.mat' %not yet exported, no 100spk short
 %   '200730_I140_2_outfile.mat' %not yet exported, no 100spk

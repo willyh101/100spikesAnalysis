@@ -1,21 +1,20 @@
-%% Load Experiments/Setup
+% Greg data selector ver2
+% this will allow you to select data from the experiment, looking at
+% responses to ensembles based off of tuning of the stimmed ensemble,
+% currently written to look at one experiment at a time
+
+%% setup junk
 clear
 close all
 
-masterTic = tic;
-
 addpath(genpath('100spikesAnalysis'))
-%% loadLists
 
-oriLoadList;
-% % allLoadList;
+%% load data
 
-% loadPath = 'path/to/outfiles/directory';
-loadPath = 'T:\Outfiles';
+basePath = 'T:\Outfiles'; % where ever your files are
 
+[loadList, loadPath ]= uigetfile(basePath,'MultiSelect','on');
 addpath(genpath(loadPath))
-
-%% Load data
 
 numExps = numel(loadList);
 disp(['There are ' num2str(numExps) ' Exps in this LoadList'])
@@ -63,7 +62,7 @@ opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates ba
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
 opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
-[All, outVars] = cleanData(All,opts);
+[All, outVars] = cleanData(All,opts); 
 
 ensStimScore        = outVars.ensStimScore;
 hzEachEns           = outVars.hzEachEns;
@@ -94,6 +93,7 @@ disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
 opts.minNumCellsInd=250;
 tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
 disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
+
 
 
 
@@ -182,15 +182,16 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.10; %default 0.05
+opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
+
 lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };%'SepW1 CAG 2s'};
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -204,9 +205,9 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
-opts.numSpikeToUseRange = [98 101];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 7; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -285,78 +286,99 @@ end
 [All, outVars] = getTuningCurve(All, opts, outVars);
 [All, outVars] = calcOSI(All, outVars);
 [All, outVars] = calcTuningCircular(All, outVars); % note: only works on tuned cells (ie. not for max of visID=1)
-[All, outVars] = getEnsembleOSI(All, outVars); % for ensembles specifically
-
-%% Distance of Ensemble
-[All, outVars] = defineDistanceTypes(All, outVars);
-opts.distType = 'min';
-[outVars] = grandDistanceMaker(opts,All,outVars);
-
-%% Plot Space and Feature
-
-opts.distType = 'min';
-opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
-opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
-opts.plotTraces =0;
-opts.useVisCells = 1;
-opts.useTunedCells = 0;
-
-plotSpaceAndFeature(All,outVars,opts,5)
-ylim([-0.1 0.15])
+[All, outVars] = getEnsembleOSI(All, outVars); % for ensembles specifically 
 
 
-%% Plot Sparsity by Distance
-opts.distType = 'min';
-opts.distBins =[0:25:250]; 
-opts.useVisCells =1;
-opts.subtractBaseline =1;
-opts.subSampleN = -1; %negative to disable
-opts.minSampleN = -1; %nan bins with less than this; set to 0 to ignore
+%% the new thing for greg
+% this will get you responses from cells in the experiment epoch
+
+% for now we hard-code what ind we are looking at
+% since there is just 1, set it to 1
+% in the future, this could be all put into a for loop
+ind = 1;
+
+% select your ensemble tuning
+% to view possible tunings to use run this: 
+% All(ind).out.exp.ensPO
+
+% choose the ensemble number you want (index into All(ind).out.exp.ensPO)
+ens = 1;
+
+% for non-stimulated cells (can disable entirely later if you don't want it)
+% note: this is the manual way (eg. by looking at the result of All(ind).out.exp.ensPO
+oriToUse = [0 180];
+% ...or use the ensemble PO
+% oriToUse = All(ind).out.exp.ensPO(ens);
+% ...or both
+% oriToUse = [0 All(ind).out.exp.ensPO(ens)];
 
 
-opts.sparseAlgo =  'mean'; 'treves-Rolls'; % %options: 'L2/L1' 'popKurtosis' 'treves-Rolls' 'mean'
-
-figure(3);clf
-ax = subplot(1,1,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
-[outData] = plotSparsityByDist(All,outVars,opts,ax);
-
-yrange =[-0.15 0.15];
-
-figure(4);clf
-ax1 = subplot(2,2,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax1);
-title(['close and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax2 = subplot(2,2,2);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax2);
-% ylim(yrange)
-title(['far and untuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax3= subplot(2,2,3);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI >0.7;
-[outData] = plotSparsityByDist(All,outVars,opts,ax3);
-% ylim(yrange)
-title(['close and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-ax4 = subplot(2,2,4);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD>500 & outVars.ensOSI >0.7;
-[outData] = plotSparsityByDist(All,outVars,opts,ax4);
-% ylim(yrange)
-title(['far and tuned' ' ' num2str(sum(opts.ensemblesToPlot))])
-
-linkaxes([ax1,ax2,ax3,ax4])
+disp('....')
+disp(['Ensemble is tuned for ' num2str(All(ind).out.exp.ensPO(ens))])
+disp(['Ensemble OSI: ' num2str(All(ind).out.exp.ensOSI(ens))])
+disp(['Mean OSI: ' num2str(All(ind).out.exp.meanEnsOSI(ens))])
+disp(['Ensemble has a stim score of ' num2str(All(ind).out.exp.ensStimScore(ens))])
 
 
-%% Plot Neuropil stuff
+us = unique(All(ind).out.exp.stimID);
+u = us(ens+1);
 
-figure(4);clf
-ax1 = subplot(2,2,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.ensMaxD<400 & outVars.ensOSI <0.3;
-[outData] = plotSparsityByDist(All,outVars,opts,ax1);
-title(['Close and Untuned. ' num2str(sum(opts.ensemblesToPlot)) ' Ens'])
+% trials to use
+trialsToUse = ismember(All(ind).out.exp.stimID, u) &...
+    All(ind).out.exp.lowMotionTrials &...
+    All(ind).out.exp.lowRunTrials &...
+    All(ind).out.exp.stimSuccessTrial &...
+    ismember(All(ind).out.exp.visID, [0 1]);
 
-%%
-toc(masterTic)
+disp(['Total of ' num2str(sum(trialsToUse)) ' trials used.'])
+
+% cells to use
+holo = All(ind).out.exp.stimParams.roi{u};  % tracks stimID -> hologram
+tg = All(ind).out.exp.rois{holo}; % this is cells in ensemble
+offTargetRisks = All(ind).out.anal.offTargetRisk(holo,:);
+ROIinArtifact  = All(ind).out.anal.ROIinArtifact; % cells at edge of FOV in laser artifact
+visCells = All(ind).out.anal.pVisR < 0.05; % visually responsive
+orisUsed = [nan 0:45:315];
+prefOris = arrayfun(@(x) orisUsed(x), All(ind).out.anal.prefOri);
+coTunedCells = ismember(prefOris, oriToUse); % iso cells
+
+% comment out parts if you want to change subsets of cells
+% note ~offTargetRisks excludes the targeted cells, if you want to keep the
+% off targets and exclude the targets (for this specific hologram) you can
+% use: ~ismember(1:numel(offTargetRisks), tg)
+cellsToUse = ~offTargetRisks &...
+    ~ROIinArtifact' &...
+    visCells &...
+    coTunedCells;
+
+disp(['Total of ' num2str(sum(cellsToUse)) ' cells used.'])
+
+
+% here are you traces from the experiment
+% cells x time x trials
+% note: these are not trialwise baselined (but could be)
+traces = All(ind).out.exp.dataToUse(cellsToUse, :, trialsToUse);
+
+%% vis epoch
+% if you want the responses from the vis epoch, for the same cells, run
+% this code
+
+% you can change to out.vis.dfData if it exists
+visData = All(ind).out.vis.zdfData;
+
+% trials to use
+vs = All(ind).out.vis.visID;
+orisUsed = [nan 0:45:315];
+oris = arrayfun(@(x) orisUsed(x), vs);
+
+% select which oris to look at here
+orisToUseVis = oriToUse; % copy from exp  section
+% oriToUseVis = [0 180]; % manually overwrite
+
+
+trialsToUse = ismember(oris, orisToUseVis);
+
+% cells to use is copied from above
+% result is cells x time x trials
+% note: these are now trialwise baselined (but could be)
+tracesVis = visData(cellsToUse, :, trialsToUse);
