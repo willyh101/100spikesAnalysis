@@ -100,6 +100,21 @@ for Ind = 1:numel(All)
     names{Ind}=lower(strrep(All(Ind).out.info.mouse, '_', '.'));
 end
 outVars.names = names;
+%% restrict Cells to use
+opts.minMeanThreshold = 0;
+opts.maxMeanThreshold = inf;
+
+opts.verbose =0;
+[All, cellExcludeResults] = cellExcluder(All,opts); 
+allResults = cat(1,cellExcludeResults{:});
+disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
+disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
+
+opts.minNumCellsInd=250;
+tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
+disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
+
+
 
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
@@ -214,7 +229,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 4; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -441,8 +456,8 @@ legend([p1{1} p2{1}],'All Cells','All StimTest Failed Cells');
 plotResponseByDistanceContrast(outVars,opts); %warning won't throw an error even if you have no contrasts
 %% Contrast Response Functions
 
-opts.distBinCRF = [50:50:350]; %split Contrast Response Fun by distance
-opts.visAlphaCRF = 10.05; %visAlpha for looking just at vis responsive cells;
+opts.distBinCRF = [0 25 50:50:350]; %split Contrast Response Fun by distance
+opts.visAlphaCRF = 0.05; %visAlpha for looking just at vis responsive cells;
 
 [outVars] = plotContrastResponseFunction(All,outVars,opts);
 
