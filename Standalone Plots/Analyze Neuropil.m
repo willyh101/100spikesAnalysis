@@ -47,6 +47,69 @@ for ind=1:numExps
 end
 disp('Data To Use is set')
 
+
+%% change Plots to Neuropil
+AddtlExcludeInds=[];
+for ind=1:numExps
+    disp(['Working on ind: ' num2str(ind)]);
+    if isfield(All(ind).out.exp,'allNP')
+        [dfDataNoNP zdfDataNoNP] = computeDFFwithMovingBaseline(All(ind).out.exp.allDataNoNP);
+        All(ind).out.exp.dfDataNoNP = dfDataNoNP;
+        All(ind).out.exp.zdfDataNoNP = zdfDataNoNP;
+        
+        All(ind).out.exp.dataToUse = dfDataNoNP;
+    else
+        disp(['Err ind ' num2str(ind)]);
+        AddtlExcludeInds = [AddtlExcludeInds ind];
+    end
+end
+AddtlExcludeInds
+
+%% Set Data To use fast rearrange
+for ind=1:numExps
+    if ~ismember(AddtlExcludeInds,ind)
+%     All(ind).out.exp.dataToUse = All(ind).out.exp.dfDataNoNP;
+%         All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
+All(ind).out.exp.dataToUse = All(ind).out.exp.allDataNoNP;
+    end
+end
+disp('Data To Use is set')
+
+%% Change Data to Neuropil itself
+
+for ind=1:numExps
+    if ~ismember(AddtlExcludeInds,ind)
+        d = bsxfun(@times,All(ind).out.exp.allNP,All(ind).out.exp.NPcoef');
+        
+         All(ind).out.exp.dataToUse = d; 
+%     All(ind).out.exp.dataToUse = All(ind).out.exp.dfDataNoNP;
+%         All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
+    end
+end
+disp('Data To Use is set')
+%% Create Double Neuropil
+
+for ind=1:numExps
+        disp(['Working on ind: ' num2str(ind)]);
+
+    if ~ismember(AddtlExcludeInds,ind)
+        d = bsxfun(@times,All(ind).out.exp.allNP,All(ind).out.exp.NPcoef');
+        allDataDoubleNP = All(ind).out.exp.allDataNoNP - (2*d);
+        All(ind).out.exp.allDataDoubleNP = allDataDoubleNP; 
+        
+        [dfDataDoubleNP zdfDataNoNP] = computeDFFwithMovingBaseline( All(ind).out.exp.allDataDoubleNP);
+        
+        All(ind).out.exp.dfDataDoubleNP = dfDataDoubleNP;
+
+        
+         All(ind).out.exp.dataToUse = dfDataDoubleNP; 
+%     All(ind).out.exp.dataToUse = All(ind).out.exp.dfDataNoNP;
+%         All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
+    end
+end
+disp('Data To Use is set')
+
+
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
@@ -82,7 +145,7 @@ end
 outVars.names = names;
 
 %% restrict Cells to use
-opts.minMeanThreshold = 0.25;
+opts.minMeanThreshold = -inf; 0.25;
 opts.maxMeanThreshold = inf;
 
 opts.verbose =0;
@@ -200,7 +263,7 @@ excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars.hzEachEns;
 
 %spot to add additional Exclusions
-excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
+excludeInds = ismember(ensIndNumber,AddtlExcludeInds); %Its possible that the visStimIDs got messed up
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
@@ -304,6 +367,20 @@ opts.useTunedCells = 0;
 plotSpaceAndFeature(All,outVars,opts,5)
 ylim([-0.1 0.15])
 
+ylim([-1 2]);
+%% Plot Distance Curves in different Ori Bands
+
+opts.distType = 'min';
+opts.distBins =[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
+opts.plotOrientation =1;%as opposed to Direction
+opts.minNumberOfCellsPerCondition =-1; %set to -1 to ignore
+opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
+
+
+ plotDistByOri(All,outVars,opts)
+
+ figure(10);
+ylim([-0.175 0.1])
 
 %% Plot Sparsity by Distance
 opts.distType = 'min';

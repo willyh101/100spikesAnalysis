@@ -31,9 +31,9 @@ end
 %% add neuropil and neuropil coefficient to out
 savePath = [loadPath '\new'];
 
-willexps = [11 14 15 16];
+willexps = [11 14 15 16 19 20 21 22 23 24 25 29];
 
-for ind=17:numExps;
+for ind=willexps; %30:numExps;
     dataPathBackup=[];
     if ~isfield(All(ind).out.exp,'allNP');
         pTime =tic;
@@ -208,7 +208,7 @@ for ind=17:numExps;
         
         
         %%
-        save(fullfile(savePath,loadList{ind}),'out')
+        save(fullfile(savePath,loadList{ind}),'out','-v7.3')
         fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
     end
 end
