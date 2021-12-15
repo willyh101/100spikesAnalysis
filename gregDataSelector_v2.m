@@ -302,7 +302,7 @@ ind = 1;
 % All(ind).out.exp.ensPO
 
 % choose the ensemble number you want (index into All(ind).out.exp.ensPO)
-ens = 1;
+ens = 18;
 
 % for non-stimulated cells (can disable entirely later if you don't want it)
 % note: this is the manual way (eg. by looking at the result of All(ind).out.exp.ensPO
@@ -319,9 +319,10 @@ disp(['Ensemble OSI: ' num2str(All(ind).out.exp.ensOSI(ens))])
 disp(['Mean OSI: ' num2str(All(ind).out.exp.meanEnsOSI(ens))])
 disp(['Ensemble has a stim score of ' num2str(All(ind).out.exp.ensStimScore(ens))])
 
+s = outVars.ensHNumber(ens);
 
 us = unique(All(ind).out.exp.stimID);
-u = us(ens+1);
+u = us(s);
 
 % trials to use
 trialsToUse = ismember(All(ind).out.exp.stimID, u) &...
@@ -333,7 +334,7 @@ trialsToUse = ismember(All(ind).out.exp.stimID, u) &...
 disp(['Total of ' num2str(sum(trialsToUse)) ' trials used.'])
 
 % cells to use
-holo = All(ind).out.exp.stimParams.roi{u};  % tracks stimID -> hologram
+holo = All(ind).out.exp.stimParams.roi{s};  % tracks stimID -> hologram
 tg = All(ind).out.exp.rois{holo}; % this is cells in ensemble
 offTargetRisks = All(ind).out.anal.offTargetRisk(holo,:);
 ROIinArtifact  = All(ind).out.anal.ROIinArtifact; % cells at edge of FOV in laser artifact
