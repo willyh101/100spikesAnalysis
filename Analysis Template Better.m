@@ -1,7 +1,7 @@
 clear;
-date = '211213';
-mouse = 'I162_1';%'I138_1';%'I136_1';
-epochs = '1_2_3_4';
+date = '200727';
+mouse = 'W26_1';%'I138_1';%'I136_1';
+epochs = '2_3_4_5_7_8_9_10_12';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -33,10 +33,16 @@ theList=[];
 %order s2pEpoch DAQepoch out condition 
 % condition options are 'stim' 'exp' 'vis' 'vis2' 'exp2' 'mani' 'spk' or
 % 'info' ('info' is included in 'exp' but can also be overwritten alone)
+% spk is an extra module on exp, so run exp first even if it will be
+% overrun
 theList = {
-    2 2 'stim'
-    3 3 'vis'
-    4 4 'exp'
+    3 4 'stim'
+    5 7 'vis2'
+    7 9 'vis'
+    8 10 'exp'
+    8 10 'spk'
+    9 12 'exp'
+    9 12 'mani'
     ...6 6 'exp2'
     ...5 5 'info'
     };
@@ -47,7 +53,7 @@ listSize = size(theList);
 %% Scary Loading Part
 %The Slow File reading Part
 
-for listEntry = 1:listSize(1);
+for listEntry = 7:listSize(1);
     s2pEpoch = theList{listEntry,1};
     DAQepoch =  theList{listEntry,2};
     option =  theList{listEntry,3};
@@ -323,7 +329,12 @@ for listEntry = 1:listSize(1);
             stimParam.Seq(i) = sum(diff(ExpStruct.stimlog{ID}{1}(:,7))>0);%formerly 9
             stimParam.numPulse(i) =  sum(diff(ExpStruct.stimlog{ID}{1}(:,5))>0);
             if stimParam.Seq(i)~=0
-                stimParam.roi{i} = uniqueROIs{stimParam.Seq(i)};
+                try 
+                    stimParam.roi{i} = uniqueROIs{stimParam.Seq(i)};
+                catch
+                    disp('*********Error in stim Params***********')
+                    stimParam.roi{i} = nan; 
+                end
             else
                 stimParam.roi{i} = 0;
             end

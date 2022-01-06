@@ -1,5 +1,5 @@
 function [popRespDistEns] = popDistMaker(opts,All,CellToUseVar,plotFlag)
-%% make distance plots 
+%% make distance plots
 distType = lower(opts.distType);
 distBins = opts.distBins; %[0:25:1000];
 numDist =numel(distBins)-1;
@@ -16,9 +16,9 @@ for ind = 1:numExps
     elseif islogical(CellToUseVar)
         cellToUseLimit=CellToUseVar;
     else
-       try
+        try
             cellToUseLimit = eval(['All(ind).out.' CellToUseVar]);
-       catch
+        catch
             disp('ERROR variable not found')
             break
         end
@@ -41,7 +41,7 @@ for ind = 1:numExps
     
     allLoc = [allCoM*muPerPx (allDepth-1)*30];
     stimLoc = [stimCoM*muPerPx (stimDepth-1)*30];
-
+    
     StimDistance = zeros([size(stimCoM,1) numCells]);
     for i=1:size(stimCoM,1);
         for k=1:numCells;
@@ -57,8 +57,8 @@ for ind = 1:numExps
     baseMat = All(ind).out.anal.baseMat;
     
     
-%     now iterate through every stim and see the response as a function of
-%     distance
+    %     now iterate through every stim and see the response as a function of
+    %     distance
     for i= 1:numStims
         holo = All(ind).out.exp.stimParams.roi{i}; % Better Identifying ensemble
         
@@ -67,13 +67,14 @@ for ind = 1:numExps
             Tg=All(ind).out.exp.rois{holo};
             dists = StimDistance(Tg,:);
             
+            htg = All(ind).out.exp.holoTargets{holo};
+            htg(isnan(htg))=[];
             
             
-            
-%             minDistbyHolo(i,:) = minDist;
-%             geoDistbyHolo(i,:) = geoDist;
-%             meanDistbyHolo(i,:) = meanDist;
-%             harmDistbyHolo(i,:) = harmDist;
+            %             minDistbyHolo(i,:) = minDist;
+            %             geoDistbyHolo(i,:) = geoDist;
+            %             meanDistbyHolo(i,:) = meanDist;
+            %             harmDistbyHolo(i,:) = harmDist;
             
             switch distType
                 case 'min'
@@ -96,7 +97,7 @@ for ind = 1:numExps
                     medDist = median(dists,1);
                     distToUse = medDist;
                 case 'centroid'
-                    stimCentroid = mean(stimLoc(Tg,:)); 
+                    stimCentroid = mean(stimLoc(Tg,:));
                     tempDists =[];
                     for idx =1:numCells
                         tempDists(idx) = sqrt(sum((stimCentroid-allLoc(idx,:)).^2));
@@ -109,22 +110,27 @@ for ind = 1:numExps
             end
             
             
-            
+            cellList = ones([1 numel(ROIinArtifact)]);
+            cellList(htg)=0;
             for d = 1:numel(distBins)-1
                 cellsToUse = ~ROIinArtifact' &...
                     ~offTargetRisk(holo,:) &...
+                    cellList &...
                     distToUse > distBins(d) &...
                     distToUse <= distBins(d+1) &...
                     cellToUseLimit;
                 %if you eventually want to use this with different vis
                 %stims use the commented out code.
-%                 popRespDistEns(c,v,d) = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                %                 popRespDistEns(c,v,d) = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                
+                
                 popRespDistEns(c,d) = nanmean(squeeze(respMat(i,1,cellsToUse) - baseMat(i,1,cellsToUse)));
+                
             end
         end
     end
     
-%     popRespDistEns{ind}=popRespDist;
+    %     popRespDistEns{ind}=popRespDist;
 end
 if plotFlag
     figure(4);clf

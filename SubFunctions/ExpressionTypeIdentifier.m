@@ -70,7 +70,7 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'AAV Tre 2s'
      'SepW1 CAG 2s'
      'control'
-     'AAV TRE 2s'
+     'AAV Tre 2s'
      'control'
      'SepW1 CAG 2s'
      };

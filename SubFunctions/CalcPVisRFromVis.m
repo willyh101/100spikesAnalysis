@@ -1,5 +1,11 @@
 function [All outVars] = CalcPVisRFromVis(All,opts,outVars)
 %%
+if nargin<3
+    noOutVarsFlag=1;
+else
+    noOutVarsFlag =0;
+end
+
 try 
     recWinRange = opts.visRecWinRange;
 catch
@@ -12,7 +18,11 @@ numExp = numel(All);
 for ind = 1:numExp;
     if ~isfield(All(ind).out,'vis')
         disp(['No Vis Field ind: ' num2str(ind)]);
-        visPercent(ind) = outVars.visPercent(ind); 
+        if noOutVarsFlag
+            visPercent(ind)=NaN;
+        else
+            visPercent(ind) = outVars.visPercent(ind);
+        end
     else
         visStart = All(ind).out.vis.visStart;
         recWinSec = recWinRange + visStart; %recording window relative to when vis start
@@ -29,6 +39,8 @@ for ind = 1:numExp;
         All(ind).out.vis.bdata=vbdata;
         
         %ID tuned Cells, should comparing no contrast to with contrast
+        numCells = size(All(ind).out.vis.zdfData,1);
+        All(ind).out.anal.numCells = numCells;
         pVisR=[];%pVisT=[];
         for i=1:All(ind).out.anal.numCells
             trialsToUse = All(ind).out.vis.visID~=0 &...

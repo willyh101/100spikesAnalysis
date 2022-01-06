@@ -90,6 +90,8 @@ outVars.names = names;
 opts.minMeanThreshold = 0.25;
 opts.maxMeanThreshold = inf;
 
+opts.peakThreshold =0; %exclude cells that do not ever excede this threshold (set to 0 to disable)
+
 opts.verbose =0;
 [All, cellExcludeResults] = cellExcluder(All,opts); 
 allResults = cat(1,cellExcludeResults{:});
@@ -310,6 +312,7 @@ plotResponseByDistance(outVars,opts);
 
 %% Compare Distance responses
 figure(102);clf
+outVars.defaultColorMap ='viridis';
 
 dataInPlots=[];
 distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};

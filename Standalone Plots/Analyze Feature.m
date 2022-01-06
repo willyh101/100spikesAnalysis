@@ -180,7 +180,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.10; %default 0.05
+opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -205,7 +205,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 7; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -295,20 +295,41 @@ opts.distType = 'min';
 opts.ensOSImethod = 'ensOSI';
 opts.plotFit=1;
 opts.figToUse1 = 44;
+opts.defaultColor = rgb('firebrick');
 result = plotPopResponseEnsOSI(outVars, opts);
+
+legend off
+disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+
 
 %%
 opts.ensOSImethod = 'meanEnsOSI';
 opts.plotFit=1;
 opts.figToUse1 = 45;
+opts.defaultColor = rgb('firebrick');
+
 result = plotPopResponseEnsOSI(outVars, opts);
+legend off
+disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+
+%%
+outVars.EnsOSIxMeanOSI = outVars.ensOSI .* outVars.meanEnsOSI;
+    
+opts.ensOSImethod = 'EnsOSIxMeanOSI';
+opts.plotFit=1;
+opts.figToUse1 = 46;
+opts.defaultColor = rgb('firebrick');
+
+result = plotPopResponseEnsOSI(outVars, opts);
+legend off
+disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
 
 %% Plot Distance Curves in different Ori Bands
 
 opts.distType = 'min';
 opts.distBins =[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 opts.plotOrientation =1;%as opposed to Direction
-opts.minNumberOfCellsPerCondition =-1; %set to -1 to ignore
+opts.minNumberOfCellsPerCondition =20; %set to -1 to ignore
 opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
 
 

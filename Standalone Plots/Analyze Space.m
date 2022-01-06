@@ -192,7 +192,7 @@ lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };%'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));

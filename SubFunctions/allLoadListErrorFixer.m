@@ -158,6 +158,26 @@ if ~isempty(indToUse)
     All(indToUse).out.vis.runVal = All(indToUse).out.vis.runVal(1:sz(3),:);
     All(indToUse).out.vis.visID = All(indToUse).out.vis.visID(1:sz(3));
 end
+
+%% %correct ranging for exp
+nameToUse = '200727_W26_1_outfile.mat';
+%Not sure if this is right or if it should be 2:65...
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+    disp(['Correcting from Ind: ' num2str(indToUse)]);
+    
+    range = [2:65];
+    All(indToUse).out.exp.stimID = All(indToUse).out.exp.stimID(range);
+    All(indToUse).out.exp.visID = All(indToUse).out.exp.visID(range);
+    
+    All(indToUse).out.mani.stimID = All(indToUse).out.mani.stimID(range);
+    All(indToUse).out.mani.visID = All(indToUse).out.mani.visID(range);
+    
+end
+
+
+
 %% merge high and low contrasts in vis epoch
 nameToUse = '200728_i140_2_outfile.mat';
 indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
