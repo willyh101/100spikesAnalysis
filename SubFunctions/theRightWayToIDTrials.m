@@ -19,7 +19,7 @@ end
 
 %% the right way to ID holos / holoTargets
 
-for i  = 1:ensToUse
+for i  = 1:numel(ensToUse)
     e = ensToUse(i);
     ind = ensIndNumber(e);
     

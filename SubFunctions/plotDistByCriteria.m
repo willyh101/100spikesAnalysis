@@ -28,7 +28,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     if ensemblesToUse(i)
         ind = ensIndNumber(i);
         
-        cellToUseVar = ~outVars.offTargetRiskEns{i} &  All(ind).out.anal.cellsToInclude;
+        cellToUseVar = ~outVars.offTargetRiskEns{i} &  All(ind).out.anal.cellsToInclude & ~All(ind).out.anal.ROIinArtifact';
         
         if opts.useVisCells
             cellToUseVar = cellToUseVar...

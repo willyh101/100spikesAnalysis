@@ -300,6 +300,8 @@ result = plotPopResponseEnsOSI(outVars, opts);
 
 legend off
 disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+ylim([-0.15 0.05])
+yticks(-.15:.05:.05)
 
 
 %%
@@ -311,6 +313,8 @@ opts.defaultColor = rgb('firebrick');
 result = plotPopResponseEnsOSI(outVars, opts);
 legend off
 disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+ylim([-0.15 0.05])
+yticks(-.15:.05:.05)
 
 %%
 outVars.EnsOSIxMeanOSI = outVars.ensOSI .* outVars.meanEnsOSI;
@@ -323,6 +327,137 @@ opts.defaultColor = rgb('firebrick');
 result = plotPopResponseEnsOSI(outVars, opts);
 legend off
 disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+ylim([-0.15 0.05])
+yticks(-.15:.05:.05)
+
+
+%  %%
+% outVars.EnsMaxDxMeanOSI = outVars.ensMaxD .* outVars.ensOSI;
+%     
+% opts.ensOSImethod = 'ensMaxD'; %'EnsMaxDxMeanOSI';
+% opts.plotFit=1;
+% opts.figToUse1 = 47;
+% opts.defaultColor = rgb('firebrick');
+% 
+% result = plotPopResponseEnsOSI(outVars, opts);
+% legend off
+% disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+% ylim([-0.15 0.05])
+
+%% Plot Population Response read out in different cells
+
+opts.ensemblesToPlot = outVars.ensemblesToUse; 
+opts.useVisCells =0;
+opts.useTunedCells =0;
+
+%unTuned
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI<0.5;
+sum(opts.ensemblesToPlot)
+opts.variableCellFun =  'outVars.pVisR{ind} < 0.05';
+[UnTunedVis] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.pVisR{ind} > 0.1';
+[UnTunedNotVis] = subsetPopResponse(All,outVars,opts);
+
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.5 &  outVars.meanEnsOSI>0.5; 
+sum(opts.ensemblesToPlot)
+
+opts.variableCellFun =  'outVars.pVisR{ind} < 0.05';
+[MxTunedVis] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.pVisR{ind} > 0.1';
+[MxTunedNotVis] = subsetPopResponse(All,outVars,opts);
+
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5; 
+sum(opts.ensemblesToPlot)
+
+opts.variableCellFun =  'outVars.pVisR{ind} < 0.05';
+[CoTunedVis] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.pVisR{ind} > 0.1';
+[CoTunedNotVis] = subsetPopResponse(All,outVars,opts);
+
+
+figure(48);clf;hold on
+dat = {UnTunedNotVis, UnTunedVis, [], MxTunedNotVis, MxTunedVis, [], CoTunedNotVis, CoTunedVis};
+distColors = {rgb('grey') rgb('purple'), rgb('black'), rgb('grey') rgb('purple'), rgb('black'), rgb('grey') rgb('purple')};
+p = plotSpread(dat,'distributionColors',distColors,'ShowMM',4);
+r = refline(0);
+r.Color= rgb('grey');
+r.LineStyle = ':';
+
+xticks([1.5 4.5 7.5])
+xticklabels({'Untuned' 'Mixed Tuned' 'Co Tuned'})
+ylabel('Mean Evoked dF/F')
+
+%% Plot Mean Population Response in different Ori Bands;
+
+oriVals = [NaN 0:45:315];
+diffsPossible = [0 45 90 135 180];
+plotOrientation=1;
+
+for i = 1:numel(outVars.ensemblesToUse);
+    ind = ensIndNumber(i);
+    
+    cellOris = oriVals(outVars.prefOris{ind});
+    cellOrisDiff = abs(cellOris-outVars.ensPO(i));
+    cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
+    %
+    if plotOrientation
+        cellOrisDiff(cellOrisDiff==135)=45;
+        cellOrisDiff(cellOrisDiff==180)=0;
+        diffsPossible = [0 45 90];
+    end
+    
+    outVars.ensOriDiff{i} = cellOrisDiff;
+end
+
+
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5; 
+sum(opts.ensemblesToPlot)
+opts.useVisCells =1;
+opts.useTunedCells =1;
+opts.minNumberOfCellsPerCondition =20; %set to -1 to ignore
+
+
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 0';
+[OriDiff0] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 45';
+[OriDiff45] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 90';
+[OriDiff90] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 135';
+[OriDiff135] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 180';
+[OriDiff180] = subsetPopResponse(All,outVars,opts);
+
+
+figure(48);clf;hold on
+dat = {OriDiff0,OriDiff45,OriDiff90,OriDiff135,OriDiff180};
+distColors = colorMapPicker(5,'plasma');
+
+p = plotSpread(dat,'distributionColors',distColors,'ShowMM',4);
+r = refline(0);
+r.Color= rgb('grey');
+r.LineStyle = ':';
+% 
+% xticks([1.5 4.5 7.5])
+% xticklabels({'Untuned' 'Mixed Tuned' 'Co Tuned'})
+% ylabel('Mean Evoked dF/F')
+
+if plotOrientation==1;
+xlim([0.5 3.5])
+
+xticklabels({['Iso (0' char(176) ')'] [char(177) '45' char(176)] ['Ortho (90' char(176) ')'] })
+
+else
+    xticklabels({['Iso (0' char(176) ')']...
+        [char(177) '45' char(176)]...
+        ['Ortho (' char(177) '90' char(176) ')']...
+        [char(177) '135' char(176)]...
+        ['Reverse (180' char(176) ')']...
+        })
+end
+
+
+ylabel('Mean Evoked dF/F')
 
 %% Plot Distance Curves in different Ori Bands
 

@@ -59,6 +59,8 @@ if plotFit
      results.pVal = pVal;
     results.fs = fs;
     results.gs = gs;
+    
+    results.grandMean = nanmean(popResponseEns(ensemblesToUse));
 end
 
 xlabel('Ensemble OSI')
