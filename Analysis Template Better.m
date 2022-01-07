@@ -1,7 +1,7 @@
 clear;
-date = '200727';
-mouse = 'W26_1';%'I138_1';%'I136_1';
-epochs = '2_3_4_5_7_8_9_10_12';
+date = '220105';
+mouse = 'I162_2';%'I138_1';%'I136_1';
+epochs = '1_2_3_4';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -14,13 +14,13 @@ baseName = [mouse '_' date];%'I118a.2_180504';
 loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc']};% ['F_' baseName '_plane4_proc']};
 
 nDepthsTotal = 3;4;%Normally 3;
-physfile = fullfile(basePath,[date '_A' '.mat']);
+physfile = fullfile(basePath,[date '_B' '.mat']);
 % physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 disp('Loading...')
 try
     load(physfile)
 catch
-    physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
+    physfile = fullfile(basePath,[date(3:end) '_B' '.mat']);
     load(physfile)
 end
 disp('Loaded')
@@ -36,13 +36,12 @@ theList=[];
 % spk is an extra module on exp, so run exp first even if it will be
 % overrun
 theList = {
-    3 4 'stim'
-    5 7 'vis2'
-    7 9 'vis'
-    8 10 'exp'
-    8 10 'spk'
-    9 12 'exp'
-    9 12 'mani'
+    2 2 'stim'
+    3 3 'vis'
+    4 4 'exp'
+    ...8 10 'spk'
+    ...9 12 'exp'
+    ...9 12 'mani'
     ...6 6 'exp2'
     ...5 5 'info'
     };
@@ -53,7 +52,7 @@ listSize = size(theList);
 %% Scary Loading Part
 %The Slow File reading Part
 
-for listEntry = 7:listSize(1);
+for listEntry = 1:listSize(1);
     s2pEpoch = theList{listEntry,1};
     DAQepoch =  theList{listEntry,2};
     option =  theList{listEntry,3};
@@ -380,6 +379,10 @@ for listEntry = 7:listSize(1);
     
     autoDataCollector;
 end
+
+%add MM3D file  
+disp('Extracting MM3D info')
+    ExtractMM3DInfo
 
 disp('Saving...')
 save([basePath info.date '_' info.mouse '_outfile'], 'out','-v7.3')
