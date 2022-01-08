@@ -30,9 +30,12 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         
         cellToUseVar = ~outVars.offTargetRiskEns{i} &  All(ind).out.anal.cellsToInclude & ~All(ind).out.anal.ROIinArtifact';
         
-        if opts.useVisCells
+        if opts.useVisCells == 1
             cellToUseVar = cellToUseVar...
                 & outVars.pVisR{ind} < 0.05;
+        elseif opts.useVisCells == -1
+            cellToUseVar = cellToUseVar...
+                & outVars.pVisR{ind} > 0.1;
         end
         if opts.useTunedCells
             cellToUseVar = cellToUseVar ...

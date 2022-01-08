@@ -511,7 +511,7 @@ opts.plotTraces = 0;
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
 opts.criteriaName = 'ensOSI';
 opts.criteria = outVars.ensOSI;
-opts.criteriaBins = [0 0.3 0.7 inf]
+opts.criteriaBins = [0 0.3 0.7 inf];
 
 opts.criteria2Name = 'meanOSI';
 opts.criteria2 = outVars.meanEnsOSI;
