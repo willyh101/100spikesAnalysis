@@ -358,7 +358,7 @@ opts.variableCellFun =  'outVars.pVisR{ind} < 0.05';
 opts.variableCellFun =  'outVars.pVisR{ind} > 0.1';
 [UnTunedNotVis] = subsetPopResponse(All,outVars,opts);
 
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.5 &  outVars.meanEnsOSI>0.5; 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI>0.5; 
 sum(opts.ensemblesToPlot)
 
 opts.variableCellFun =  'outVars.pVisR{ind} < 0.05';
@@ -515,7 +515,7 @@ opts.criteriaBins = [0 0.3 0.7 inf];
 
 opts.criteria2Name = 'meanOSI';
 opts.criteria2 = outVars.meanEnsOSI;
-opts.criteria2Bins = [0 0.5 inf];
+opts.criteria2Bins = [0 0.4 inf];
 % opts.useVisAndTunedCells =1; 
 opts.useVisCells =1;
 opts.useTunedCells =0; %don't use tuned without vis
@@ -556,9 +556,96 @@ opts.useVisCells =1;
 opts.useTunedCells =0; 
 
 plotDistByTwoCriteria(All,outVars,opts,21)
-figure(13)
-ylim([-0.15 0.1]);
+% figure(13)
+% ylim([-0.15 0.1]);
 
+%% Plot Space and Feature V3 
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0;
+opts.useVisCells = 1;
+opts.useTunedCells =0; %don't use tuned without vis
+figure(18); clf
+lim = [-0.4 0.25];
+
+meanThresh = 0.5; %0.5; % 0.4687;
+closeVal = 400;
+farVal = 500;
+
+outInfo=[]
+axs = [];
+ax = subplot(3,2,1);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI<meanThresh;
+opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [0 closeVal];% inf];
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('grey');
+axs = [axs ax];
+
+ax = subplot(3,2,2);
+opts.criteriaBins = [farVal inf];% inf];
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('grey');
+axs = [axs ax];
+
+
+ax = subplot(3,2,3);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI>meanThresh;
+opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [0 closeVal];% inf];
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('sienna');
+axs = [axs ax];
+
+ax = subplot(3,2,4);
+opts.criteriaBins = [farVal inf];% inf];
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('sienna');
+axs = [axs ax];
+
+
+ax = subplot(3,2,5);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 & outVars.meanEnsOSI>meanThresh;
+opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [0 closeVal];% inf];
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('Magenta');
+axs = [axs ax];
+
+ax = subplot(3,2,6);
+opts.criteriaBins = [farVal inf];% inf];
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('Magenta');
+axs = [axs ax];
+
+linkaxes(axs)
+ylim(lim);
+
+disp('pVal first point diff from zero')
+for i =1:6
+    disp(num2str(signrank(outInfo{i}{1}.dat(:,1),0)))
+end
+
+%%
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.4;
+opts.useVisCells = 1;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
+opts.variableCellFun =  '(outVars.pVisR{ind} < 0.05 & outVars.distToEnsemble{i}<25)';
+[closeExcitation] = subsetPopResponse(All,outVars,opts);
+
+figure(19);clf
+scatter(outVars.meanEnsOSI,closeExcitation,[],rgb('sienna'),'filled')
+refline(0)
+
+x = outVars.meanEnsOSI(opts.ensemblesToPlot)';
+y = closeExcitation(opts.ensemblesToPlot);
+nanEither = isnan(x) | isnan(y');
+
+[fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+
+[p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
+disp(['Pval is: ' num2str(pVal(1))])
 
 %%
 toc(masterTic)
