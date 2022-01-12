@@ -1,6 +1,6 @@
 clear;
-date = '211213';
-mouse = 'I162_1';%'I138_1';%'I136_1';
+date = '220105';
+mouse = 'I162_2';%'I138_1';%'I136_1';
 epochs = '1_2_3_4';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
@@ -14,13 +14,13 @@ baseName = [mouse '_' date];%'I118a.2_180504';
 loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc']};% ['F_' baseName '_plane4_proc']};
 
 nDepthsTotal = 3;4;%Normally 3;
-physfile = fullfile(basePath,[date '_A' '.mat']);
+physfile = fullfile(basePath,[date '_B' '.mat']);
 % physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 disp('Loading...')
 try
     load(physfile)
 catch
-    physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
+    physfile = fullfile(basePath,[date(3:end) '_B' '.mat']);
     load(physfile)
 end
 disp('Loaded')
@@ -33,10 +33,15 @@ theList=[];
 %order s2pEpoch DAQepoch out condition 
 % condition options are 'stim' 'exp' 'vis' 'vis2' 'exp2' 'mani' 'spk' or
 % 'info' ('info' is included in 'exp' but can also be overwritten alone)
+% spk is an extra module on exp, so run exp first even if it will be
+% overrun
 theList = {
     2 2 'stim'
     3 3 'vis'
     4 4 'exp'
+    ...8 10 'spk'
+    ...9 12 'exp'
+    ...9 12 'mani'
     ...6 6 'exp2'
     ...5 5 'info'
     };
@@ -323,7 +328,12 @@ for listEntry = 1:listSize(1);
             stimParam.Seq(i) = sum(diff(ExpStruct.stimlog{ID}{1}(:,7))>0);%formerly 9
             stimParam.numPulse(i) =  sum(diff(ExpStruct.stimlog{ID}{1}(:,5))>0);
             if stimParam.Seq(i)~=0
-                stimParam.roi{i} = uniqueROIs{stimParam.Seq(i)};
+                try 
+                    stimParam.roi{i} = uniqueROIs{stimParam.Seq(i)};
+                catch
+                    disp('*********Error in stim Params***********')
+                    stimParam.roi{i} = nan; 
+                end
             else
                 stimParam.roi{i} = 0;
             end
@@ -369,6 +379,10 @@ for listEntry = 1:listSize(1);
     
     autoDataCollector;
 end
+
+%add MM3D file  
+disp('Extracting MM3D info')
+    ExtractMM3DInfo
 
 disp('Saving...')
 save([basePath info.date '_' info.mouse '_outfile'], 'out','-v7.3')

@@ -180,7 +180,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.10; %default 0.05
+opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -205,7 +205,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 7; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -295,20 +295,176 @@ opts.distType = 'min';
 opts.ensOSImethod = 'ensOSI';
 opts.plotFit=1;
 opts.figToUse1 = 44;
+opts.defaultColor = rgb('firebrick');
 result = plotPopResponseEnsOSI(outVars, opts);
+
+legend off
+disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+ylim([-0.15 0.05])
+yticks(-.15:.05:.05)
+
 
 %%
 opts.ensOSImethod = 'meanEnsOSI';
 opts.plotFit=1;
 opts.figToUse1 = 45;
+opts.defaultColor = rgb('firebrick');
+
 result = plotPopResponseEnsOSI(outVars, opts);
+legend off
+disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+ylim([-0.15 0.05])
+yticks(-.15:.05:.05)
+
+%%
+outVars.EnsOSIxMeanOSI = outVars.ensOSI .* outVars.meanEnsOSI;
+    
+opts.ensOSImethod = 'EnsOSIxMeanOSI';
+opts.plotFit=1;
+opts.figToUse1 = 46;
+opts.defaultColor = rgb('firebrick');
+
+result = plotPopResponseEnsOSI(outVars, opts);
+legend off
+disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+ylim([-0.15 0.05])
+yticks(-.15:.05:.05)
+
+
+%  %%
+% outVars.EnsMaxDxMeanOSI = outVars.ensMaxD .* outVars.ensOSI;
+%     
+% opts.ensOSImethod = 'ensMaxD'; %'EnsMaxDxMeanOSI';
+% opts.plotFit=1;
+% opts.figToUse1 = 47;
+% opts.defaultColor = rgb('firebrick');
+% 
+% result = plotPopResponseEnsOSI(outVars, opts);
+% legend off
+% disp([opts.ensOSImethod '. Fit R2= ' num2str(result.Rsq,3) ' pVal= ' num2str(result.pVal(1),3) ])
+% ylim([-0.15 0.05])
+
+%% Plot Population Response read out in different cells
+
+opts.ensemblesToPlot = outVars.ensemblesToUse; 
+opts.useVisCells =0;
+opts.useTunedCells =0;
+
+%unTuned
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI<0.5;
+sum(opts.ensemblesToPlot)
+opts.variableCellFun =  'outVars.pVisR{ind} < 0.05';
+[UnTunedVis] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.pVisR{ind} > 0.1';
+[UnTunedNotVis] = subsetPopResponse(All,outVars,opts);
+
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI>0.5; 
+sum(opts.ensemblesToPlot)
+
+opts.variableCellFun =  'outVars.pVisR{ind} < 0.05';
+[MxTunedVis] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.pVisR{ind} > 0.1';
+[MxTunedNotVis] = subsetPopResponse(All,outVars,opts);
+
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5; 
+sum(opts.ensemblesToPlot)
+
+opts.variableCellFun =  'outVars.pVisR{ind} < 0.05';
+[CoTunedVis] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.pVisR{ind} > 0.1';
+[CoTunedNotVis] = subsetPopResponse(All,outVars,opts);
+
+
+figure(48);clf;hold on
+dat = {UnTunedNotVis, UnTunedVis, [], MxTunedNotVis, MxTunedVis, [], CoTunedNotVis, CoTunedVis};
+distColors = {rgb('grey') rgb('purple'), rgb('black'), rgb('grey') rgb('purple'), rgb('black'), rgb('grey') rgb('purple')};
+p = plotSpread(dat,'distributionColors',distColors,'ShowMM',4);
+r = refline(0);
+r.Color= rgb('grey');
+r.LineStyle = ':';
+
+xticks([1.5 4.5 7.5])
+xticklabels({'Untuned' 'Mixed Tuned' 'Co Tuned'})
+ylabel('Mean Evoked dF/F')
+
+%% Plot Mean Population Response in different Ori Bands;
+
+oriVals = [NaN 0:45:315];
+diffsPossible = [0 45 90 135 180];
+plotOrientation=1;
+
+for i = 1:numel(outVars.ensemblesToUse);
+    ind = ensIndNumber(i);
+    
+    cellOris = oriVals(outVars.prefOris{ind});
+    cellOrisDiff = abs(cellOris-outVars.ensPO(i));
+    cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
+    %
+    if plotOrientation
+        cellOrisDiff(cellOrisDiff==135)=45;
+        cellOrisDiff(cellOrisDiff==180)=0;
+        diffsPossible = [0 45 90];
+    end
+    
+    outVars.ensOriDiff{i} = cellOrisDiff;
+end
+
+
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5; 
+sum(opts.ensemblesToPlot)
+opts.useVisCells =1;
+opts.useTunedCells =1;
+opts.minNumberOfCellsPerCondition =20; %set to -1 to ignore
+
+
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 0';
+[OriDiff0] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 45';
+[OriDiff45] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 90';
+[OriDiff90] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 135';
+[OriDiff135] = subsetPopResponse(All,outVars,opts);
+opts.variableCellFun =  'outVars.ensOriDiff{i} == 180';
+[OriDiff180] = subsetPopResponse(All,outVars,opts);
+
+
+figure(48);clf;hold on
+dat = {OriDiff0,OriDiff45,OriDiff90,OriDiff135,OriDiff180};
+distColors = colorMapPicker(5,'plasma');
+
+p = plotSpread(dat,'distributionColors',distColors,'ShowMM',4);
+r = refline(0);
+r.Color= rgb('grey');
+r.LineStyle = ':';
+% 
+% xticks([1.5 4.5 7.5])
+% xticklabels({'Untuned' 'Mixed Tuned' 'Co Tuned'})
+% ylabel('Mean Evoked dF/F')
+
+if plotOrientation==1;
+xlim([0.5 3.5])
+
+xticklabels({['Iso (0' char(176) ')'] [char(177) '45' char(176)] ['Ortho (90' char(176) ')'] })
+
+else
+    xticklabels({['Iso (0' char(176) ')']...
+        [char(177) '45' char(176)]...
+        ['Ortho (' char(177) '90' char(176) ')']...
+        [char(177) '135' char(176)]...
+        ['Reverse (180' char(176) ')']...
+        })
+end
+
+
+ylabel('Mean Evoked dF/F')
 
 %% Plot Distance Curves in different Ori Bands
 
 opts.distType = 'min';
 opts.distBins =[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 opts.plotOrientation =1;%as opposed to Direction
-opts.minNumberOfCellsPerCondition =-1; %set to -1 to ignore
+opts.minNumberOfCellsPerCondition =20; %set to -1 to ignore
 opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
 
 
@@ -355,11 +511,11 @@ opts.plotTraces = 0;
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
 opts.criteriaName = 'ensOSI';
 opts.criteria = outVars.ensOSI;
-opts.criteriaBins = [0 0.3 0.7 inf]
+opts.criteriaBins = [0 0.3 0.7 inf];
 
 opts.criteria2Name = 'meanOSI';
 opts.criteria2 = outVars.meanEnsOSI;
-opts.criteria2Bins = [0 0.5 inf];
+opts.criteria2Bins = [0 0.4 inf];
 % opts.useVisAndTunedCells =1; 
 opts.useVisCells =1;
 opts.useTunedCells =0; %don't use tuned without vis
@@ -400,9 +556,96 @@ opts.useVisCells =1;
 opts.useTunedCells =0; 
 
 plotDistByTwoCriteria(All,outVars,opts,21)
-figure(13)
-ylim([-0.15 0.1]);
+% figure(13)
+% ylim([-0.15 0.1]);
 
+%% Plot Space and Feature V3 
+opts.distType = 'min';
+opts.distBins =[0:25:150]; 
+opts.plotTraces = 0;
+opts.useVisCells = 1;
+opts.useTunedCells =0; %don't use tuned without vis
+figure(18); clf
+lim = [-0.4 0.25];
+
+meanThresh = 0.5; %0.5; % 0.4687;
+closeVal = 400;
+farVal = 500;
+
+outInfo=[]
+axs = [];
+ax = subplot(3,2,1);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI<meanThresh;
+opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [0 closeVal];% inf];
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('grey');
+axs = [axs ax];
+
+ax = subplot(3,2,2);
+opts.criteriaBins = [farVal inf];% inf];
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('grey');
+axs = [axs ax];
+
+
+ax = subplot(3,2,3);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI>meanThresh;
+opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [0 closeVal];% inf];
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('sienna');
+axs = [axs ax];
+
+ax = subplot(3,2,4);
+opts.criteriaBins = [farVal inf];% inf];
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('sienna');
+axs = [axs ax];
+
+
+ax = subplot(3,2,5);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 & outVars.meanEnsOSI>meanThresh;
+opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [0 closeVal];% inf];
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('Magenta');
+axs = [axs ax];
+
+ax = subplot(3,2,6);
+opts.criteriaBins = [farVal inf];% inf];
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('Magenta');
+axs = [axs ax];
+
+linkaxes(axs)
+ylim(lim);
+
+disp('pVal first point diff from zero')
+for i =1:6
+    disp(num2str(signrank(outInfo{i}{1}.dat(:,1),0)))
+end
+
+%%
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.4;
+opts.useVisCells = 1;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
+opts.variableCellFun =  '(outVars.pVisR{ind} < 0.05 & outVars.distToEnsemble{i}<25)';
+[closeExcitation] = subsetPopResponse(All,outVars,opts);
+
+figure(19);clf
+scatter(outVars.meanEnsOSI,closeExcitation,[],rgb('sienna'),'filled')
+refline(0)
+
+x = outVars.meanEnsOSI(opts.ensemblesToPlot)';
+y = closeExcitation(opts.ensemblesToPlot);
+nanEither = isnan(x) | isnan(y');
+
+[fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+
+[p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
+disp(['Pval is: ' num2str(pVal(1))])
 
 %%
 toc(masterTic)

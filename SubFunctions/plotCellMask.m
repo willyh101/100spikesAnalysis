@@ -1,9 +1,12 @@
-function [All] = plotCellMask(All,cellID,axHandle)
+function [All outIm] = plotCellMask(All,cellID,axHandle,exportIm)
 
-if nargin >2 
+if nargin >3 
     subplot(axHandle)
+elseif nargin>2
+    exportIm=0;
 else
     figure;
+    exportIm=0;
 end
 
 allDepth =All.out.exp.allDepth;
@@ -26,7 +29,7 @@ ypix = dat.stat(IDinDat).ypix;
 lambda = dat.stat(IDinDat).lam;
 npix = dat.stat(IDinDat).npix;
 
-med = dat.stat(IDinDat).med;
+med = round(dat.stat(IDinDat).med);
 xySize = 7;
 
 for i=1:npix
@@ -36,6 +39,8 @@ sz = size(blank);
 
 blankSmall = blank(max(med(2)-xySize,1):min(med(2)+xySize,sz(1)),...
     max(med(1)-xySize,1):min(med(1)+xySize,sz(2)) );
+
+if ~exportIm
 imagesc(blankSmall)
 axis square
 axis off
@@ -45,4 +50,7 @@ muPerPx = 800/512;
 r = rectangle('Position',[1,xySize*2,10/muPerPx,1]);
 r.FaceColor= rgb('white');
 r.LineStyle = 'none';
+else
+    outIm = blankSmall;
+end
 

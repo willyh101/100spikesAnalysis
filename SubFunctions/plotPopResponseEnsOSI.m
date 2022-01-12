@@ -12,6 +12,12 @@ else
     figToUse = 44;
 end
 
+if isfield(opts,'defaultColor')
+    defaultColor = opts.defaultColor;
+else
+    defaultColor = rgb('firebrick')
+end
+
 method = opts.ensOSImethod;
 
 ensemblesToUse = outVars.ensemblesToUse;
@@ -22,7 +28,13 @@ ensOSI = outVars.(method);
 figure(figToUse);
 clf
 
-scatter(ensOSI(ensemblesToUse), popResponseEns(ensemblesToUse), [], numCellsEachEns(ensemblesToUse),'filled')
+oneSize = numel(unique(numCellsEachEns(ensemblesToUse))) == 1;
+
+if oneSize
+    scatter(ensOSI(ensemblesToUse), popResponseEns(ensemblesToUse), [], defaultColor,'filled')
+else
+    scatter(ensOSI(ensemblesToUse), popResponseEns(ensemblesToUse), [], numCellsEachEns(ensemblesToUse),'filled')
+end
 hold on
 
 results=[];
@@ -47,13 +59,19 @@ if plotFit
      results.pVal = pVal;
     results.fs = fs;
     results.gs = gs;
+    
+    results.grandMean = nanmean(popResponseEns(ensemblesToUse));
 end
 
 xlabel('Ensemble OSI')
 ylabel('Population Mean Response')
 title(['Resp by ' method])
+if oneSize
+    set(gcf(),'Name','Resp by OSI')
+else
 set(gcf(),'Name','OSIs by Ensemble Size')
 cb = colorbar('Ticks', unique(numCellsEachEns(ensemblesToUse)));
 cb.Label.String = 'Number of Cells in Ensemble';
+end
 r = refline(0);
 r.LineStyle =':';

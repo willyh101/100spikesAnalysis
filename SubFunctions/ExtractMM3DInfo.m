@@ -1,96 +1,8 @@
-oriLoadList;
- sepW1LoadList
-loadPath = 'T:\Outfiles';
 
-addpath(genpath(loadPath))
-
-numExps = numel(loadList);
-
-%% Load data
-
-numExps = numel(loadList);
-disp(['There are ' num2str(numExps) ' Exps in this LoadList'])
-if numExps ~= 0
-    clear All
-    if ~iscell(loadList)
-        numExps=1;
-        temp = loadList;
-        clear loadList;
-        loadList{1} = temp;
-    end
-    for ind = 1:numExps
-        pTime =tic;
-        fprintf(['Loading Experiment ' num2str(ind) '...']);
-        All(ind) = load(fullfile(loadPath,loadList{ind}),'out');
-        fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
-    end
-else
-    disp('Did you press this by accident?')
-end
-%%
-savePath = [loadPath '\new'];
-
-useMM3Dim = 1;
-nDepthsTotal =3; 
-
-willexps = [11 14 15 16 19 20 21 22 23 24 25 29];
-expToExclude = [4 8 9 10 17 18];
- %[8 17 18] seem to have 1020images just no/not correct mm3d
- 
-expList = 1:numExps;
-% expList([willexps expToExclude])=[];
-
-for ind=expList;%(9:end);%5:numExps; ; %30:numExps;
-    dataPathBackup=[];
-    pTime =tic;
-    fprintf(['Loading Experiment ' num2str(ind) '...']);
-    
-    in = load(fullfile(loadPath,loadList{ind}),'out');
-    out = in.out;
-    
-    %     if isfield(out.exp,'DAQepoch')
-    %         DAQepoch = out.exp.DAQepoch;
-    %     else
-    %         disp('EpochText 1')
-    %         All(ind).out.info.epochText1
-    %         disp('Epoch Text 2')
-    %         All(ind).out.info.epochText2
-    %         expNumFiles = size(All(ind).out.exp.allData,3);
-    %         disp(['Expect ' num2str(expNumFiles) ' Files.']);
-    %         disp([All(ind).out.info.mouse ' ' All(ind).out.info.date])
-    %         e = input('What was the DAQepoch Num?');
-    %         DAQepoch = e;
-    %         out.exp.DAQepoch = e;
-    %     end
-    
-    [dat, All(ind)] = pullDat(All(ind),1);
-    
+useMM3Dim=1;
     
     rootpath = dat.ops.RootDir;
     dataPath = fullfile(rootpath,'Other');
-    
-    if ~exist(dataPath) && isempty(dataPathBackup) && ( ~isfield(out.info,'dataPath2') || isempty(out.info.dataPath2))
-        disp('Path Not Found')
-        disp(dataPath)
-        dataPath = uigetdir('Y:\frankenshare\ian','Select Data Path');
-        %             dataPath = uigetdir('Set_best_guess_path','Select Data Path');
-        dataPathBackup = dataPath;
-        out.info.dataPath2 = dataPath;
-        
-    elseif isfield(out.info,'dataPath2') && ~isempty(out.info.dataPath2) && ~exist(dataPath)
-        disp('using out.info.dataPath2')
-        dataPath = out.info.dataPath2;
-        
-        nDigits = numel(num2str(All(ind).out.exp.DAQepoch));
-        dataPathBase = dataPath(1:end-nDigits);
-        dataPath = fullfile(dataPath(1:end-nDigits),'Other');
-        
-    elseif ~isempty(dataPathBackup) && ~exist(dataPath)
-        disp('pulling path from backup')
-        dataPath = dataPathBackup;
-    end
-    
-    %% ID the 1020 image
     
     fList = dir(dataPath);
     
@@ -253,11 +165,3 @@ for ind=expList;%(9:end);%5:numExps; ; %30:numExps;
     disp([ num2str(sum(out.info.opsinNegative)) ' definitely opsin Negative Cells. ' num2str(mean(out.info.opsinNegative)*100) '%']);
     
     disp('press enter')
-    pause
-    
-    
-    %%
-    disp('saving...')
-    save(fullfile(savePath,loadList{ind}),'out','-v7.3')
-    fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
-end

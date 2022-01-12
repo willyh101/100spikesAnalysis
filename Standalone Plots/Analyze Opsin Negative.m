@@ -7,7 +7,8 @@ masterTic = tic;
 addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
-sepW1LoadList;
+oriLoadList;
+% sepW1LoadList;
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
@@ -47,6 +48,16 @@ for ind=1:numExps
 end
 disp('Data To Use is set')
 
+
+%% Mark and exclude files that don't have opsin negative data
+noOpsinDataInd=[];
+for ind =1:numExps
+   if ~isfield(All(ind).out.info, 'value1020')
+        noOpsinDataInd = [noOpsinDataInd ind];
+   end
+end
+
+
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
@@ -82,10 +93,8 @@ end
 outVars.names = names;
 
 %% restrict Cells to use
-opts.minMeanThreshold = 0;0.5;
+opts.minMeanThreshold = 0.25;
 opts.maxMeanThreshold = inf;
-
-opts.peakThreshold =0; %exclude cells that do not ever excede this threshold (set to 0 to disable)
 
 opts.verbose =0;
 [All, cellExcludeResults] = cellExcluder(All,opts); 
@@ -191,7 +200,7 @@ lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -201,7 +210,7 @@ excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars.hzEachEns;
 
 %spot to add additional Exclusions
-excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
+excludeInds = ismember(ensIndNumber,noOpsinDataInd); %Its possible that the visStimIDs got messed up
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
@@ -226,7 +235,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 3 ...
     & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
-    ...& ensDate >= 211210 ...
+    ...& ensDate >= 211101 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...
@@ -324,9 +333,6 @@ for i =[1 3]; %1:6
 end
 disp('done')
 
-%%
-outVars.defaultColorMap = 'viridis';
-
 %% Just a few with different binning
 figure(103);clf;
 dataInPlots =[];
@@ -355,30 +361,36 @@ title('mean')
 ylim([-0.075 0.075])
 
 
-%% create new 
+%% create new
+
 
 for ind = 1:numExps
-   vals = All(ind).out.info.value1020;
-   defPosThresh = prctile(vals,80);
-%    All(ind).out.info.defPos = vals>=defPosThresh;% & All(ind).out.anal.cellsToInclude;
-       All(ind).out.info.defPos = vals>=defPosThresh & All(ind).out.anal.cellsToInclude;
-
-   defNegThresh = prctile(vals,20);
-   All(ind).out.info.defNeg = vals<=defNegThresh & All(ind).out.anal.cellsToInclude;
-   
+    if ~ismember(ind,noOpsinDataInd)
+        vals = All(ind).out.info.value1020;
+        defPosThresh = prctile(vals,75);
+        All(ind).out.info.defPos = vals>=defPosThresh;
+        
+        defNegThresh = prctile(vals,25);
+        All(ind).out.info.defNeg = vals<=defNegThresh;
+    else
+        All(ind).out.info.defPos = zeros([1 All(ind).out.anal.numCells]);
+        All(ind).out.info.defNeg = zeros([1 All(ind).out.anal.numCells]);
+        All(ind).out.info.opsinNegative = zeros([1 All(ind).out.anal.numCells]);
+    end
 end
 
+backupEnsemblesToUse = outVars.ensemblesToUse;
 
 %% to match  other plots
-figure(106);clf
+figure(104);clf
 hold on
 ax = subplot(1,1,1);
 
-opts.distBins = 00:20:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 00:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
 opts.distAxisRange = [0 250]; %[0 350] is stand
 
-backupEnsemblesToUse = outVars.ensemblesToUse;
+% backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
 %  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
 %  outVars.ensemblesToUse = limEnsembleToUse;
@@ -395,7 +407,7 @@ drawnow
 ylim([-0.05 0.11])
 
 
-backupEnsemblesToUse = outVars.ensemblesToUse;
+% backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
 %  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
 %  outVars.ensemblesToUse = limEnsembleToUse;
@@ -411,7 +423,7 @@ hold on
 drawnow
 ylim([-0.05 0.11])
 
-backupEnsemblesToUse = outVars.ensemblesToUse;
+% backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
 %  limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[1 2 5]);
 %  outVars.ensemblesToUse = limEnsembleToUse;
@@ -425,9 +437,9 @@ p1{1}.CapSize = 0;
 outVars.ensemblesToUse = backupEnsemblesToUse;
 hold on
 drawnow
-ylim([-0.05 0.11])
+ylim([-0.05 0.25])
 
-%% 
+%% Tick through each experiment
 
 figure(104);clf
 hold on
@@ -437,7 +449,9 @@ opts.distBins = 00:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
 opts.distAxisRange = [0 250]; %[0 350] is stand
 
-backupEnsemblesToUse = outVars.ensemblesToUse;
+outVars.ensemblesToUse = backupEnsemblesToUse;
+
+% backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
 %  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
 %  outVars.ensemblesToUse = limEnsembleToUse;
@@ -453,29 +467,33 @@ hold on
 drawnow
 ylim([-0.05 0.11])
 
-for i=1:5
-backupEnsemblesToUse = outVars.ensemblesToUse;
-% noUnstimableCount = find(countUSC==0);
- limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[i]);
- outVars.ensemblesToUse = limEnsembleToUse;
-disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
-% 
-CellToUseVar ='info.opsinNegative';% [];
-[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
-p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
-p1{1}.Color=rgb('forestgreen');
-p1{1}.CapSize = 0;
-outVars.ensemblesToUse = backupEnsemblesToUse;
-hold on
-drawnow
-ylim([-0.05 0.11])
-
-pause
+colors = colorMapPicker(numel(All),'viridis');
+for i=1:max(outVars.ensIndNumber); %5
+%     backupEnsemblesToUse = outVars.ensemblesToUse;
+    % noUnstimableCount = find(countUSC==0);
+    limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[i]);
+    if sum(limEnsembleToUse)>0
+        outVars.ensemblesToUse = limEnsembleToUse;
+        disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
+        %
+        CellToUseVar ='info.defNeg'; %info.opsinNegative';% [];
+        [popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
+        p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+        p1{1}.Color=colors{i}; %rgb('forestgreen');
+        p1{1}.CapSize = 0;
+       
+        hold on
+        ylim([-0.05 0.25])
+        drawnow
+        disp('press the any key')
+        pause
+    end
+     outVars.ensemblesToUse = backupEnsemblesToUse;
 end
 
 
 %%
-%% to match  other plots
+%% ID opsin negative offline
 figure(104);clf
 hold on
 ax = subplot(1,1,1);
@@ -484,7 +502,7 @@ opts.distBins = 00:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
 opts.distAxisRange = [0 250]; %[0 350] is stand
 
-backupEnsemblesToUse = outVars.ensemblesToUse;
+% backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
 %  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
 %  outVars.ensemblesToUse = limEnsembleToUse;
@@ -503,9 +521,9 @@ ylim([-0.05 0.11])
 
 
 
-backupEnsemblesToUse = outVars.ensemblesToUse;
+% backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
- limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[3]);
+ limEnsembleToUse = outVars.ensemblesToUse;% & ismember(outVars.ensIndNumber,[3]);
  outVars.ensemblesToUse = limEnsembleToUse;
 disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
 % 
@@ -518,3 +536,9 @@ outVars.ensemblesToUse = backupEnsemblesToUse;
 hold on
 drawnow
 ylim([-0.05 0.11])
+
+%% Compare Opsin Positive between different Expression Types
+
+ExprUsed = outVars.indExpressionType(IndsUsed);
+outVars.uniqueExpressionTypes(ExprUsed)
+

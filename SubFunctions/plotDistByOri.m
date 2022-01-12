@@ -24,9 +24,9 @@ oriVals = [NaN 0:45:315];
 ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
 
-disp(['Total of ' num2str(sum(ensemblesToUse)) ' Ensembles Included.'])
-disp([ num2str(numel(unique(ensIndNumber(ensemblesToUse)))) ' FOVs'])
-disp([ num2str(numel(unique(names(unique(ensIndNumber(ensemblesToUse)))))) ' Mice']);
+% disp(['Total of ' num2str(sum(ensemblesToUse)) ' Ensembles Included.'])
+% disp([ num2str(numel(unique(ensIndNumber(ensemblesToUse)))) ' FOVs'])
+% disp([ num2str(numel(unique(names(unique(ensIndNumber(ensemblesToUse)))))) ' Mice']);
 
 clear popToPlot cellsPerEnsCount
 for i=1:numEns %i know its slow, but All is big so don't parfor it
@@ -79,7 +79,14 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     end
 end
 disp('Done')
-sum(cellsPerEnsCount(:,1)>0)
+sum(cellsPerEnsCount(:,1)>0);
+ensUsedActual = cellsPerEnsCount(:,1)>0;
+
+
+disp(['Total of ' num2str(sum(ensUsedActual)) ' Ensembles Included.'])
+disp([ num2str(numel(unique(ensIndNumber(ensUsedActual)))) ' FOVs'])
+disp([ num2str(numel(unique(names(unique(ensIndNumber(ensUsedActual)))))) ' Mice']);
+
 
 %%Plot Dist REsp
 figure(10);clf
