@@ -170,9 +170,12 @@ if ~isempty(indToUse)
     range = [2:65];
     All(indToUse).out.exp.stimID = All(indToUse).out.exp.stimID(range);
     All(indToUse).out.exp.visID = All(indToUse).out.exp.visID(range);
+    All(indToUse).out.exp.runVal = All(indToUse).out.exp.runVal(range,:);
     
     All(indToUse).out.mani.stimID = All(indToUse).out.mani.stimID(range);
     All(indToUse).out.mani.visID = All(indToUse).out.mani.visID(range);
+    All(indToUse).out.mani.runVal = All(indToUse).out.mani.runVal(range,:);
+
     
 end
 

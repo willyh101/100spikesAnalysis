@@ -7,8 +7,8 @@ masterTic = tic;
 addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
-oriLoadList;
-% sepW1LoadList;
+% oriLoadList;
+sepW1LoadList;
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
@@ -200,7 +200,7 @@ lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG'}; %'SepW1 CAG 2s'
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -386,7 +386,7 @@ figure(104);clf
 hold on
 ax = subplot(1,1,1);
 
-opts.distBins = 00:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 00:40:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
 opts.distAxisRange = [0 250]; %[0 350] is stand
 

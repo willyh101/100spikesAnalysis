@@ -7,7 +7,8 @@ masterTic = tic;
 addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
-oneAtATimeLoadList;
+ai203100spkLoadList
+% oriLoadList;
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
@@ -41,11 +42,6 @@ end
 %CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
 
-%% one at a time Error Checks
-nameToUse = '211102_I158_1_outfile.mat';
-indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
-
-All(indToUse).out.exp = All(indToUse).out.exp2;
 %% Set Data To use
 for ind=1:numExps
     All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
@@ -85,12 +81,9 @@ for Ind = 1:numel(All)
     names{Ind}=lower(strrep(All(Ind).out.info.mouse, '_', '.'));
 end
 outVars.names = names;
-
 %% restrict Cells to use
-opts.minMeanThreshold = 0.25;
+opts.minMeanThreshold = -0.25;
 opts.maxMeanThreshold = inf;
-
-opts.peakThreshold =0; %exclude cells that do not ever excede this threshold (set to 0 to disable)
 
 opts.verbose =0;
 [All, cellExcludeResults] = cellExcluder(All,opts); 
@@ -98,10 +91,9 @@ allResults = cat(1,cellExcludeResults{:});
 disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
 disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
 
-opts.minNumCellsInd=250;
+opts.minNumCellsInd= 0;
 tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
 disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
-
 
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
@@ -119,6 +111,7 @@ opts.skipVis =1;
 visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
 ensIndNumber =outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber; %in order of uniqueStims
 
 
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
@@ -147,7 +140,7 @@ outVars.ensExpressionType = ensExpressionType;
 
 %%Missed Target Exclusion Criteria
 %detects if too many targets were not detected in S2p
-opts.FractionMissable = 0.33; %what percent of targets are missable before you exclude the ens
+opts.FractionMissable = 0.75;%0.33; %what percent of targets are missable before you exclude the ens
 [outVars] = missedTargetDetector(All,outVars,opts);
 
 ensMissedTargetF = outVars.ensMissedTargetF; %Fraction of targets per ensemble Missed
@@ -188,15 +181,16 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold =0; 0.05; %default 0.05
+opts.IndsVisThreshold = 0.1;0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
+
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };
+excludedTypes ={'AAV CamK2' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s' };
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -217,9 +211,9 @@ opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuf
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
 
-ensemblesToUse = ... numSpikesEachEns > opts.numSpikeToUseRange(1) ...
-    ... & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
-    highVisPercentInd ...
+ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
+    & numSpikesEachEns < opts.numSpikeToUseRange(2) ...
+    & highVisPercentInd ...
     & lowRunInds ...
     & ensStimScore > opts.ensStimScoreThreshold ... %so like we're excluding low success trials but if a holostim is chronically missed we shouldn't even use it
     & ~excludeInds ...
@@ -228,11 +222,10 @@ ensemblesToUse = ... numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
-    & numMatchedTargets >= 1 ...
+    ...& numMatchedTargets >= 3 ...
     ...& ensembleOneSecond ... %cuts off a lot of the earlier
     ...& numCellsEachEns==10 ...
-    ...& ensDate >= 211101 ...
-    ...    & ensDate >= 211101 & ensDate <= 211105 ...
+    ... & ensDate > 210420 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...
@@ -299,66 +292,161 @@ end
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 
+%% 
+ensToUse = outVars.ensemblesToUse & outVars.ensOSI >0.7; 
 
-%% Plot Mean Distance Responses
 
-% plotEnsembleDistanceResponse(outVars,100,1)
+%% quick determine stimmable
 
-%% Plot Distance Plots
-outVars.defaultColorMap = viridis;
-% 
-opts.distBins = 0:25:1000; %must be set to match popDist
-plotResponseByDistance(outVars,opts);
-
-%% Compare Distance responses
-figure(102);clf
-outVars.defaultColorMap ='viridis';
-
-dataInPlots=[];
-distTypes = {'min' 'geo' 'mean' 'harm' 'median' 'centroid'};
-for i =[1 3]; %1:6
-    disp(['working on ' distTypes{i}])
-    opts.distType = distTypes{i}; %options: min geo mean harm
-    opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
-    CellToUseVar = 'anal.cellsToInclude';
-    [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
-    ax = subplot(2,3,i);
-    opts.distAxisRange = [0 350]; %[0 350] is stand
-    [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
-    dataInPlots{i}=outDat{1};
-    eHandle{1}.CapSize =0;
-    title(distTypes{i})
-    drawnow
+for ind =1:numel(All)
+    
+    stimTimes = All(ind).out.stm.holoRequest.bigListOfFirstStimTimes(:,1); 
+    FR = All(ind).out.info.FR;
+    
+    dataToUse = All(ind).out.stm.zdfData; 
+    
+    tcs = All(ind).out.stm.targetedCells;
+    for i = 1:numel(tcs)
+        t = tcs(i);
+        if ~isnan(t)
+            st = round(stimTimes(i)*FR);
+            
+%             alignedDat = 
+        end
+    end
+    
 end
-disp('done')
 
-%% Just a few with different binning
-figure(103);clf;
-dataInPlots =[];
+%% Zscore together
+for ind=1:numel(All)
+    dat1 = All(ind).out.vis.zdfData;
+    dat2 = All(ind).out.exp.zdfData;
+    sz1 = size(dat1);
+    sz2 = size(dat2);
+    mnFrames = min(sz1(2),sz2(2));
+    
+    
+    fullDat = cat(3,All(ind).out.vis.allData(:,1:mnFrames,:),All(ind).out.exp.allData(:,1:mnFrames,:));
+    [fulldfDat, fullzdfDat] = computeDFFwithMovingBaseline(fullDat);
+    
+    dat1 = fullzdfDat(:,:,1:sz1(3));
+    dat2 = fullzdfDat(:,:,sz1(3)+1:end);
 
-ax = subplot(1,2,1);
-opts.distType = 'min';
-opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
-opts.distAxisRange = [0 250]; %[0 350] is stand
-CellToUseVar = 'anal.cellsToInclude';
-[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
-[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
-dataInPlots{1}=outDat{1};
-eHandle{1}.CapSize =0;
-eHandle{2}.CapSize =0;
+    All(ind).out.anal.dat1 = dat1;
+    All(ind).out.anal.dat2 = dat2;
+    All(ind).out.anal.fullzdfDat = fullzdfDat; 
+    
+    
+end
 
-title('min')
+%% Plot Cosine Similarity 
 
-ax = subplot(1,2,2);
-opts.distType = 'mean';
-opts.distBins = 0:10:500; %can be set variably 0:25:1000 is defaultt
-opts.distAxisRange = [0 450]; %[0 350] is stand
-CellToUseVar = 'anal.cellsToInclude';
-[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
-[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
-dataInPlots{2}=outDat{1};
-eHandle{1}.CapSize =0;
-eHandle{2}.CapSize =0;
+numEns = numel(outVars.ensemblesToUse);
 
-title('mean')
-ylim([-0.075 0.075])
+ensCrit = outVars.ensemblesToUse & outVars.ensOSI>0.7;
+
+recWindow = 6:18;
+plotStuff=0;
+
+EnsCosSim=[];
+for i = 1:numEns
+    if ensCrit(i)
+        
+        ind = outVars.ensIndNumber(i);
+           
+        htgs = unique([All(ind).out.exp.holoTargets{:}]);
+        htgs(isnan(htgs))=[];
+        cellsToUse = htgs;
+        
+
+        
+        try
+            lowRunTrials = mean(All(ind).out.mani.runVal(:,6:12),2)<2;
+            trialsToUseExp = All(ind).out.mani.lowMotionTrials & lowRunTrials';
+        catch
+            lowRunTrials = mean(All(ind).out.exp.runVal(:,6:12),2)<2;
+            trialsToUseExp = All(ind).out.exp.lowMotionTrials & lowRunTrials';
+        end
+        lowRunTrialsVis = mean(All(ind).out.vis.runVal(:,6:12),2)<2;
+        trialsToUseVis = All(ind).out.vis.lowMotionTrials & lowRunTrialsVis';
+        
+        visID = All(ind).out.vis.visID;
+        
+        visVector=zeros([numel(cellsToUse) 9]);
+        for v=1:9
+            visVector(:,v) = mean(mean(All(ind).out.anal.dat1(cellsToUse,recWindow, trialsToUseVis & visID ==v),2),3); 
+        end
+        
+        s = outVars.ensHNumber(i);
+        stimID = All(ind).out.exp.stimID; 
+        us = unique(stimID);
+        sID = us(s);
+        
+        
+        holoVector = mean(mean(All(ind).out.anal.dat2(cellsToUse,recWindow, trialsToUseExp & stimID ==sID),2),3); 
+
+        for v=1:9
+            cosSim(v) = cosine_similarity(visVector(:,v),holoVector);
+        end
+        
+        if plotStuff
+            figure(1);clf
+            ax(1) = subplot(1,3,1);
+            imagesc(visVector)
+            title('Vis')
+            axis equal
+            box off
+            colorbar
+            ax(2) = subplot(1,3,2);
+            imagesc(holoVector)
+            title('Holo')
+            axis equal
+            box off
+            colorbar
+            same_color_scale(ax)
+            
+            subplot(1,3,3)
+            plot(cosSim)
+            xticks(1:9)
+            xticklabels({'grey' 0:45:315})
+            xlabel('Oris')
+            ylabel('Cosine Similarity')
+        end
+       
+        prefOri = outVars.ensPO(i);
+        if isnan(prefOri)
+            prefOri = 0;
+        end
+        
+        orisPos = 0:45:315;
+        
+        %permute so preferred is in first position
+%         p = find(orisPos==prefOri);
+        [mx p] = max(cosSim(2:end));
+        
+        EnsCosSim(i,:) = [cosSim(1) circshift(cosSim(2:end),-1*(p-1))]; 
+    end
+end
+max(EnsCosSim(:))
+
+figure(2);clf
+
+[x sidx]  = sort(outVars.numCellsEachEns(ensCrit));
+ensToPlot = find(ensCrit);
+ensToPlot = ensToPlot(sidx);
+
+subplot(2,1,1)
+imagesc(EnsCosSim(ensToPlot,:))
+caxis([-0.2 0.75])
+colorbar
+xticks(1:9)
+xticklabels({'Grey' 0:45:315})
+
+subplot(2,1,2)
+
+plot(mean(EnsCosSim(ensCrit,:)))
+    
+    
+    
+    
+    

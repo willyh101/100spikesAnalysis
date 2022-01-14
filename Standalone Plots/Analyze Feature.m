@@ -90,7 +90,7 @@ allResults = cat(1,cellExcludeResults{:});
 disp(['In total ' num2str(sum(allResults)) ' Cells Excluded. ' num2str(mean(allResults)*100,2) '%']);
 disp(['Overall ' num2str(sum(~allResults)) ' Cells Passed!'])
 
-opts.minNumCellsInd=250;
+opts.minNumCellsInd= 250;
 tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
 disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd) ' cells, and should be exccluded']);
 
@@ -180,7 +180,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.05; %default 0.05
+opts.IndsVisThreshold = 0.1;0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -189,7 +189,7 @@ lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s' };
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -349,6 +349,7 @@ yticks(-.15:.05:.05)
 opts.ensemblesToPlot = outVars.ensemblesToUse; 
 opts.useVisCells =0;
 opts.useTunedCells =0;
+opts.minNumberOfCellsPerCondition = -1;
 
 %unTuned
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI<0.5;
@@ -466,6 +467,8 @@ opts.distBins =[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 opts.plotOrientation =1;%as opposed to Direction
 opts.minNumberOfCellsPerCondition =20; %set to -1 to ignore
 opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD>500;
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD<400;
 
 
  plotDistByOri(All,outVars,opts)
@@ -473,6 +476,9 @@ opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==
  figure(10);
 ylim([-0.175 0.1])
 
+
+figure(14);
+ylim([-0.225 0.15])
 %% Plot Split by Mean OSI
 opts.distType = 'min';
 opts.distBins =[0:25:150]; 
@@ -480,7 +486,7 @@ opts.distAxisRange = [0 150];
 opts.plotTraces = 0; 
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3;
 opts.criteriaToSplit = outVars.meanEnsOSI;
-opts.criteriaBins = [0 0.5 inf];
+opts.criteriaBins = [0 0.45 0.5 inf];
 % opts.useVisAndTunedCells =1; 
 opts.useVisCells =1;
 opts.useTunedCells =0; %don't use tuned without vis
@@ -515,7 +521,7 @@ opts.criteriaBins = [0 0.3 0.7 inf];
 
 opts.criteria2Name = 'meanOSI';
 opts.criteria2 = outVars.meanEnsOSI;
-opts.criteria2Bins = [0 0.4 inf];
+opts.criteria2Bins = [0 0.5 inf];
 % opts.useVisAndTunedCells =1; 
 opts.useVisCells =1;
 opts.useTunedCells =0; %don't use tuned without vis
@@ -569,14 +575,14 @@ figure(18); clf
 lim = [-0.4 0.25];
 
 meanThresh = 0.5; %0.5; % 0.4687;
-closeVal = 400;
-farVal = 500;
+closeVal =  400
+farVal =500
 
 outInfo=[]
 axs = [];
 ax = subplot(3,2,1);
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI<meanThresh;
-opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaToSplit =  outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
 [e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('grey');
@@ -591,7 +597,7 @@ axs = [axs ax];
 
 ax = subplot(3,2,3);
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI>meanThresh;
-opts.criteriaToSplit = outVars.ensMaxD;
+% opts.criteriaToSplit = outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
 [e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('sienna');
@@ -606,7 +612,7 @@ axs = [axs ax];
 
 ax = subplot(3,2,5);
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 & outVars.meanEnsOSI>meanThresh;
-opts.criteriaToSplit = outVars.ensMaxD;
+% opts.criteriaToSplit = outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
 [e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('Magenta');
@@ -626,8 +632,17 @@ for i =1:6
     disp(num2str(signrank(outInfo{i}{1}.dat(:,1),0)))
 end
 
+[p h] = ranksum(outInfo{5}{1}.dat(:,1),outInfo{6}{1}.dat(:,1));
+disp(['Tuned Near vs Far p= ' num2str(p)]);
+
+[p h] = ranksum(outInfo{1}{1}.dat(:,1),outInfo{5}{1}.dat(:,1));
+disp(['Near Untuned vs Tuned p= ' num2str(p)]);
+
+[p h] = ranksum(outInfo{2}{1}.dat(:,1),outInfo{6}{1}.dat(:,1));
+disp(['Far Untuned vs Tuned p= ' num2str(p)]);
+
 %%
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.4;
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.5;
 opts.useVisCells = 1;
 opts.useTunedCells =0; %don't use tuned without vis
 opts.minNumberOfCellsPerCondition = -1;

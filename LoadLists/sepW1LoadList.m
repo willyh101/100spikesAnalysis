@@ -12,4 +12,5 @@ loadList = {
     '211213_I162_1_outfile.mat' %Imaging looked weird, very suspect. 
     
     ...'220105_I162_2_outfile.mat' %sepW1 mostly 1 at a time no holo trials by error
-};
+    '220110_I162_2_outfile.mat' %sepW1 mostly 1 at a time 
+    };

@@ -36,6 +36,8 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'W40_2'
      'I149_2'
      'I158_1'
+     'I162_1'
+     'I162_2'
      };
 
  ExpressionTypeList = {
@@ -72,6 +74,8 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'control'
      'AAV Tre 2s'
      'control'
+     'SepW1 CAG 2s'
+     'SepW1 CAG 2s'
      'SepW1 CAG 2s'
      };
 
