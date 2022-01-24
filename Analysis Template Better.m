@@ -1,7 +1,7 @@
 clear;
-date = '220112';
-mouse = 'I162_2';%'I138_1';%'I136_1';
-epochs = '1_2_3_4_5';
+date = '210111';
+mouse = 'w29_3';%'I138_1';%'I136_1';
+epochs = '1_2_3_4_5_6_7_8_9_10';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -14,13 +14,13 @@ baseName = [mouse '_' date];%'I118a.2_180504';
 loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc']};% ['F_' baseName '_plane4_proc']};
 
 nDepthsTotal = 3;4;%Normally 3;
-physfile = fullfile(basePath,[date '_A' '.mat']);
+physfile = fullfile(basePath,[date '_C' '.mat']);
 % physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 disp('Loading...')
 try
     load(physfile)
 catch
-    physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
+    physfile = fullfile(basePath,[date(3:end) '_C' '.mat']);
     load(physfile)
 end
 disp('Loaded')
@@ -32,19 +32,21 @@ theList=[];
 
 %order: s2pEpoch DAQepoch 
 %out condition 
-% condition options are 'stim' 'exp' 'vis' 'vis2' 'exp2' 'mani' 'spk' or
+% condition options are 'stim' 'exp' 'vis' 'vis2' 'exp2' 'mani' 'mani2' 'spk' or
 % 'info' ('info' is included in 'exp' but can also be overwritten alone)
 % spk is an extra module on exp, so run exp first even if it will be
 % overrun
 theList = {
-    2 2 'stim'
-    ...3 4 'vis2'
+    5 5 'stim'
+    2 2 'vis2'
     4 4 'vis'
-    5 5 'exp'
-    ...8 9 'spk'
+    7 7 'exp'
+    7 7 'spk'
     ...9 10 'exp2'
-    ...10 11 'exp'
-    ...10 11 'mani'
+    9 9 'exp'
+    9 9 'mani'
+    10 10 'exp'
+    10 10 'mani2'
     ...5 5 'info'
     };
 listSize = size(theList);

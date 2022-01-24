@@ -211,6 +211,47 @@ for ind=1:numExps;
 end
 disp('done')
 
+
+%% add est spikes to mani files
+savePath = [loadPath '\new'];
+
+for ind=1:numExps;
+    if ~isfield(All(ind).out.mani,'estSpikes');
+        try
+            pTime =tic;
+            fprintf(['Loading Experiment ' num2str(ind) '...']);
+            
+            disp('Loading out')
+            in = load(fullfile(loadPath,loadList{ind}),'out');
+            out = in.out;
+            
+            pth = fileparts(out.info.path);
+            disp('Loading ExpStruct')
+            try
+                physName = [out.info.date '_A.mat'];
+                inDat = load(fullfile(pth, physName), 'ExpStruct');
+            catch
+                physName = [out.info.date '_B.mat'];
+                inDat = load(fullfile(pth, physName), 'ExpStruct');
+            end
+            ExpStruct = inDat.ExpStruct;
+            
+            if isfield(ExpStruct,'estSpikes')
+                disp('Found estSpikes')
+            else
+                disp('did not find estSpikes')
+            end
+            out.mani.estSpikes =ExpStruct.estSpikes;
+            
+            save(fullfile(savePath,loadList{ind}),'out')
+            fprintf([' Took ' num2str(toc(pTime)) 's.\n'])
+        catch
+            disp(['something failed ind: ' num2str(ind)])
+        end
+    end
+end
+disp('done')
+
 %%
 
 % ind = 55;

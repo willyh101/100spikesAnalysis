@@ -181,12 +181,12 @@ switch option
         try
             mani.mani = ExpStruct.Mani;
         catch
-            tempMani    = ExpStruct.ManifoldWrite;
+            try tempMani    = ExpStruct.ManifoldWrite; catch end
             tempMani.estSpikes      = ExpStruct.estSpikes;
             try
-            tempMani.CellsWritten   = ExpStruct.CellsWritten;
-            tempMani.rThreshold     = ExpStruct.rThreshold;
-            tempMani.FitCells       = ExpStruct.FitCells;
+                tempMani.CellsWritten   = ExpStruct.CellsWritten;
+                tempMani.rThreshold     = ExpStruct.rThreshold;
+                tempMani.FitCells       = ExpStruct.FitCells;
             catch
                 disp('************Do Not have all variables for Mani*******************')
             end
@@ -197,6 +197,39 @@ switch option
         catch
             mani.CellIDs = unique(cat(1,exp.holoRequest.rois{:}));
         end
+        
+        try
+            mani.estSpikes = ExpStruct.estSpikes;
+        catch
+        end
+       case 'mani2'
+        %% save exp to Manifold
+        mani2 = exp;
+        try
+            mani2.mani = ExpStruct.Mani;
+        catch
+            try tempMani    = ExpStruct.ManifoldWrite; catch end
+            tempMani.estSpikes      = ExpStruct.estSpikes;
+            try
+                tempMani.CellsWritten   = ExpStruct.CellsWritten;
+                tempMani.rThreshold     = ExpStruct.rThreshold;
+                tempMani.FitCells       = ExpStruct.FitCells;
+            catch
+                disp('************Do Not have all variables for Mani*******************')
+            end
+            mani2.mani = tempMani;
+        end
+        try
+            mani2.CellIDs = unique(cat(2,exp.holoRequest.rois{:}));
+        catch
+            mani2.CellIDs = unique(cat(1,exp.holoRequest.rois{:}));
+        end
+        
+        try
+            mani2.estSpikes = ExpStruct.estSpikes;
+        catch
+        end     
+        
     case 'spk'
         %% save exp to spk: for Spike Curve Support
         spk=exp;
@@ -204,17 +237,19 @@ switch option
         try
             spk.Mani = ExpStruct.Mani;
         catch
-            tempMani    = ExpStruct.spikeTest;
-            tempMani.estSpikes      = ExpStruct.estSpikes;
-            try
-            tempMani.rThreshold     = ExpStruct.rThreshold;
-            tempMani.FitCells       = ExpStruct.FitCells;
-            tempMani.pBalLookRight  = ExpStruct.pBalLookRight;
-            tempMani.roiWeightsPBal = ExpStruct.roiWeightsPBal;
-            tempMani.pBalSatValue   = ExpStruct.pBalSatValue;
-            catch
-                disp('****************Do not have all variables for spk****************')
-            end
+            tempMani=[];
+            try tempMani    = ExpStruct.spikeTest;catch;end
+           
+            try tempMani.estSpikes      = ExpStruct.estSpikes;catch;end
+            
+            try tempMani.rThreshold     = ExpStruct.rThreshold;catch;end
+            try tempMani.FitCells       = ExpStruct.FitCells;catch;end
+            try tempMani.pBalLookRight  = ExpStruct.pBalLookRight;catch;end
+            try tempMani.roiWeightsPBal = ExpStruct.roiWeightsPBal;catch;end
+            try tempMani.pBalSatValue   = ExpStruct.pBalSatValue;catch;end
+            
+                disp('****************Maybe Do not have all variables for spk****************')
+            
             spk.Mani = tempMani;
         end
         disp('got spk')
@@ -307,6 +342,7 @@ try out.vis = vis; catch; end
 try out.vis2=vis2; catch;end
 try out.spk = spk; catch; end
 try out.mani = mani; catch; end
+
 try out.mani2 = mani2; catch; end
 try out.mani0 = mani0; catch; end
 try out.stm = stm; catch; end

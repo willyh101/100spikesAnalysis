@@ -176,7 +176,10 @@ if ~isempty(indToUse)
     All(indToUse).out.mani.visID = All(indToUse).out.mani.visID(range);
     All(indToUse).out.mani.runVal = All(indToUse).out.mani.runVal(range,:);
 
-    
+    range = [3:44];
+    All(indToUse).out.stm.stimID = All(indToUse).out.stm.stimID(range);
+        All(indToUse).out.stm.runVal = All(indToUse).out.stm.runVal(range,:);
+
 end
 
 
@@ -296,5 +299,29 @@ if ~isempty(indToUse)
 
 end
 
+
+%% fix vis Window 211014_I156_1
+
+nameToUse = '210517_I147_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+  All(indToUse).out.stm.holoRequest =  All(indToUse).out.stm.holoRequest2;
+end
+
+%% 
+nameToUse = '210105_W29_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+  All(indToUse).out.stm.runVal =  All(indToUse).out.stm.runVal(1:150,:);
+    All(indToUse).out.stm.stimID =  All(indToUse).out.stm.stimID(1:150);
+
+     All(indToUse).out.spk.runVal =  All(indToUse).out.spk.runVal(1:117,:);
+    All(indToUse).out.spk.stimID =  All(indToUse).out.spk.stimID(1:117);
+        All(indToUse).out.spk.visID =  All(indToUse).out.spk.visID(1:117);
+
+    
+end
 %%
 disp('Done fixing.')

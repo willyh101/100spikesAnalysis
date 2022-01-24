@@ -7,6 +7,7 @@ addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
 ai203ManifoldLoadList;
+manifoldLoadList;
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
@@ -60,8 +61,20 @@ for ind = 1:numExps
    
 end
 %%
-opts.visRecWinRange = [0.5 1.5]; [0.5 1.5];
-opts.runThreshold = 6;
+
+
+opts.FRDefault=6;
+opts.recWinRange = [0.5 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
+opts.visRecWinRange = [0.5 1.5]; 
+
+%Stim Success Thresholds
+opts.stimsuccessZ = 0.25; %0.3, 0.25 over this number is a succesfull stim
+opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
+opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates based on zdfDat;
+
+
+%run Threshold
+opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
 opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
 All = cleanDataVisOnly(All,opts);
@@ -75,12 +88,432 @@ outVars.visPercentFromVis = visPercent;
 
 disp('ready')
 
+%% Power Calibration Sumamry
+tic;
+satPowerForFitCellsTemp ={};
+allPBal ={};
+for ind =  4:numExps;
+    disp(['Starting ind: ' num2str(ind)]);
+    stm = All(ind).out.stm;
+    FR1 = All(ind).out.info.FR;
+    
+    try
+        stime = stm.holoRequest.bigListOfFirstStimTimes(:,1);
+    catch
+        stime = stm.holoRequest2.bigListOfFirstStimTimes(:,1);
+    end
+    stFr = round(stime*FR1);
+    
+    dataToUse1 = stm.zdfData;
+    sz = size(dataToUse1);
+    
+    trialsToUse = stm.lowMotionTrials & mean(stm.runVal,2)'<6;
+    dataToUse1(:,:,~trialsToUse)=nan;
+    
+    tc = stm.targetedCells;
+    
+    calibCells  = ~isnan(tc) & ~isnan(stime);
+    datAlign = nan([sum(calibCells) 12 sz(3)]);
+    counter =1;
+    for i=1:numel(tc);
+        if calibCells(i);
+           c = tc(i); 
+           st = stFr(i);
+           if st+6 > sz(2)
+               padSize = st+6-sz(2);
+               
+               if padSize > 12
+                   datAlign(counter,:,:) = nan([1 12 sz(3)]);
+               else
+                   datpart = dataToUse1(c,st-5:end,:);
+                   datAlign(counter,:,:) = padarray(datpart,[0 padSize 0],nan,'post');
+               end
+           else
+           datAlign(counter,:,:) = dataToUse1(c,st-5:st+6,:);
+           end
+           counter=counter+1;
+        end
+    end
+    
+    powerList = stm.holoRequest.holoStimParams.powerList{:};
+    outputsOrder = stm.outputsInfo.OutputOrder;
+    stimID1 = stm.stimID; 
+%     stimID = stimID(1:77);
+%     us = unique(stimID1);
+        
+    powers=[];
+    for i=1:numel(stimID1);
+        s = stimID1(i);
+        idx = find(stm.outputsInfo.OutputStimID==s);
+        o = stm.outputsInfo.OutputOrder(idx);
+        if o==0
+            powers(i) = 0;
+        else
+            powers(i) = powerList(o);
+        end
+    end
+    
+%     window = [6:12];
+%     
+%     trialsTouse = stm.lowMotionTrials & mean(stm.runVal,2)'<6;
+%     
+%     datMean(:,1) = mean(mean(datAlign(:,window,trialsTouse & stimID==us(1)),3),2);
+%     for pidx = 1:numel(powerList);
+%         s = us(find(outputsOrder == pidx));
+%         datMean(:,pidx+1) =  mean(mean(datAlign(:,window,trialsTouse & stimID==s),3),2);
+%     end
+    
+    
+    PSTHs = permute(datAlign,[3 1 2]);
+    powers = powers; 
+    
+    
+    
+    pbal = powerCalib(PSTHs,powers,0);
+    
+%     powerList
+%     satPowerForFitCells = cat(2,satPowerForFitCells,pbal.PowerAtSat(pbal.cellsThatFit));
+satPowerForFitCellsTemp{ind}= pbal.PowerAtSat(pbal.cellsThatFit);
+    
+    allPBal{ind}=pbal;
+%     
+        allPowerCurveData{ind}.PSTHs = PSTHs;
+    allPowerCurveData{ind}.powers = powers;
+end
+satPowerForFitCells = cat(2,satPowerForFitCellsTemp{:});
+toc
+disp('done')
+%% Some Plots for Power Calib
+
+R2=[];
+for ind = 7:numExps
+R2=cat(2,R2,allPBal{ind}.Rsquare(allPBal{ind}.cellsThatFit));
+end
+
+figure(95);clf
+histogram(satPowerForFitCells,17)
+ylabel('Count')
+xlabel('Target Power (W)')
+
+disp(['Mean : ' num2str(mean(satPowerForFitCells)*1000,3) ' ' char(177) ' ' num2str(ste(satPowerForFitCells)*1000,2) ' mW'])
+disp(['N = ' num2str(numel(satPowerForFitCells))])
+
+
+figure(96);clf; 
+scatter(satPowerForFitCells,R2)
+ylabel('Fit R2')
+xlabel('Target Power')
+
+%% Plot Example Trace
+
+
+%% Spike Curve Plots
+
+subtractNull=0;
+baselineSubtract=1;
+
+satPowerForFitCells =[];
+allPBal =[];
+counter2 = 0;
+
+plotFast=1;
+plotIt=0;0;
+
+Rsquare2=[];
+MDatMat=[];
+coeff2 =[];
+
+%Note only 3 to 5 were done the same way (correctly)
+for ind = 4:numExps;
+    spk = All(ind).out.spk;
+    FR = All(ind).out.info.FR;
+    
+    stime = spk.holoRequest.bigListOfFirstStimTimes(:,1); 
+    stFr = round(stime*FR);
+    
+    dataToUse = spk.zdfData;
+    sz = size(dataToUse);
+    
+    
+    trialsToUse = spk.lowMotionTrials & mean(spk.runVal,2)'<6;
+    dataToUse(:,:,~trialsToUse)=nan;
+    
+    tc = spk.targetedCells;
+    
+    calibCells  = ~isnan(tc) & ~isnan(stime);
+    afterFrames = 18;
+    preFrames =5;
+
+    datAlign = nan([sum(calibCells) preFrames+afterFrames+1 sz(3)]);
+    counter =1;
+    for i=1:numel(tc);
+        if calibCells(i);
+           c = tc(i); 
+           st = stFr(i);
+           if st+afterFrames > sz(2)
+               padSize = st+afterFrames-sz(2);
+               
+               datpart = dataToUse(c,st-preFrames:end,:);
+               datAlign(counter,:,:) = padarray(datpart,[0 padSize 0],nan,'post');
+               disp('Padding')
+           else
+           datAlign(counter,:,:) = dataToUse(c,st-preFrames:st+afterFrames,:);
+           end
+           counter=counter+1;
+        end
+    end
+    
+    powerList = spk.holoRequest.holoStimParams.powerList{:};
+     spikeList = spk.holoRequest.holoStimParams.pulseList(:);
+
+        try
+            outputsOrder = spk.outputsInfo.OutputOrder;
+        catch
+            outputsOrder = spk.stimParams.Seq;
+        end
+            
+    stimID = spk.stimID; 
+%     stimID = stimID(1:77);
+    us = unique(stimID);
+        
+    spikes=[];
+    for i=1:numel(stimID);
+        s = stimID(i);
+%         idx = find(spk.outputsInfo.OutputStimID==s);
+        idx = find(us==s);
+
+        o = spk.outputsInfo.OutputOrder(idx);
+        if o==0
+            spikes(i) = 0;
+        else
+            spikes(i) = spikeList(o);
+        end
+    end
+    
+    PSTHs = permute(datAlign,[3 1 2]);
+    spikes = spikes; 
+    
+baselinePeriod =1:5;
+samplePeriod =9:18;
+
+sigThreshold = 2;
+
+spikeList = unique(spikes);
+
+c=0;
+for i=1:numel(spikeList)
+    p=spikeList(i);
+    numPassAvg = sum(spikes==p);
+    x = PSTHs(spikes==p,:,:);
+    m = squeeze(nanmean(x,1));
+    
+    x = permute(x,[2 1 3]);
+    dataPeriods = nanmean(x(:,:,samplePeriod),3);
+    dataPeriodsB = nanmean(x(:,:,baselinePeriod),3);
+    
+     if subtractNull
+        NullData = PSTHs(spikes==0,:,:);
+        NullData = permute(NullData,[2 1 3]);
+        dataPeriodsNull = nanmean(NullData(:,:,samplePeriod),3);
+        dataPeriods = bsxfun(@minus,dataPeriods,nanmean(dataPeriodsNull,2));
+        dataPeriodsB = bsxfun(@minus,dataPeriodsB,nanmean(dataPeriodsNull,2));
+    end
+    if baselineSubtract
+        dataPeriods = dataPeriods- dataPeriodsB;
+    end
+    mDat{i} = dataPeriods;
+    [htst , pVals{i}] = ttest(dataPeriodsB', dataPeriods') ;% for stimmability
+end
+
+
+
+% coeff2 = [];
+% Rsquare2 = [];
+% fits=[];
+
+
+if plotIt
+    figure(10);
+end
+
+% clear minStim maxStim minFluor maxFluor
+
+smallCounter=0;
+Rsquare2One=[];
+
+FitCells=1:size(mDat{1},1);
+for i=1:size(mDat{1},1);
+    
+    if mod(i,20)==0
+        fprintf([num2str(i) ' ' ])
+    end
+    
+    c=FitCells(i);
+    counter2=counter2+1;
+    smallCounter =smallCounter+1;
+    if plotIt
+    clf
+    end
+    tempDat = cellfun(@(x) x(c,:),mDat,'uniformoutput',0);
+    mmDat = cellfun(@(x) nanmean(x(c,:)),mDat);
+    sdDat = cellfun(@(x) nanstd(x(c,:)),mDat);
+    nmDat = cellfun(@(x) numel(x(c,:)),mDat);
+    seDat = sdDat./sqrt(nmDat);
+    
+    spksUsed = unique(spikes); %[ 0 1 3 10 30];
+    tDat = [];
+    gDat = [];
+    for i=1:numel(tempDat);
+        tDat = [tDat tempDat{i}];
+        gDat = [gDat ones([1 numel(tempDat{i})])*spksUsed(i)];
+    end
+    
+    
+    if plotIt
+        subplot(1,2,1)
+        plotSpread(tempDat);
+        e = errorbar(mmDat,seDat);
+        e.LineWidth = 2;
+        e.Color = rgb('grey');
+        title(c);
+        ylabel('Fluorescence')
+        xlabel('Stim')
+        
+        
+        subplot(1,2,2);
+        scatter(gDat,tDat)
+    end
+    try
+        excl = isnan(tDat) | isnan(gDat);
+        gDat(excl)=[];
+        tDat(excl)=[];
+        ft =fittype({'x.^2','x','1'});
+        
+        
+        [f2 gof2] = fit(gDat',tDat',ft);
+        [f2inv gof2] = fit(tDat',gDat',ft);
+       
+% y=tDat;
+% y = y-min(y); 
+% x=gDat;
+% % x=x+1;
+% 
+% subplot(1,2,1)
+% myfittype = fittype({'log(x+1)', '1'},'coefficients',{'a1','a2'})
+% [myfit gof] = fit(x',y',myfittype);
+% % myfit = fit(y',x',myfittype)
+% 
+% plot(myfit,x,y,'o')
+
+% subplot(1,2,2)
+% myfittype = fittype({'exp(x+1)', '1'},'coefficients',{'a1','a2'})
+%  myfit = fit(y',x',myfittype)
+% 
+% plot(myfit,y,x,'o')
+
+% plot(x,y,'o')
+        
+        if plotIt
+            
+            hold on
+            e = errorbar(spksUsed,mmDat,seDat);
+            e.LineWidth = 2;
+            e.Color = rgb('grey');
+            p2 = plot(f2);
+            p2.Color ='k';
+            p2.LineWidth=2;
+        end
+        
+        coeff2(counter2) = f2inv.a; %f2.p1;
+        Rsquare2(counter2) = gof2.rsquare;
+        Rsquare2One(smallCounter) = gof2.rsquare;
+
+        fits{counter2} = f2inv;
+        fits2{counter2}= f2;
+        
+    catch
+        coeff2(counter2) = nan;
+        Rsquare2(counter2) =0;
+        Rsquare2One(smallCounter) = 0;
+
+        f = fittype('a*x^2 + b*x + c');
+        fits{counter2} = cfit(f,0,0,0);
+%         disp('.')
+    end
+    if plotIt
+        
+        ylabel('Fluorescence')
+        xlabel('Pulses added')
+        
+        zeroint=fits2{counter2}(0);
+        title({['R2: ' num2str(Rsquare2(counter2))]; ['0 intercept: ' num2str(zeroint)]})
+
+    end
+    
+    minStim(counter2) = mmDat(1);
+    maxStim(counter2) = mmDat(end);
+
+    if ~plotFast &  plotIt
+        drawnow
+        pause
+    end
+end
+
+mDatMat = cell2mat(cellfun(@(x) nanmean(x,2), mDat,'uniformOutput',0));
+MDatMat = cat(1,MDatMat,mDatMat); %grand all data set; 
+
+includeThreshold = Rsquare2One>0.15;
+mDatMat(~includeThreshold,:)=[];
+sum(includeThreshold)
+
+figure(101);clf
+p = plot(spikeList,mDatMat,'color',rgb('grey'));
+hold on
+m = mean(mDatMat);
+sd = std(mDatMat);
+se = sd./sqrt(size(mDatMat,1));
+e = errorbar(spikeList,m,se);
+e.Color = rgb('black');
+e.LineWidth = 2; 
+
+
+
+pause
+disp('.')
+
+
+
+end
+
+% coef cellfun(@(x)x.a,fits2)
+coeff2
+sum(Rsquare2>0.15)
+
+figure(103);clf
+% scatter(Rsquare2,coeff2,'o')
+
+includeThreshold = Rsquare2>0.15;
+MDatMat(~includeThreshold,:)=[];
+sum(includeThreshold)
+
+p = plot(spikeList,MDatMat,'color',rgb('grey'));
+hold on
+m = mean(MDatMat);
+sd = std(MDatMat);
+se = sd./sqrt(size(MDatMat,1));
+e = errorbar(spikeList,m,se);
+e.Color = rgb('black');
+e.LineWidth = 2; 
+xticks(0:5:20)
+
 
 %% Establish PCA on Vis Epoch
 numExps = numel(All);
 
 stepByStep=0;
-useBothVisAndHoloForPCA =1;
+useBothVisAndHoloForPCA =0;
+    plotHoloMerge =1;
+    plotMerge = 1;
 
 plotExamples=0;
 
@@ -101,16 +534,29 @@ plotExamples=0;
     hIDS{5} = [1 1:9];
     hPlot{5} = [1 0 1 1 1 1 1 1 1 1 1 ];
 
+        hIDS{7} = [1 1:9];
+    hPlot{7} = [1 0 1 1 1 1 1 1 1 1 1 ];
+    
     cosSimOut=[];
-
-for ind = 4:5; 1:numExps;
+    cosSimOutShuffle=[];
+    cosSimOnDiagOut=[];
+        cosSimOnDiagShuffleOut=[];
+cosSimOffDiagOut=[];
+CosSimToSpont=[];
+    
+    rangeToAnalyze =1:18; %for PCA
+    plotRange = 1:18;
+smoothFactor =3;
+    
+    
+for ind = 7; 1:numExps;
     visID = All(ind).out.vis.visID;
     uv = unique(All(ind).out.vis.visID);
     
     try
-        rtgs = unique(cat(2,All(ind).out.exp.rois{:}));
+        rtgs = unique(cat(2,All(ind).out.mani.rois{:}));
     catch
-        rtgs = unique(cat(1,All(ind).out.exp.rois{:}));
+        rtgs = unique(cat(1,All(ind).out.mani.rois{:}));
     end
     htgs = All(ind).out.exp.targetedCells(rtgs);
     htgs(isnan(htgs))=[];
@@ -119,22 +565,23 @@ for ind = 4:5; 1:numExps;
     %data to build PCA
     %build new composite zdfData;
     dat1 = All(ind).out.vis.zdfData;
-    dat2 = All(ind).out.exp.zdfData;
+    dat2 = All(ind).out.mani.zdfData;
     
     sz1 = size(dat1);
     sz2 = size(dat2);
     mnFrames = min(sz1(2),sz2(2));
     
     
-    fullDat = cat(3,All(ind).out.vis.allData(:,1:mnFrames,:),All(ind).out.exp.allData(:,1:mnFrames,:));
+    fullDat = cat(3,All(ind).out.vis.allData(:,1:mnFrames,:),All(ind).out.mani.allData(:,1:mnFrames,:));
     [fulldfDat, fullzdfDat] = computeDFFwithMovingBaseline(fullDat);
     
     dat1 = fullzdfDat(:,:,1:sz1(3));
     dat2 = fullzdfDat(:,:,sz1(3)+1:end);
     
     
-    dat1 = dat1(:,1:18,:);
-    dat2 = dat2(:,1:18,:);
+    
+    dat1 = dat1(:,rangeToAnalyze,:);
+    dat2 = dat2(:,rangeToAnalyze,:);
     %     dat1 = All(ind).out.vis.zdfData(:,1:18,:);
     %     dat2 = All(ind).out.exp.zdfData(:,1:18,:);
     
@@ -166,7 +613,7 @@ for ind = 4:5; 1:numExps;
     datToUse = datToUse-bData; %baseline
     %     datToUse = smoothdata(datToUse,2); %smooth
     
-    datToUse=datToUse(:,6:18,:);
+    datToUse=datToUse(:,6:end,:);
     
     sz = size(datToUse);
     datToUseMakePCA = reshape(datToUse,[sz(1) sz(2)*sz(3)]);
@@ -181,8 +628,9 @@ for ind = 4:5; 1:numExps;
     datToUse = datToUse(cellsToUse,:,:); %All(ind).out.vis.allData;
     bData = mean(datToUse(:,1:5,:),2);
     datToUse = datToUse-bData; %baseline
-    datToUse = smoothdata(datToUse,2); %smooth
-    
+%     datToUse = smoothdata(datToUse,2); %smooth
+            datToUse = movmean(datToUse,smoothFactor,2); %smooth
+
     sz = size(datToUse);
     datToUse2 = reshape(datToUse,[sz(1) sz(2)*sz(3)]);
     
@@ -190,7 +638,8 @@ for ind = 4:5; 1:numExps;
     visScore = coeff' * datToUse2;
     visScore = reshape(visScore,[sz(1) sz(2) sz(3)]);
     
-    colors = colorMapPicker(4,'plasma');
+    colors = colorMapPicker(5,'plasma');
+    colors = colors(1:4);
     colors = cat(2,{rgb('grey')},colors,colors);
     
     
@@ -200,7 +649,9 @@ for ind = 4:5; 1:numExps;
     hdatToUse = hdatToUse(cellsToUse,:,:); %All(ind).out.vis.allData;
     bhData = mean(hdatToUse(:,1:5,:),2);
     hdatToUse = hdatToUse-bhData; %baseline
-    hdatToUse = smoothdata(hdatToUse,2); %smooth
+%     hdatToUse = smoothdata(hdatToUse,2); %smooth
+        hdatToUse = movmean(hdatToUse,smoothFactor,2); %smooth
+
     
     sz = size(hdatToUse);
     hdatToUse2 = reshape(hdatToUse,[sz(1) sz(2)*sz(3)]);
@@ -214,11 +665,10 @@ for ind = 4:5; 1:numExps;
     ax2 = 2;
     ax3 = 3;
     
-    plotMerge = 1;
     
     figure(3);clf
     hold on
-    datToPlot = squeeze(mean(visScore(:,:,visID==uv(1) & trialsToUseVis),3));
+    datToPlot = squeeze(mean(visScore(:,plotRange,visID==uv(1) & trialsToUseVis),3));
     p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
     p.Color = colors{1};
     p.LineWidth = 2;
@@ -226,7 +676,7 @@ for ind = 4:5; 1:numExps;
     %plot vis
     for i=1:9;%[1 3 5 7 9];%[1 8 6 4 2];%1:9;%numel(uv)
         
-        datToPlot = squeeze(mean(visScore(:,:,visID==uv(i)& trialsToUseVis),3));
+        datToPlot = squeeze(mean(visScore(:,plotRange,visID==uv(i)& trialsToUseVis),3));
         
         if ~plotMerge
             sz = size(datToPlot);
@@ -239,7 +689,7 @@ for ind = 4:5; 1:numExps;
             
         else
             if i>1 && i<6
-                datToPlot = squeeze(mean(visScore(:,:,(visID==uv(i) | visID==uv(i+4)) & trialsToUseVis),3));
+                datToPlot = squeeze(mean(visScore(:,plotRange,(visID==uv(i) | visID==uv(i+4)) & trialsToUseVis),3));
                 p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
                 p.Color = colors{i};
                 p.LineWidth = 2;
@@ -254,10 +704,10 @@ for ind = 4:5; 1:numExps;
     %     clf;hold on
     %     us = All(ind).out.mani.uniqueStims;
     %     stimID = All(ind).out.mani.stimID;
-    us = All(ind).out.exp.uniqueStims;
+    us = All(ind).out.mani.uniqueStims;
     
-    stimID = All(ind).out.exp.stimID;
-    [s sidx] = sort(All(ind).out.exp.stimParams.Seq);
+    stimID = All(ind).out.mani.stimID;
+    [s sidx] = sort(All(ind).out.mani.stimParams.Seq);
     us = us(sidx);
     
     if numel(us)<9
@@ -268,10 +718,9 @@ for ind = 4:5; 1:numExps;
     holoIDS = [1 1:9];
     holoPlot = [1 0 1 1 1 1 1 1 1 1 ];
 
-    holoIDS = hIDS{ind};
-    holoPlot = hPlot{ind};
+%     holoIDS = hIDS{ind};
+%     holoPlot = hPlot{ind};
     
-    plotHoloMerge =1;
     
 %     datToPlot = squeeze(mean(newHScore(:,:,stimID==us(2) & trialsToUseExp),3));
 %     p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
@@ -283,7 +732,7 @@ for ind = 4:5; 1:numExps;
 for i=1:numel(us)
     if us(i)~=0
         if ~plotHoloMerge
-            datToPlot = squeeze(mean(newHScore(:,:,stimID==us(i) & trialsToUseExp),3));
+            datToPlot = squeeze(mean(newHScore(:,plotRange,stimID==us(i) & trialsToUseExp),3));
             p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
             p.Color = colors{holoIDS(i)}; %rgb('red'); %colors{i};
             p.LineWidth =2;
@@ -297,7 +746,7 @@ for i=1:numel(us)
                 if isempty(tempID)
                     tempID=NaN;
                 end
-                datToPlot = squeeze(mean(newHScore(:,:,(stimID==us(i) | stimID==tempID)  & trialsToUseExp),3));
+                datToPlot = squeeze(mean(newHScore(:,plotRange,(stimID==us(i) | stimID==tempID)  & trialsToUseExp),3));
                 p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
                 p.Color = colors{holoIDS(i)}; %rgb('red'); %colors{i};
                 p.LineWidth =2;
@@ -308,13 +757,13 @@ for i=1:numel(us)
                 if isempty(tempID)
                     tempID=NaN;
                 end
-                datToPlot = squeeze(mean(newHScore(:,:,(stimID==us(i) | stimID==tempID)  & trialsToUseExp),3));
+                datToPlot = squeeze(mean(newHScore(:,plotRange,(stimID==us(i) | stimID==tempID)  & trialsToUseExp),3));
                 p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
                 p.Color = colors{holoIDS(i)}; %rgb('red'); %colors{i};
                 p.LineWidth =2;
                 p.LineStyle = ':';
             elseif holoIDS(i)==1
-                datToPlot = squeeze(mean(newHScore(:,:,stimID==us(i) & trialsToUseExp),3));
+                datToPlot = squeeze(mean(newHScore(:,plotRange,stimID==us(i) & trialsToUseExp),3));
                 p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
                 p.Color = colors{holoIDS(i)}; %rgb('red'); %colors{i};
                 p.LineWidth =2;
@@ -367,8 +816,15 @@ end
     hDataToUse = hDataToUse-bhData; %baseline
     %     hDataToUse = smoothdata(hDataToUse,2); %smooth
     
-    bData = mean(dataToUse(:,1:5,:),2);
-    dataToUse = dataToUse-bData; %baseline
+    bData = nanmean(dataToUse(:,1:5,:),2);
+%     dataToUse = dataToUse-bData; %baseline
+    
+    temp = permute(dataToUse,[1 3 2]);
+    temp2 = squeeze(bData);
+    temp3 = temp-temp2;
+    dataToUse = permute(temp3,[1 3 2]);
+    
+    
     %     dataToUse = smoothdata(dataToUse,2); %smooth
     
     %     visMean-0.2zeros([numel(cellsToUse) 9]);
@@ -502,14 +958,103 @@ end
     
     testSim = cosSim(1:9,2:9);
     cosSimOut = cat(2,cosSimOut,testSim);
-    size(cosSimOut)
+    size(cosSimOut);
     
     testSim = cosSim(2:9,2:9);
     meanSimOnDiag = nanmean(testSim(logical(eye(8))));
     meanSimOffDiag = nanmean(testSim(~logical(eye(8))));
     meanSimOnDiag/meanSimOffDiag;
+    cosSimOnDiagOut = cat(1,cosSimOnDiagOut,testSim(logical(eye(8))));
+    cosSimOffDiagOut = cat(1,cosSimOffDiagOut,testSim(~logical(eye(8))));
+    CosSimToSpont  = cat(2,CosSimToSpont, cosSim(1,2:9));
+
     
     disp(['Holography mean on diagonal : ' num2str(meanSimOnDiag) ', off diag: ' num2str(meanSimOffDiag)])
+    
+    yticks(1:9)
+    yticklabels({'gray' 0:45:315})
+    ylabel('Visual Input')
+    xticks(1:10)
+    xticklabels({'no stim' 0:45:315})
+    xtickangle(45)
+    xlabel('Holographic Input')
+%     title('Cosine Similarity')
+         title('Cosine Similarity, Direction')
+
+     caxis([-0.2 0.75])
+     
+     %% shuffle Cosine Similarity
+      
+    figure(15);clf
+    colormap parula
+    
+    crange = [0 2];
+    respRange =6:18;%9:18;
+    
+    shuffleOrder = randperm(size(dataToUse,3));
+    dataToUseShuffle = dataToUse(:,:,shuffleOrder);
+    
+    subplot(1,3,1)
+    visMean=zeros([numel(cellsToUse) 9]);
+    val = mean(mean(dataToUseShuffle(:,respRange,visID==uv(1)& trialsToUseVis),2),3);
+    visMean(:,1)= val;
+    for i=2:9
+        val = mean(mean(dataToUseShuffle(:,respRange,(visID==uv(i)) & trialsToUseVis),2),3);
+        visMean(:,i)= val;
+    end
+    
+    
+    imagesc(visMean)
+    title('Vis Mean Response')
+    colorbar
+    caxis(crange)
+    
+    subplot(1,3,2)
+    
+    %     holoMean = zeros([numel(cellsToUse) numel(us)]);
+    %     for i=1:numel(us)
+    %         val = mean(mean(hdatToUse(:,6:15,stimID==us(i)& trialsToUseExp),2),3);
+    %         holoMean(:,i)= val;
+    %     end
+        shuffleOrder = randperm(size(hDataToUse,3));
+    hDataToUseShuffle =  hDataToUse(:,:,shuffleOrder);
+    
+    holoMean = zeros([numel(cellsToUse) 9]);
+    val = mean(mean(hDataToUseShuffle(:,respRange,stimID==us(1)& trialsToUseExp),2),3);
+    holoMean(:,1)= val;
+%     val = mean(mean(hDataToUse(:,respRange,stimID==us(2)& trialsToUseExp),2),3);
+%     holoMean(:,2)= val;
+    for i= find(holoIDS>1); %3:6
+        hi = holoIDS(i); 
+        val = mean(mean(hDataToUseShuffle(:,respRange,(stimID==us(i) ) & trialsToUseExp),2),3);
+        holoMean(:,hi)= val;
+    end
+    imagesc(holoMean)
+    title('Holo Mean Response')
+    colorbar
+    caxis(crange)
+    
+    cosSim=zeros([size(visMean,2) size(holoMean,2)]);
+    for i=1:size(visMean,2)
+        for k=1:size(holoMean,2)
+            cosSim(i,k)=cosine_similarity(visMean(:,i),holoMean(:,k));
+        end
+    end
+    subplot(1,3,3)
+    imagesc(cosSim)
+    colorbar
+    
+    
+    testSim = cosSim(1:9,2:9);
+    cosSimOutShuffle = cat(2,cosSimOutShuffle,testSim);
+    
+    testSim = cosSim(2:9,2:9);
+    meanSimOnDiag = nanmean(testSim(logical(eye(8))));
+    meanSimOffDiag = nanmean(testSim(~logical(eye(8))));
+    meanSimOnDiag/meanSimOffDiag;
+        cosSimOnDiagShuffleOut = cat(1,cosSimOnDiagShuffleOut,testSim(logical(eye(8))));
+
+    disp(['Holography Shuffled mean on diagonal : ' num2str(meanSimOnDiag) ', off diag: ' num2str(meanSimOffDiag)])
     
     yticks(1:9)
     yticklabels({'gray' 0:45:315})
@@ -641,21 +1186,110 @@ end
          
          
          figure(7);clf
+         subplot(1,2,1)
          e2 = errorbar(1:9,vMean,vSEM);
          xticks(1:9)
          xticklabels({'gray' 0:45:315})
          
          hold on;
-         e2 = errorbar(1:9,hMean,hSEM);
+         e2 = errorbar(1:9,hMean([1 3:10]),hSEM([1 3:10]));
          %          xticks(1:9)
          %          xticklabels({'gray' 0:45:315})
          ylabel('zdF/F')
          xlabel('Stimulus')
+         
+         subplot(1,2,2)
+         
+         minVal = min([hMean vMean]);
+         if minVal>0
+             minVal=0;
+         end
+         
+         rads = 0:pi/4:2*pi;
+         polarplot(rads,[vMean(2:9) vMean(2)]-minVal);
+         hold on
+         polarplot(rads,[hMean(3:10) hMean(3)]-minVal);
+
+         
+         colors = colorMapPicker(5,'plasma');
+    colors = colors(1:4);
+    colors = cat(2,{rgb('grey')},colors,colors);
+         
+    estSpikes = All(ind).out.mani.estSpikes; 
+    
+    cellsToWrite = All(ind).out.mani.mani.CellsToWrite; %defines estSpikes in units of fitCells
+    cellsToFit = All(ind).out.mani.mani.CellsToFit;
+    
+    cellIDs = cellsToFit(cellsToWrite);
+    
+    tc = All(ind).out.mani.targetedCells; 
+    cellIDsS2P = tc(cellIDs);
+    
+    idxInEstSpikes = find(cellIDsS2P==cellsToUse(i));
+        spikesThisCell = estSpikes(idxInEstSpikes,:);
+
+%         tcsofCellIds = All(ind).out.mani.targetedCells(All(ind).out.mani.CellIDs);
+%         tempi = find(tcsofCellIds==cellsToUse(i));
+%         writeCell = All(ind).out.mani.CellIDs(tempi);
+%     fitID = find(All(ind).out.mani.mani.CellsToFit==writeCell);
+%         
+%         
+%     idxInEstSpikes = find(estSpikeCells==cellsToUse(i)); 
+%     spikesThisCell = estSpikes(idxInEstSpikes,:);
+    
+         figure(8);clf
+         
+         ax=[];
+         ax2=[];
+         for k=1:9
+             ax(end+1) = subplot(4,9,k+9);
+             tempDat = squeeze(dataToUse(i,:,visID==uv(k)));
+             imagesc(tempDat')
+             caxis([-1 4])
+                          xticks(0:FR:24)
+             xticklabels(-1:1:3)
+             
+             ax2(end+1) = subplot(4,9,k);
+             fillPlot(tempDat',[],'ci',colors{k},[],colors{k},0.5);
+             xticks(0:FR:24)
+             xticklabels(-1:1:3)
+             box off
+         end
+         
+         holoToPlotIDX = [1 3:10];
+           for k=1:numel(holoToPlotIDX)
+             ax(end+1) = subplot(4,9,k+27);
+             tempDat = squeeze(hDataToUse(i,:, stimID==us(holoToPlotIDX(k)) & trialsToUseExp));
+             imagesc(tempDat')
+              caxis([-1 4])
+                           xticks(0:FR:24)
+             xticklabels(-1:1:3)
+              
+              ax2(end+1) = subplot(4,9,k+18);
+             fillPlot(tempDat',[],'ci',colors{k},[],colors{k},0.5);
+                           xticks(0:FR:24)
+             xticklabels(-1:1:3)
+             title(num2str(spikesThisCell(k)))
+             box off
+           end
+                    linkaxes(ax2)
+           ylim([-1 3])
+           xlim([1 24])
+         same_color_scale(ax)
+         colormap viridis
+         
          pause
          
      end
      end
 end
+
+pOnvShuffle = ranksum(cosSimOnDiagOut,cosSimOnDiagShuffleOut);
+pOnvOff = ranksum(cosSimOnDiagOut,cosSimOffDiagOut);
+pOnvSpont = ranksum(cosSimOnDiagOut,CosSimToSpont);
+
+figure(17);clf
+plotSpread({cosSimOnDiagOut cosSimOffDiagOut CosSimToSpont cosSimOnDiagShuffleOut })
 
 %% Plot Data
 
