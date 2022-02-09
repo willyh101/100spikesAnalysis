@@ -231,6 +231,7 @@ ensemblesToUse = ... numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 1 ...
     ...& ensembleOneSecond ... %cuts off a lot of the earlier
     ...& numCellsEachEns==10 ...
+        & numCellsEachEns==1 ...
     ...& ensDate >= 211101 ...
     ...    & ensDate >= 211101 & ensDate <= 211105 ...
     ...& outVars.hzEachEns == 10 ...
@@ -345,7 +346,7 @@ CellToUseVar = 'anal.cellsToInclude';
 [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
 dataInPlots{1}=outDat{1};
 eHandle{1}.CapSize =0;
-eHandle{2}.CapSize =0;
+% eHandle{2}.CapSize =0;
 
 title('min')
 
@@ -362,3 +363,19 @@ eHandle{2}.CapSize =0;
 
 title('mean')
 ylim([-0.075 0.075])
+
+%% One Plot
+
+figure(103);clf;
+dataInPlots =[];
+
+ax = subplot(1,1,1);
+opts.distType = 'min';
+opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 250]; %[0 350] is stand
+CellToUseVar = 'anal.cellsToInclude';
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{1}=outDat{1};
+eHandle{1}.CapSize =0;
+xlabel('Distance')

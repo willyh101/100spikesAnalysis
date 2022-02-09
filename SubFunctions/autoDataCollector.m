@@ -175,6 +175,24 @@ switch option
         vis2.visStop = visStop;
         vis2.DAQepoch = DAQepoch;
         disp('got vis2')
+    case 'vis3'
+        %% if two vis sets
+        vis3.desc = 'other';
+        vis3.zdfData = zdfData;
+        vis3.allData = allData;
+        vis3.dfData = dfData;
+        
+        vis3.NPcoef = allNPC;
+        vis3.allNP = allNP;
+        vis3.allDataNoNP = allDataNoNP;
+        
+        vis3.runVal = runVector;
+        vis3.lowMotionTrials = lowMotionTrials;
+        vis3.visID = visID;
+        vis3.visStart = visStart;
+        vis3.visStop = visStop;
+        vis3.DAQepoch = DAQepoch;
+        disp('got vis3')
     case 'mani'
         %% save exp to Manifold
         mani = exp;
@@ -340,6 +358,8 @@ try out.exp2 = exp2; catch; end;
 try out.vis = vis; catch; end
 
 try out.vis2=vis2; catch;end
+try out.vis3=vis3; catch;end
+
 try out.spk = spk; catch; end
 try out.mani = mani; catch; end
 

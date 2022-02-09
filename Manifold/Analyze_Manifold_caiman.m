@@ -6,7 +6,7 @@ masterTic = tic;
 addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
-ai203ManifoldLoadList;
+ai203ManifoldLoadListCaiman;
 % manifoldLoadList;
 % % allLoadList;
 
@@ -56,10 +56,13 @@ end
 %% Set Data To Use
 
 for ind = 1:numExps
-    
-    All(ind).out.exp.dataToUse = All(ind).out.exp.zdfData;
-    All(ind).out.vis.dataToUse = All(ind).out.vis.zdfData;
-    
+%     
+%   All(ind).out.exp.dataToUse = All(ind).out.exp.zdfData;
+%     All(ind).out.vis.dataToUse = All(ind).out.vis.zdfData; 
+%     All(ind).out.exp.dataToUse = All(ind).out.exp.caiman_matched;
+%     All(ind).out.vis.dataToUse = All(ind).out.vis.caiman_matched;  
+  All(ind).out.exp.dataToUse = All(ind).out.exp.caiman;
+    All(ind).out.vis.dataToUse = All(ind).out.vis.caiman;  
 end
 %%
 
@@ -107,13 +110,14 @@ for ind = 1:numExps; %comment out the plot example part to run it as parfor
     end
     stFr = round(stime*FR1);
     
-    dataToUse1 = stm.zdfData;
+    dataToUse1 = stm.caiman; %_matched;    stm.zdfData;
     sz = size(dataToUse1);
     
     trialsToUse = stm.lowMotionTrials & mean(stm.runVal,2)'<6;
     dataToUse1(:,:,~trialsToUse)=nan;
     
-    tc = stm.targetedCells;
+    tc =stm.targetedCells; 
+    tc = (1:numel(stm.targetedCells))';
     
     calibCells  = ~isnan(tc) & ~isnan(stime);
     datAlign = nan([sum(calibCells) 12 sz(3)]);
@@ -225,7 +229,7 @@ for ind = 1:numExps; %comment out the plot example part to run it as parfor
             end
         end
     end
-    
+%     
     %     powerList
     %     satPowerForFitCells = cat(2,satPowerForFitCells,pbal.PowerAtSat(pbal.cellsThatFit));
     satPowerForFitCellsTemp{ind}= pbal.PowerAtSat(pbal.cellsThatFit);
@@ -292,8 +296,6 @@ xlabel('Target Power')
 
 %% Spike Curve Plots
 
-plotExample = 0;
-
 subtractNull=0;
 baselineSubtract=1;
 
@@ -304,19 +306,21 @@ counter2 = 0;
 plotFast=1;
 plotIt=0;0;
 
+plotExample =0;
+
 Rsquare2=[];
 MDatMat=[];
 coeff2 =[];
 
 %Note only 3 to end were done the same way (correctly)
-for ind = 3:numExps;
+for ind = 1:numExps;
     spk = All(ind).out.spk;
     FR = All(ind).out.info.FR;
     
     stime = spk.holoRequest.bigListOfFirstStimTimes(:,1);
     stFr = round(stime*FR);
     
-    dataToUse = spk.zdfData;
+    dataToUse = spk.caiman_matched;    spk.zdfData;
     sz = size(dataToUse);
     
     
@@ -654,7 +658,7 @@ plotNoStim =0;
 
 plotExamples=0;
 
-pauseEachInd=0;
+pauseEachInd=1;
 
 % ID which holo corresponds with which ID
 hIDS{1} = [1 9 7 4 6];
@@ -690,7 +694,7 @@ smoothFactor =3;
 allVisTC=[];
 allHoloTC=[];
 
-for ind = 4:numExps;
+for ind = 1:numExps;
     visID = All(ind).out.vis.visID;
     uv = unique(All(ind).out.vis.visID);
     
@@ -700,20 +704,21 @@ for ind = 4:numExps;
         rtgs = unique(cat(1,All(ind).out.mani.rois{:}));
     end
     htgs = All(ind).out.exp.targetedCells(rtgs);
+    htgs = rtgs;
     htgs(isnan(htgs))=[];
     cellsToUse = htgs;
     
     %data to build PCA
     %build new composite zdfData;
-    dat1 = All(ind).out.vis.allData;
-    dat2 = All(ind).out.mani.allData;
+    dat1 =All(ind).out.vis.caiman; %All(ind).out.vis.caiman_matched; All(ind).out.vis.allData;
+    dat2 = All(ind).out.mani.caiman;%All(ind).out.mani.caiman_matched; All(ind).out.mani.allData;
     
     sz1 = size(dat1);
     sz2 = size(dat2);
     mnFrames = min(sz1(2),sz2(2));
     
     
-    fullDat = cat(3,All(ind).out.vis.allData(:,1:mnFrames,:),All(ind).out.mani.allData(:,1:mnFrames,:));
+    fullDat = cat(3,dat1(:,1:mnFrames,:),dat2(:,1:mnFrames,:));
     [fulldfDat, fullzdfDat] = computeDFFwithMovingBaseline(fullDat);
     
     dat1 = fullzdfDat(:,:,1:sz1(3));
