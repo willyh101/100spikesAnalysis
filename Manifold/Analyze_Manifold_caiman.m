@@ -93,12 +93,16 @@ outVars.visPercentFromVis = visPercent;
 disp('ready')
 
 %% Power Calibration Sumamry
-plotExamples = 0; 
+plotExamples = 1;
+
+useCaiman =1 ;
 
 tic;
 satPowerForFitCellsTemp ={};
 allPBal ={};
-for ind = 1:numExps; %comment out the plot example part to run it as parfor
+
+cellMatchList={};calibCellList={};
+parfor ind =  1:numExps; %comment out the plot example part to run it as parfor
     disp(['Starting ind: ' num2str(ind)]);
     stm = All(ind).out.stm;
     FR1 = All(ind).out.info.FR;
@@ -110,16 +114,28 @@ for ind = 1:numExps; %comment out the plot example part to run it as parfor
     end
     stFr = round(stime*FR1);
     
-    dataToUse1 = stm.caiman; %_matched;    stm.zdfData;
+    if useCaiman
+        dataToUse1 = stm.caiman; %_matched;    stm.zdfData;
+    else
+        dataToUse1 = stm.zdfData;
+    end
+    
     sz = size(dataToUse1);
     
     trialsToUse = stm.lowMotionTrials & mean(stm.runVal,2)'<6;
     dataToUse1(:,:,~trialsToUse)=nan;
     
-    tc =stm.targetedCells; 
-    tc = (1:numel(stm.targetedCells))';
+    if useCaiman
+        tc = (1:numel(stm.targetedCells))';
+    else
+        tc =stm.targetedCells;
+    end
+    cellMatchList{ind} = stm.targetedCells;
     
     calibCells  = ~isnan(tc) & ~isnan(stime);
+    
+    calibCellList{ind} = calibCells;
+    
     datAlign = nan([sum(calibCells) 12 sz(3)]);
     counter =1;
     for i=1:numel(tc);
@@ -177,59 +193,61 @@ for ind = 1:numExps; %comment out the plot example part to run it as parfor
     
     
     pbal = powerCalib(PSTHs,powers,0);
-    pbal.calibCells = find(calibCells); 
+    pbal.calibCells = find(calibCells);
+    pbal.powerList = unique(powers); 
+    pbal.AvgNumTrials = numel(stimID1)/(numel(powerList)+1);
     
     calibCellsList = find(calibCells);
     clim = [0 5];
     
-    if plotExamples
-        for i=1:numel(calibCellsList)
-            if pbal.Rsquare(i) > 0.25 && pbal.cellsThatFit(i)
-                    figure(1001)
-                    clf;
-                
-                pl = unique(powers);
-                nPwr = numel(pl);
-                
-                colorList = colorMapPicker(nPwr,'viridis');
-                
-                baseVal = datAlign(i,:,powers==0);
-                baseVal = nanmean(baseVal(:)); 
-
-                
-                meanVal=[];seVal=[];
-                for k=1:numel(pl)
-                    ax(k) = subplot(2,nPwr+1,k);
-                    cellDat = squeeze(datAlign(i,:,powers==pl(k))) - baseVal;
-                    fillPlot(cellDat',[],'ci',colorList{k},'none',colorList{k},0.5);
-                    box off
-                    
-                    subplot(2,nPwr+1,k+nPwr+1)
-                    imagesc(cellDat')
-                    caxis(clim)
-                    
-                    cellDat = cellDat(6:end,:);
-                    meanVal(k) = nanmean(cellDat(:));
-                    
-                    trialDat = nanmean(cellDat,1);
-                    seVal(k) = nanstd(trialDat)/sqrt(numel(trialDat));
-                end
-                subplot(2,nPwr+1,k+1)
-                errorbar(pl,meanVal,seVal)
-                hold on
-                plot(pbal.allFits{i})
-                xlim([0 .125])
-                legend off
-                title({['Ind: ' num2str(ind) ' cell: ' num2str(calibCellsList(i))],...
-                    ['Power At Sat ' num2str(pbal.PowerAtSat(i))], ...
-                    ['Fit R2: ' num2str(pbal.Rsquare(i))] } )
-                linkaxes(ax)
-                
-                pause
-            end
-        end
-    end
-%     
+%     if plotExamples
+%         for i=1:numel(calibCellsList)
+%             if pbal.Rsquare(i) > 0.25 && pbal.cellsThatFit(i)
+%                 figure(1001)
+%                 clf;
+%                 
+%                 pl = unique(powers);
+%                 nPwr = numel(pl);
+%                 
+%                 colorList = colorMapPicker(nPwr,'viridis');
+%                 
+%                 baseVal = datAlign(i,:,powers==0);
+%                 baseVal = nanmean(baseVal(:));
+%                 
+%                 
+%                 meanVal=[];seVal=[];
+%                 for k=1:numel(pl)
+%                     ax(k) = subplot(2,nPwr+1,k);
+%                     cellDat = squeeze(datAlign(i,:,powers==pl(k))) - baseVal;
+%                     fillPlot(cellDat',[],'ci',colorList{k},'none',colorList{k},0.5);
+%                     box off
+%                     
+%                     subplot(2,nPwr+1,k+nPwr+1)
+%                     imagesc(cellDat')
+%                     caxis(clim)
+%                     
+%                     cellDat = cellDat(6:end,:);
+%                     meanVal(k) = nanmean(cellDat(:));
+%                     
+%                     trialDat = nanmean(cellDat,1);
+%                     seVal(k) = nanstd(trialDat)/sqrt(numel(trialDat));
+%                 end
+%                 subplot(2,nPwr+1,k+1)
+%                 errorbar(pl,meanVal,seVal)
+%                 hold on
+%                 plot(pbal.allFits{i})
+%                 xlim([0 .125])
+%                 legend off
+%                 title({['Ind: ' num2str(ind) ' cell: ' num2str(calibCellsList(i))],...
+%                     ['Power At Sat ' num2str(pbal.PowerAtSat(i))], ...
+%                     ['Fit R2: ' num2str(pbal.Rsquare(i))] } )
+%                 linkaxes(ax)
+%                 
+%                 pause
+%             end
+%         end
+%     end
+    %
     %     powerList
     %     satPowerForFitCells = cat(2,satPowerForFitCells,pbal.PowerAtSat(pbal.cellsThatFit));
     satPowerForFitCellsTemp{ind}= pbal.PowerAtSat(pbal.cellsThatFit);
@@ -243,6 +261,7 @@ satPowerForFitCells = cat(2,satPowerForFitCellsTemp{:});
 toc
 disp('done')
 %% Some Plots for Power Calib
+
 cellsThatFit=[];
 for ind = 1:numExps;
     cellsThatFit = cat(2,cellsThatFit,allPBal{ind}.cellsThatFit);
@@ -257,6 +276,7 @@ figure(93);clf
 histogram(satPowerForFitCells,17)
 ylabel('Count')
 xlabel('Target Power (W)')
+set(gca,'TickDir','out')
 
 disp(['Mean : ' num2str(mean(satPowerForFitCells)*1000,3) ' ' char(177) ' ' num2str(ste(satPowerForFitCells)*1000,2) ' mW'])
 disp(['N = ' num2str(numel(satPowerForFitCells))])
@@ -266,6 +286,20 @@ figure(94);clf;
 scatter(satPowerForFitCells,R2)
 ylabel('Fit R2')
 xlabel('Target Power')
+set(gca,'TickDir','out')
+
+
+allCellMatch = cat(1,cellMatchList{:});
+notMatchedCells = isnan(allCellMatch); 
+allCalibCells = cat(1,calibCellList{:});
+
+notMatchedAndCalib = notMatchedCells(allCalibCells);
+
+disp(['Overall Fit : ' num2str(mean(cellsThatFit)*100,3) '% of calib targets'])
+disp(['Fit : ' num2str(mean(cellsThatFit(notMatchedAndCalib))*100,3) '% of Not Matched calib targets'])
+
+disp(['Fit : ' num2str(mean(cellsThatFit(~notMatchedAndCalib))*100,3) '% of  Matched calib targets'])
+
 
 %% Plot Example Trace
 
@@ -295,8 +329,9 @@ xlabel('Target Power')
 % end
 
 %% Spike Curve Plots
+useCaiman=1;
 
-subtractNull=0;
+subtractNull=1;
 baselineSubtract=1;
 
 satPowerForFitCells =[];
@@ -305,29 +340,38 @@ counter2 = 0;
 
 plotFast=1;
 plotIt=0;0;
+pauseEachInd=0;
 
 plotExample =0;
 
 Rsquare2=[];
 MDatMat=[];
 coeff2 =[];
-
+numSpkFitCellsPerInd=[];
 %Note only 3 to end were done the same way (correctly)
-for ind = 1:numExps;
+for ind = 3:numExps;
     spk = All(ind).out.spk;
     FR = All(ind).out.info.FR;
     
     stime = spk.holoRequest.bigListOfFirstStimTimes(:,1);
     stFr = round(stime*FR);
     
-    dataToUse = spk.caiman_matched;    spk.zdfData;
+    if useCaiman
+    dataToUse = spk.caiman; %_matched;    spk.zdfData;
+    else
+            dataToUse =   spk.zdfData;
+    end
     sz = size(dataToUse);
     
     
     trialsToUse = spk.lowMotionTrials & mean(spk.runVal,2)'<6;
     dataToUse(:,:,~trialsToUse)=nan;
     
-    tc = spk.targetedCells;
+    if useCaiman
+        tc = [1:numel(spk.targetedCells)]';
+    else
+        tc = spk.targetedCells;
+    end
     
     calibCells  = ~isnan(tc) & ~isnan(stime);
     afterFrames = 18;
@@ -431,6 +475,7 @@ for ind = 1:numExps;
     Rsquare2One=[];
     
     FitCells=1:size(mDat{1},1);
+    numSpkFitCellsPerInd(ind) = numel(FitCells); 
     for i=1:size(mDat{1},1);
         
         if mod(i,20)==0
@@ -525,7 +570,7 @@ for ind = 1:numExps;
             Rsquare2(counter2) =0;
             Rsquare2One(smallCounter) = 0;
             
-            f = fittype('a*x^2 + b*x + c');
+            f = fittype('a*x^2 + b*x ');
             fits{counter2} = cfit(f,0,0,0);
             %         disp('.')
         end
@@ -617,8 +662,9 @@ for ind = 1:numExps;
     end
     
     
-    
+    if pauseEachInd
     pause
+    end
     disp('.')
     
     
@@ -626,15 +672,15 @@ for ind = 1:numExps;
 end
 
 % coef cellfun(@(x)x.a,fits2)
-coeff2
-sum(Rsquare2>0.15)
+coeff2;
+% sum(Rsquare2>0.15)
 
 figure(103);clf
 % scatter(Rsquare2,coeff2,'o')
 
 includeThreshold = Rsquare2>0.15;
 MDatMat(~includeThreshold,:)=[];
-sum(includeThreshold)
+disp([num2str(sum(includeThreshold)) ' Cells Fit. Avg R2: ' num2str(mean(Rsquare2(includeThreshold)))]);
 
 p = plot(spikeList,MDatMat,'color',rgb('grey'));
 hold on
@@ -646,34 +692,59 @@ e.Color = rgb('black');
 e.LineWidth = 2;
 xticks(0:5:20)
 
+set(gca,'TickDir','out')
+
+%% how long is a spk epoch
+FrameCount=0; trialsCount =0;totalTimeEstimate=[];
+for ind = 3:numExps
+    sz = size(All(ind).out.spk.zdfData);
+    
+    FrameCount = FrameCount + sz(2)*sz(3); 
+    trialsCount =trialsCount+sz(3);
+    
+    frameTime = sz(2)*sz(3)/All(ind).out.info.FR;
+    iti = 3*sz(3);
+    
+    sz(3)/8
+    
+    totalTimeEstimate(ind) = frameTime+iti;
+end
+
+totalTimeEstimate./60
 
 %% Establish PCA on Vis Epoch
 numExps = numel(All);
 
 stepByStep=0;
 useBothVisAndHoloForPCA =0;
-plotHoloMerge =1;
-plotMerge = 1;
+
+plotHoloMerge =0;
+plotMerge = 0;
 plotNoStim =0;
+
+plotLastHalfOnly =1; 
+plotFirstHalfOnly=0;
 
 plotExamples=0;
 
-pauseEachInd=1;
+pauseEachInd=0;
 
-% ID which holo corresponds with which ID
-hIDS{1} = [1 9 7 4 6];
-hPlot{1} = ones([1 5]);
+useCaiman = 1; 
 
-hIDS{2} = [1:9];
-hPlot{2} =  [1 1 1 1 1 1 1 1 1 ];
-
-hIDS{3} = [1 2 3 4 5];
-hPlot{3} = ones([1 5]);
-
-for i =4:numExps
-    hIDS{i} = [1 1:9];
-    hPlot{i} = [1 0 1 1 1 1 1 1 1 1 ];
-end
+% % ID which holo corresponds with which ID
+% hIDS{1} = [1 9 7 4 6];
+% hPlot{1} = ones([1 5]);
+% 
+% hIDS{2} = [1:9];
+% hPlot{2} =  [1 1 1 1 1 1 1 1 1 ];
+% 
+% hIDS{3} = [1 2 3 4 5];
+% hPlot{3} = ones([1 5]);
+% 
+% for i =4:numExps
+%     hIDS{i} = [1 1:9];
+%     hPlot{i} = [1 0 1 1 1 1 1 1 1 1 ];
+% end
 
 
 cosSimOut=[];
@@ -682,9 +753,11 @@ cosSimOnDiagOut=[];
 cosSimOnDiagShuffleOut=[];
 cosSimOffDiagOut=[];
 CosSimToSpont=[];
+cosSimOnDiagVis = [];
 
 rangeToAnalyze =1:24; %for PCA
-plotRange = 1:15;
+plotRange = 1:18; %1:15 orig
+respRange = 6:18; %6:18 orig
 smoothFactor =3;
 
    numCellsPerManifold = [];
@@ -694,7 +767,7 @@ smoothFactor =3;
 allVisTC=[];
 allHoloTC=[];
 
-for ind = 1:numExps;
+for ind =  4:numExps; %only 4 to end were done the correct way
     visID = All(ind).out.vis.visID;
     uv = unique(All(ind).out.vis.visID);
     
@@ -703,15 +776,24 @@ for ind = 1:numExps;
     catch
         rtgs = unique(cat(1,All(ind).out.mani.rois{:}));
     end
-    htgs = All(ind).out.exp.targetedCells(rtgs);
-    htgs = rtgs;
+    if useCaiman
+        htgs = rtgs;
+    else
+        htgs = All(ind).out.exp.targetedCells(rtgs);
+    end
     htgs(isnan(htgs))=[];
     cellsToUse = htgs;
     
     %data to build PCA
     %build new composite zdfData;
-    dat1 =All(ind).out.vis.caiman; %All(ind).out.vis.caiman_matched; All(ind).out.vis.allData;
-    dat2 = All(ind).out.mani.caiman;%All(ind).out.mani.caiman_matched; All(ind).out.mani.allData;
+    if useCaiman
+        dat1 =All(ind).out.vis.caiman; %All(ind).out.vis.caiman_matched; All(ind).out.vis.allData;
+        dat2 = All(ind).out.mani.caiman;%All(ind).out.mani.caiman_matched; All(ind).out.mani.allData;
+    else
+        dat1 =All(ind).out.vis.allData;
+        dat2 = All(ind).out.mani.allData;
+    end
+    
     
     sz1 = size(dat1);
     sz2 = size(dat2);
@@ -719,7 +801,18 @@ for ind = 1:numExps;
     
     
     fullDat = cat(3,dat1(:,1:mnFrames,:),dat2(:,1:mnFrames,:));
-    [fulldfDat, fullzdfDat] = computeDFFwithMovingBaseline(fullDat);
+    
+    if useCaiman
+        sz = size(fullDat);
+        fullDatUnRoll = reshape(fullDat,[sz(1) sz(2)*sz(3)]);
+
+        fullzdfDat = zscore(fullDatUnRoll,[],2);
+        fullzdfDat = reshape(fullzdfDat,sz);
+    else
+        [fulldfDat, fullzdfDat] = computeDFFwithMovingBaseline(fullDat);
+    end
+    
+%     fullzdfDat = fullDat;
     
     dat1 = fullzdfDat(:,:,1:sz1(3));
     dat2 = fullzdfDat(:,:,sz1(3)+1:end);
@@ -827,6 +920,7 @@ for ind = 1:numExps;
         datToPlot = squeeze(mean(visScore(:,plotRange,visID==uv(i)& trialsToUseVis),3));
         
         if ~plotMerge
+            if (~plotLastHalfOnly && ~plotFirstHalfOnly) || (plotLastHalfOnly && i>=6) || (plotFirstHalfOnly && i<6)
             sz = size(datToPlot);
             %    datToPlot = smooth(datToPlot,3);
             datToPlot = reshape(datToPlot,sz);
@@ -834,6 +928,7 @@ for ind = 1:numExps;
             p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
             p.Color = colors{i};
             p.LineWidth = 2;
+            end
             
         else
             if i>1 && i<6
@@ -883,14 +978,16 @@ for ind = 1:numExps;
                 if holoIDS(i)==1 && ~plotNoStim
                     %do nothing
                 else
-                    datToPlot = squeeze(mean(newHScore(:,plotRange,stimID==us(i) & trialsToUseExp),3));
-                    p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
-                    p.Color = colors{holoIDS(i)}; %rgb('red'); %colors{i};
-                    p.LineStyle = ':';
-                    if holoIDS(i)>=6
-                        p.LineWidth =3;
-                    else
-                        p.LineWidth =2;
+                    if (~plotLastHalfOnly && ~plotFirstHalfOnly) || (plotLastHalfOnly && holoIDS(i)>=6) || (plotFirstHalfOnly && holoIDS(i)<6)
+                        datToPlot = squeeze(mean(newHScore(:,plotRange,stimID==us(i) & trialsToUseExp),3));
+                        p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
+                        p.Color = colors{holoIDS(i)}; %rgb('red'); %colors{i};
+                        p.LineStyle = ':';
+                        if holoIDS(i)>=6
+                            p.LineWidth =3;
+                        else
+                            p.LineWidth =2;
+                        end
                     end
                 end
             else
@@ -945,7 +1042,7 @@ for ind = 1:numExps;
     colormap parula
     
     crange = [0 1];
-    respRange =6:18;
+%     respRange =6:18;
     
     %
     %     dat1 = All(ind).out.vis.zdfData;
@@ -1062,7 +1159,7 @@ for ind = 1:numExps;
     colormap parula
     
     crange = [0 2];
-    respRange =6:18;%9:18;
+%     respRange =6:18;%9:18;
     
     subplot(1,3,1)
     visMean=zeros([numel(cellsToUse) 9]);
@@ -1145,7 +1242,7 @@ for ind = 1:numExps;
     colormap parula
     
     crange = [0 2];
-    respRange =6:18;%9:18;
+%     respRange =6:18;%9:18;
     
     shuffleOrder = randperm(size(dataToUse,3));
     dataToUseShuffle = dataToUse(:,:,shuffleOrder);
@@ -1278,7 +1375,8 @@ for ind = 1:numExps;
     meanSimOffDiag = nanmean(testSim(~logical(eye(8))));
     meanSimOnDiag/meanSimOffDiag;
     disp(['Vis mean on diagonal : ' num2str(meanSimOnDiag) ', off diag: ' num2str(meanSimOffDiag)])
-    
+        cosSimOnDiagVis = cat(1,cosSimOnDiagVis,testSim(logical(eye(8))));
+
     
     yticks(1:9)
     yticklabels({'gray' 0:45:315})
@@ -1430,7 +1528,11 @@ for ind = 1:numExps;
             
             cellIDs = cellsToFit(cellsToWrite);
             
-            tc = All(ind).out.mani.targetedCells;
+            if useCaiman
+                tc = [1:numel( All(ind).out.mani.targetedCells)]';
+            else
+                tc = All(ind).out.mani.targetedCells;
+            end
             cellIDsS2P = tc(cellIDs);
             
             idxInEstSpikes = find(cellIDsS2P==cellsToUse(i));
@@ -1500,18 +1602,42 @@ for ind = 1:numExps;
     end
     
 end
-
+%%
 pOnvShuffle = ranksum(cosSimOnDiagOut,cosSimOnDiagShuffleOut);
 pOnvOff = ranksum(cosSimOnDiagOut,cosSimOffDiagOut);
 pOnvSpont = ranksum(cosSimOnDiagOut,CosSimToSpont);
+pOnvVis = ranksum(cosSimOnDiagOut,cosSimOnDiagVis);
 
 disp(['P on diag vs off: ' num2str(pOnvOff)])
 disp(['P on diag vs Spont: ' num2str(pOnvSpont)])
 disp(['P on diag vs Shuffle: ' num2str(pOnvShuffle)])
+disp(['P on diag vs Vis: ' num2str(pOnvVis)])
+
+
+disp(['On Diag Mean: ' num2str(mean(cosSimOnDiagOut)) ' +/- ' num2str(ste(cosSimOnDiagOut)) ])
+disp(['Off Diag Mean: ' num2str(mean(cosSimOffDiagOut)) ' +/- ' num2str(ste(cosSimOffDiagOut)) ])
+disp(['spont Mean: ' num2str(mean(CosSimToSpont)) ' +/- ' num2str(ste(CosSimToSpont)) ])
+disp(['shuffle Mean: ' num2str(mean(cosSimOnDiagShuffleOut)) ' +/- ' num2str(ste(cosSimOnDiagShuffleOut)) ])
+disp(['Vis Mean: ' num2str(nanmean(cosSimOnDiagVis)) ' +/- ' num2str(ste(cosSimOnDiagVis)) ])
+
+EnsCosSimNaive = [
+    0.6287
+    0.0510
+    0.0899
+    0.5354
+    0.3422
+    0.1692
+   -0.0549
+    0.4808
+    0.5816
+    ]; % copy from other worksheet
+pOnvNaive = ranksum(cosSimOnDiagOut,EnsCosSimPreferred);
+disp(['P on diag vs Naive Approach: ' num2str(pOnvNaive)])
+
 
 figure(17);clf
-plotSpread({cosSimOnDiagOut cosSimOffDiagOut CosSimToSpont cosSimOnDiagShuffleOut })
-
+plotSpread({cosSimOnDiagOut cosSimOffDiagOut CosSimToSpont cosSimOnDiagShuffleOut cosSimOnDiagVis EnsCosSimPreferred})
+set(gca,'TickDir','out')
 
 %% Plot indiv cell Tuning Curve Similarities
 
@@ -1522,24 +1648,26 @@ TCsim=[];
 for i =1:size(visTCs,1)
     TCsim(i) = cosine_similarity(visTCs(i,:)',holoTCs(i,:)');
     
-    TCsim(i) = circ_var(abs(visTCs(i,2:end)-holoTCs(i,2:end))');
+%     TCsim(i) = circ_var(abs(visTCs(i,2:end)-holoTCs(i,2:end))');
 end
 
 TCsimShuffle=[];
 for i =1:size(visTCs,1)
     tempVis = visTCs(i,:);
     tempVis = tempVis(randperm(9));
-    TCsimShuffle(i) = cosine_similarity(tempVis',holoTCs(i,:)');
+%     TCsimShuffle(i) = cosine_similarity(tempVis',holoTCs(i,:)');
     
 TCsimShuffle(i) = cosine_similarity(visTCs(randperm(size(visTCs,1),1),:)',holoTCs(i,:)');
 
-TCsimShuffle(i) = circ_var(abs(visTCs(randperm(size(visTCs,1),1),2:end)- holoTCs(i,2:end))');
+% TCsimShuffle(i) = circ_var(abs(visTCs(randperm(size(visTCs,1),1),2:end)- holoTCs(i,2:end))');
 
 end
 
 figure(18);clf
 plotSpread({TCsim TCsimShuffle},'showMM',4)
 ranksum(TCsimShuffle,TCsim)
+set(gca,'TickDir','out')
+
 %% Plot Data
 
 cosSimToPlot=zeros(size(cosSimOut'));

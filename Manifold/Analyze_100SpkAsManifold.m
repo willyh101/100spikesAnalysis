@@ -12,7 +12,7 @@ ai203100spkLoadList
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
-loadPath = 'T:\Outfiles';
+loadPath = 'T:\Outfiles\caiman';
 
 addpath(genpath(loadPath))
 
@@ -318,20 +318,40 @@ for ind =1:numel(All)
 end
 
 %% Zscore together
+
+useCaiman = 1;
+
 for ind=1:numel(All)
-    dat1 = All(ind).out.vis.zdfData;
-    dat2 = All(ind).out.exp.zdfData;
+    if useCaiman
+        dat1 = All(ind).out.vis.caiman_matched;
+        dat2 = All(ind).out.exp.caiman_matched;
+    else
+        dat1 = All(ind).out.vis.zdfData;
+        dat2 = All(ind).out.exp.zdfData;
+    end
+    
     sz1 = size(dat1);
     sz2 = size(dat2);
     mnFrames = min(sz1(2),sz2(2));
     
+       fullDat = cat(3,dat1(:,1:mnFrames,:),dat2(:,1:mnFrames,:));
+
     
-    fullDat = cat(3,All(ind).out.vis.allData(:,1:mnFrames,:),All(ind).out.exp.allData(:,1:mnFrames,:));
-    [fulldfDat, fullzdfDat] = computeDFFwithMovingBaseline(fullDat);
+    if useCaiman
+        sz = size(fullDat);
+        fullDatUnRoll = reshape(fullDat,[sz(1) sz(2)*sz(3)]);
+        
+        fullzdfDat = zscore(fullDatUnRoll,[],2);
+        fullzdfDat = reshape(fullzdfDat,sz);
+    else
+        [fulldfDat, fullzdfDat] = computeDFFwithMovingBaseline(fullDat);
+    end
+    
     
     dat1 = fullzdfDat(:,:,1:sz1(3));
     dat2 = fullzdfDat(:,:,sz1(3)+1:end);
-
+    
+    
     All(ind).out.anal.dat1 = dat1;
     All(ind).out.anal.dat2 = dat2;
     All(ind).out.anal.fullzdfDat = fullzdfDat; 
@@ -347,6 +367,9 @@ ensCrit = outVars.ensemblesToUse & outVars.ensOSI>0.7;
 
 recWindow = 6:18;
 
+
+useBothVisAndHoloForPCA=1;
+
 EnsCosSim=[];
 for i = 1:numEns
     if ensCrit(i)
@@ -358,6 +381,8 @@ for i = 1:numEns
         cellsToUse = htgs;
         
 
+        dat1 = All(ind).out.anal.dat1;
+        dat2 = All(ind).out.anal.dat2; 
         
         try
             lowRunTrials = mean(All(ind).out.mani.runVal(:,6:12),2)<2;
@@ -373,7 +398,7 @@ for i = 1:numEns
         
         visVector=zeros([numel(cellsToUse) 9]);
         for v=1:9
-            visVector(:,v) = mean(mean(All(ind).out.anal.dat1(cellsToUse,recWindow, trialsToUseVis & visID ==v),2),3); 
+            visVector(:,v) = mean(mean(dat1(cellsToUse,recWindow, trialsToUseVis & visID ==v),2),3); 
         end
         
         s = outVars.ensHNumber(i);
@@ -382,7 +407,7 @@ for i = 1:numEns
         sID = us(s);
         
         
-        holoVector = mean(mean(All(ind).out.anal.dat2(cellsToUse,recWindow, trialsToUseExp & stimID ==sID),2),3); 
+        holoVector = mean(mean(dat2(cellsToUse,recWindow, trialsToUseExp & stimID ==sID),2),3); 
 
         for v=1:9
             cosSim(v) = cosine_similarity(visVector(:,v),holoVector);
@@ -424,13 +449,10 @@ for i = 1:numEns
         
         EnsCosSim(i,:) = [cosSim(1) circshift(cosSim(2:end),-1*(p-1))];
         
-        %plot PCA vectors
-                visVector=zeros([numel(cellsToUse) 9]);
-        for v=1:9
-            visVector(:,v) = mean(mean(All(ind).out.anal.dat1(cellsToUse,recWindow, trialsToUseVis & visID ==v),2),3); 
-        end
+ 
+%     pause
         
-        pause
+        
     end
 end
 
@@ -443,9 +465,208 @@ end
     
     plot(mean(EnsCosSim(ensCrit,:)))
     
+    EnsCosSimPreferred = EnsCosSim(ensCrit,2);
+    EnsCosSimOther = EnsCosSim(ensCrit,[1 3:end]);
+
+    disp(['Pref Ori Mean: ' num2str(mean(EnsCosSimPreferred)) ' +/- ' num2str(ste(EnsCosSimPreferred)) ])
+    disp(['Other Ori Mean: ' num2str(mean(EnsCosSimOther(:))) ' +/- ' num2str(ste(EnsCosSimOther(:))) ])
+    pPrefVOther = ranksum(EnsCosSimOther(:),EnsCosSimPreferred);
+disp(['P Prev vs Other: ' num2str(pPrefVOther)])
+
+    
+
+    
+    figure(4);clf
+    plotSpread({EnsCosSimPreferred(:) EnsCosSimOther(:)})
+    set(gca,'TickDir','out')
     %%
     
+ensCrit = outVars.ensemblesToUse & outVars.ensOSI>0.7;% & outVars.numCellsEachEns == 3;
     
+    useBothVisAndHoloForPCA=0;
+    rangeToAnalyze =1:24; %for PCA
+    plotRange = 1:12; %1:15 orig
+    respRange = 6:18; %6:18 orig
+    smoothFactor =3;  
+    plotMerge = 1; 
+    plotNoStim =0;
+    
+    plotLastHalfOnly =0;
+    plotFirstHalfOnly=0; 
+    
+    plotExamples=0;
+    
+    pauseEachInd=0;
+    
+    for ind = IndsUsed
+        %%
+        visID = All(ind).out.vis.visID;
+        uv = unique(All(ind).out.vis.visID);
+        
+        dat1 = All(ind).out.anal.dat1;
+        dat2 = All(ind).out.anal.dat2;
+        
+        htgs = unique([All(ind).out.exp.holoTargets{:}]);
+        htgs(isnan(htgs))=[];
+        cellsToUse = htgs;
+        
+        
+        dat1 = dat1(:,rangeToAnalyze,:);
+        dat2 = dat2(:,rangeToAnalyze,:);
+        %     dat1 = All(ind).out.vis.zdfData(:,1:18,:);
+        %     dat2 = All(ind).out.exp.zdfData(:,1:18,:);
+        
+        sz1 = size(dat1);
+        sz2 = size(dat2);
+        mnFrames = min(sz1(2),sz2(2));
+        
+        try
+            lowRunTrials = mean(All(ind).out.mani.runVal(:,6:12),2)<2;
+            trialsToUseExp = All(ind).out.mani.lowMotionTrials & lowRunTrials';
+        catch
+            lowRunTrials = mean(All(ind).out.exp.runVal(:,6:12),2)<2;
+            trialsToUseExp = All(ind).out.exp.lowMotionTrials & lowRunTrials';
+        end
+        lowRunTrialsVis = mean(All(ind).out.vis.runVal(:,6:12),2)<2;
+        trialsToUseVis = All(ind).out.vis.lowMotionTrials & lowRunTrialsVis';
+        
+        dat1(:,:,~trialsToUseVis)=nan;
+        dat2(:,:,~trialsToUseExp)=nan;
+        %     datToUse = cat(3,dat1(:,1:mnFrames,:),dat2(:,1:mnFrames,:)); %All(ind).out.vis.allData;
+        if useBothVisAndHoloForPCA
+            datToUse = cat(3,dat1,dat2);%All(ind).out.vis.zdfData; %All(ind).out.vis.allData;
+        else
+            datToUse = dat1;
+        end
+        
+        datToUse = datToUse(cellsToUse,:,:); %All(ind).out.vis.allData;
+        bData = mean(datToUse(:,1:5,:),2);
+        datToUse = datToUse-bData; %baseline
+        %     datToUse = smoothdata(datToUse,2); %smooth
+        
+        datToUse=datToUse(:,6:end,:);
+        
+        sz = size(datToUse);
+        datToUseMakePCA = reshape(datToUse,[sz(1) sz(2)*sz(3)]);
+        datToUseMakePCA = smoothdata(datToUseMakePCA,2); %smooth
+        
+        [coeff,score,latent,tsquared,explained,mu] = pca(datToUseMakePCA');
+        
+        %data to make vis Epoch
+        datToUse = dat1; %All(ind).out.vis.zdfData; %All(ind).out.vis.allData;
+        
+        datToUse = datToUse(cellsToUse,:,:); %All(ind).out.vis.allData;
+        bData = mean(datToUse(:,1:5,:),2);
+        datToUse = datToUse-bData; %baseline
+        %     datToUse = smoothdata(datToUse,2); %smooth
+        datToUse = movmean(datToUse,smoothFactor,2); %smooth
+        
+        sz = size(datToUse);
+        datToUse2 = reshape(datToUse,[sz(1) sz(2)*sz(3)]);
+        
+        % score of vis Data
+        visScore = coeff' * datToUse2;
+        visScore = reshape(visScore,[sz(1) sz(2) sz(3)]);
+        
+        colors = colorMapPicker(5,'plasma');
+        colors = colors(1:4);
+        colors = cat(2,{rgb('grey')},colors,colors);
+        
+        
+        %data to make holo epoch
+        hdatToUse = dat2; % All(ind).out.exp.zdfData;
+        
+        hdatToUse = hdatToUse(cellsToUse,:,:); %All(ind).out.vis.allData;
+        bhData = mean(hdatToUse(:,1:5,:),2);
+        hdatToUse = hdatToUse-bhData; %baseline
+        %     hdatToUse = smoothdata(hdatToUse,2); %smooth
+        hdatToUse = movmean(hdatToUse,smoothFactor,2); %smooth
+        
+        
+        sz = size(hdatToUse);
+        hdatToUse2 = reshape(hdatToUse,[sz(1) sz(2)*sz(3)]);
+        
+        newHScore = coeff' * hdatToUse2;
+        % newScore = reshape(score,[sz(2) sz(3) sz(1)]);
+        newHScore = reshape(newHScore,[sz(1) sz(2) sz(3)]);
+        
+        %define Axis to plot
+        ax1 = 1;
+        ax2 = 2;
+        ax3 = 3;
+        
+        
+        figure(3);clf
+        hold on
+        if plotNoStim
+            datToPlot = squeeze(mean(visScore(:,plotRange,visID==uv(1) & trialsToUseVis),3));
+            p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
+            p.Color = colors{1};
+            p.LineWidth = 2;
+        end
+        
+        %plot vis
+        for i=1:9;%[1 3 5 7 9];%[1 8 6 4 2];%1:9;%numel(uv)
+            
+            datToPlot = squeeze(mean(visScore(:,plotRange,visID==uv(i)& trialsToUseVis),3));
+            
+            if ~plotMerge
+                if (~plotLastHalfOnly && ~plotFirstHalfOnly) || (plotLastHalfOnly && i>=6) || (plotFirstHalfOnly && i<6)
+                    sz = size(datToPlot);
+                    %    datToPlot = smooth(datToPlot,3);
+                    datToPlot = reshape(datToPlot,sz);
+                    %         p = plot3(datToPlot(:,1),datToPlot(:,2),datToPlot(:,3));
+                    p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
+                    p.Color = colors{i};
+                    p.LineWidth = 2;
+                end
+                
+            else
+                if i>1 && i<6
+                    datToPlot = squeeze(mean(visScore(:,plotRange,(visID==uv(i) | visID==uv(i+4)) & trialsToUseVis),3));
+                    p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
+                    p.Color = colors{i};
+                    p.LineWidth = 2;
+                end
+            end
+            
+            
+        end
+         
+        
+        stimID = All(ind).out.exp.stimID;       
+        us = unique(stimID);
+        
+        
+        for i=1:numel(outVars.ensemblesToUse)
+            if outVars.ensemblesToUse(i) && outVars.ensIndNumber(i)==ind && ensCrit(i)
+                s = outVars.ensHNumber(i); %i think this is the order of resp
+                %                h = All(ind).out.exp.stimParams.roi{s};
+%                 us = unique(All(ind).out.exp.stimID);
+%                 sID = us(s);
+                PO = outVars.ensPO(i); %   outVars.prefOris{ind}(s);
+                if isnan(PO)
+                    PO=1;
+                else
+                    PO = find(PO==0:45:315)+1;
+                end
+                datToPlot = squeeze(mean(newHScore(:,plotRange,stimID==us(s) & trialsToUseExp),3));
+                p = plot3(datToPlot(ax1,:),datToPlot(ax2,:),datToPlot(ax3,:));
+                p.Color = colors{PO}; %rgb('red'); %colors{i};
+                p.LineStyle = ':';
+                p.LineWidth = 3;
+                
+            end
+        end
+            title(['Ind: ' num2str(ind)]);
+    xlabel(['PC' num2str(ax1)])
+    ylabel(['PC' num2str(ax2)])
+    zlabel(['PC' num2str(ax3)])
+    
+    if pauseEachInd
+        pause
+    end
+    end
     
     
     
