@@ -10,6 +10,8 @@
 %% setup junk
 clear; close all; clc;
 
+tic;
+
 % addpath(genpath('100spikesAnalysis'))
 
 restoredefaultpath;
@@ -32,6 +34,9 @@ loadPath = '/Users/gregoryhandy/Research_Local/outputdata1/';
 %     '210927_I154_2_outfile.mat'
 %     '211019_I156_1_outfile.mat'};
 
+% loadList_all = {'210428_w32_2_outfile.mat'
+%     '210903_I151_3_outfile.mat'};
+
 
 loadList_all = {'190418_I127_1_outfile.mat'
     '190506_I127_1_outfile.mat'
@@ -41,23 +46,23 @@ loadList_all = {'190418_I127_1_outfile.mat'
     '190529_I127_1_outfile.mat'
     '190604_I127_1_outfile.mat'
 %     '191017_I136_1_outfile.mat' % something off with the # of time frames in tracesVis
-    '191126_I138_1_outfile.mat' %rate exp, but several valid
+%     '191126_I138_1_outfile.mat' %rate exp, but several valid; vis stim and holo stim off by 1 total frame
     '191206_I138_1_outfile.mat'
     '191217_mora_tre_outfile.mat'
     '200302_W14_1_outfile.mat'
     '200304_W14_1_outfile.mat'
     '200309_w21_1_outfile.mat'
     '200311_i139_2_outfile.mat'
-    '200728_i140_2_outfile.mat'
+%     '200728_i140_2_outfile.mat' % vis stim and holo stim off by 1 total frame (31 vs. 30)
     '200723_i140_2_outfile.mat'
     '200729_I140_2_outfile.mat'
     '200810_i140_2_outfile.mat'
     '200902_w18_3_outfile.mat'
     '200901_w19_1_outfile.mat'
     '201103_w29_1_outfile.mat'
-    '201112_w29_3_outfile.mat'
+%    '201112_w29_3_outfile.mat' % vis stim and holo stim off by 1 total frame
     '201116_w29_3_outfile.mat'
-    '201202_w29_3_outfile.mat'
+%    '201202_w29_3_outfile.mat' % vis stim and holo stim off by 1 total frame
     '210428_w32_2_outfile.mat' % first of optimizer
     '210902_I151_3_outfile.mat' %Many random holos at 30hz for SM Proj (strangely many failure..?)
     '210903_I151_3_outfile.mat'
@@ -73,6 +78,9 @@ loadList_all = {'190418_I127_1_outfile.mat'
 
 overall_correct_all_outer = [];
 testAcc_all_outer = [];
+ensSizes = [];
+class_trial_correct_all_outer = [];
+class_trial_cotuned_all_outer = [];
 
 %% Loop through the loadLists
 for outer_loop = 1:length(loadList_all)
@@ -119,14 +127,14 @@ for gg = 1:6
         % Train and test the classifier
         [overall_correct,pref_correct,ortho_correct,class_trial_correct,...
             class_trial_cotuned,ensIDs,testAcc]...
-            = logistic_classifier(outVars,All,oriToUse);
+            = logistic_classifier_v2(outVars,All,oriToUse);
         
         % Store the statistics
         overall_correct_all = [overall_correct_all,mean(overall_correct)];
         pref_correct_all = [pref_correct_all,mean(pref_correct)];
         ortho_correct_all = [ortho_correct_all,mean(ortho_correct)];
         
-        testAcc_all = [testAcc_all,mean(testAcc)];
+        testAcc_all = [testAcc_all,mean(testAcc(testAcc>70))];
         
         ensIDs_all = [ensIDs_all,ensIDs];
         class_trial_correct_all = [class_trial_correct_all,class_trial_correct];
@@ -144,14 +152,17 @@ overall_correct_all_outer = [overall_correct_all_outer, overall_correct_all];
 testAcc_all_outer = [testAcc_all_outer,testAcc_all];
 
 %% Plot the results with ensemble statistics
-figure(32); hold on;
-scatter(All.out.exp.ensMaxD(ensIDs_all),class_trial_correct_all,[],class_trial_cotuned_all','filled')
-colormap(winter)
-colorbar
-caxis([0 1])
-set(gca,'fontsize',16)
-xlabel('Max Ensemble Distance')
-ylabel('Classifier accuracy')
+ensSizes = [ensSizes,All.out.exp.ensMaxD(ensIDs_all)];
+class_trial_correct_all_outer = [class_trial_correct_all_outer, class_trial_correct_all];
+class_trial_cotuned_all_outer = [class_trial_cotuned_all_outer,class_trial_cotuned_all];
+% figure(32); hold on;
+% scatter(All.out.exp.ensMaxD(ensIDs_all),class_trial_correct_all,[],class_trial_cotuned_all','filled')
+% colormap(winter)
+% colorbar
+% caxis([0 1])
+% set(gca,'fontsize',16)
+% xlabel('Max Ensemble Distance')
+% ylabel('Classifier accuracy')
 end
 
 %% Plot the results
@@ -161,15 +172,61 @@ figure(1243); clf; hold on;
 for ii = 1:length(testAcc_all_outer)
     % Only plot the cases where the classifier is 'decent' at classifying
     % the visual stimuli
-    if testAcc_all_outer(ii) > 70
+    if testAcc_all_outer(ii) >= 70
         plot([1 2],[testAcc_all_outer(ii) overall_correct_all_outer(ii)],'k-')
         plot([1 2],[testAcc_all_outer(ii) overall_correct_all_outer(ii)],'k.','markersize',16)
     end
 end
 set(gca,'fontsize',16)
 xlim([0.8 2.2])
-boxplot([testAcc_all_outer';overall_correct_all_outer'],[1*ones(length(testAcc_all_outer),1);2*ones(length(testAcc_all_outer),1)])
+boxplot([testAcc_all_outer(testAcc_all_outer>70)';...
+    overall_correct_all_outer(testAcc_all_outer>70)'],...
+    [1*ones(length(testAcc_all_outer(testAcc_all_outer>70)),1);...
+    2*ones(length(testAcc_all_outer(testAcc_all_outer>70)),1)])
 ylim([0 105])
 xticklabels({'Visual Stim','Holo Stim'})
 ylabel('Testing Accuracy')
 
+
+figure(124); clf;
+subplot(1,2,1)
+scatter(ensSizes,class_trial_correct_all_outer,[],class_trial_cotuned_all_outer','filled')
+colormap(winter)
+colorbar
+caxis([0 1])
+set(gca,'fontsize',16)
+xlabel('Max Ensemble Distance')
+ylabel('Classifier accuracy')
+
+
+subplot(1,2,2)
+boxplot([class_trial_correct_all_outer(ensSizes<350)'; ...
+    class_trial_correct_all_outer(ensSizes>=350)'],...
+    [1*ones(length(class_trial_correct_all_outer(ensSizes<350)),1);...
+    2*ones(length(class_trial_correct_all_outer(ensSizes>=350)),1)])
+set(gca,'fontsize',16)
+xticks([1 2])
+xticklabels({'Tight','Loose'})
+
+
+figure(53); clf;
+subplot(1,2,1)
+scatter(ensSizes(class_trial_cotuned_all_outer==1),...
+    class_trial_correct_all_outer(class_trial_cotuned_all_outer==1),'filled')
+set(gca,'fontsize',16)
+xlabel('Max Ensemble Distance')
+ylabel('Classifier accuracy')
+xlim([0 max(xlim)])
+
+subplot(1,2,2)
+boxplot([class_trial_correct_all_outer(ensSizes<350 & class_trial_cotuned_all_outer==1)';...
+    class_trial_correct_all_outer(ensSizes>=350 & class_trial_cotuned_all_outer==1)'],...
+    [1*ones(length(class_trial_correct_all_outer(ensSizes<350 & class_trial_cotuned_all_outer==1)),1);...
+    2*ones(length(class_trial_correct_all_outer(ensSizes>=350 & class_trial_cotuned_all_outer==1)),1)])
+set(gca,'fontsize',16)
+xticks([1 2])
+ylabel('Classifier accuracy')
+xticklabels({'Tight','Loose'})
+
+
+toc;

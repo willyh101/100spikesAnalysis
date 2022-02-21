@@ -119,10 +119,10 @@ set(gca,'fontsize',16)
 
 %% Perform PCA with built-in function
 
-% Note: T*W' = training_matrix
+% Note: T*W' = training_matrix - mean(training_matrix)
 % So, T = training_matrix*W, since W'*W = I
 % W can be used to predict the trajectory in PC space of our stim trials
-[W, T, eigenvalues] = pca(training_matrix(:,pref_indices));
+[W, T, eigenvalues] = pca(training_matrix(1:2*num_frames,pref_indices));
 
 % Plot of percent variance explained
 figure(1); clf; hold on;
@@ -131,18 +131,27 @@ set(gca,'fontsize',16)
 ylabel('Percenter variance explained')
 xlabel('Number of Components')
 
+%%
+
+test_matrix = training_matrix(num_frames*2+1:end,pref_indices)-...
+    mean(training_matrix(num_frames*2+1:end,pref_indices));
+
+projection_180 = test_matrix*W;
+
 %% Plot the PCs for each stim angle
 
 figure(2); clf; 
 subplot(1,3,1); hold on;
 maxVal = 0; minVal = 0;
-for ii = 1:length(visIDToTest)
+for ii = 1:length(visIDToTest)-1
     maxVal = max(maxVal,max(T(1+num_frames*(ii-1):num_frames*ii,1)));
     minVal = min(minVal,min(T(1+num_frames*(ii-1):num_frames*ii,1)));
     plot(T(1+num_frames*(ii-1):num_frames*ii,1),'linewidth',1.5)
 end
 plot(winToUse(1)+0*[minVal maxVal],[minVal maxVal],'k--')
 plot(winToUse(2)+0*[minVal maxVal],[minVal maxVal],'k--')
+
+plot(projection_180(:,1),'linewidth',1.5)
 set(gca,'fontsize',16)
 xlabel('Time frames')
 ylabel('PC1')
@@ -150,11 +159,13 @@ ylim([minVal maxVal])
 
 subplot(1,3,2); hold on;
 maxVal = 0; minVal = 0;
-for ii = 1:length(visIDToTest)
+for ii = 1:length(visIDToTest)-1
     maxVal = max(maxVal,max(T(1+num_frames*(ii-1):num_frames*ii,2)));
     minVal = min(minVal,min(T(1+num_frames*(ii-1):num_frames*ii,2)));
     plot(T(1+num_frames*(ii-1):num_frames*ii,2),'linewidth',1.5)
 end
+
+plot(projection_180(:,2),'linewidth',1.5)
 set(gca,'fontsize',16)
 xlabel('Time')
 ylabel('PC2')
@@ -162,11 +173,13 @@ plot(winToUse(1)+0*[minVal maxVal],[minVal maxVal],'k--')
 plot(winToUse(2)+0*[minVal maxVal],[minVal maxVal],'k--')
 
 subplot(1,3,3); hold on;
-for ii = 1:length(visIDToTest)
+for ii = 1:length(visIDToTest)-1
     h_leg(ii) = plot(T(1+num_frames*(ii-1):num_frames*ii,1),T(1+num_frames*(ii-1):num_frames*ii,2),'linewidth',1.5);
     plot(T(1+num_frames*(ii-1),1),T(1+num_frames*(ii-1),2),'k.','markersize',16,'linewidth',1.5)
 end
 
+h_leg(3) = plot(projection_180(:,1),projection_180(:,2),'linewidth',1.5);
+plot(projection_180(1,1),projection_180(1,2),'k.','markersize',16,'linewidth',1.5)
 set(gca,'fontsize',16)
 xlabel('PC1')
 ylabel('PC2')
