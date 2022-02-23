@@ -100,7 +100,7 @@ disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd
 opts.visAlpha = 0.05;
 
 %oftarget risk params
-opts.thisPlaneTolerance =0; 11.25;%7.5;%1FWHM%10; %in um;% pixels
+opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
