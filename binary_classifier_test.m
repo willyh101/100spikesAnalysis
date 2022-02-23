@@ -48,7 +48,8 @@ test_matrix = zeros(num_testing_trials*2,num_neurons);
 
 % visID: 2 is 0 degrees, 4 is 90 degrees, and 6 is 180
 % Can adjust this to look at other angles as well
-visIDToTest = [2 4];
+% visIDToTest = [2 4];
+visIDToTest = [1 2];
 
 vis_vals = zeros(length(visIDToTest),num_neurons);
 
@@ -75,7 +76,7 @@ end
 
 %% Create and test the classifier
 
-num_to_use = [5 10 20 30];
+num_to_use = [5 10 20 30 300];
 per_corr = zeros(length(num_to_use),10);
 for cc = 1:length(num_to_use)
     
@@ -89,7 +90,7 @@ for cc = 1:length(num_to_use)
         Y(1:num_training_trials) = 1;
         
         log_classifier =fitclinear(adj_training_matrix,Y,'Learner','logistic','Regularization','lasso');
-        
+
         
         predictions = log_classifier.predict(adj_testing_matrix);
         correct = 0;

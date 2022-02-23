@@ -50,10 +50,10 @@ for ii = 1:length(ensIDs)
     % note ~offTargetRisks excludes the targeted cells, if you want to keep the
     % off targets and exclude the targets (for this specific hologram) you can
     % use: ~ismember(1:numel(offTargetRisks), tg)
-    cellsToUse_matrix(ii,:) = ~offTargetRisks &...
-        ~ROIinArtifact' &...
-        visCells;
-%     cellsToUse_matrix(ii,:) = ~offTargetRisks;
+%     cellsToUse_matrix(ii,:) = ~offTargetRisks &...
+%         ~ROIinArtifact' &...
+%         visCells;
+    cellsToUse_matrix(ii,:) = ~offTargetRisks;
 
     
 %     disp('....')
@@ -124,8 +124,9 @@ recWinSec=opts.recWinRange+All.out.vis.visStart;
 
 % Use the activity when the visual stim was present
 winToUse = round(recWinSec*All.out.info.FR);
+% winToUse = [winToUse(1) winToUse(1)+2];
 
-% winToUse = [1 size(tracesVis,2)]; % Alternative; use all data
+winToUse = [1 size(tracesVis,2)]; % Alternative; use all data
 % bwinToUse = max(round([0 All.out.vis.visStart]*All.out.info.FR),[1 1]);
 size(tracesVis)
 vis_ave = squeeze(mean(tracesVis(:,winToUse(1):winToUse(2),:),2));
@@ -170,16 +171,22 @@ for training_loop = 1:num_trainings
     holo_ave = squeeze(mean(traces(:,winToUse(1):winToUse(2),:),2))';
     holo_Predictions = log_classifier.predict(holo_ave);
     
-    for ii = 1:length(holo_Predictions)
-        if holo_Predictions(ii) == holoOrisTrials(ii)
-            trial_correct(ii,training_loop) = 1;
-        else
-            trial_correct(ii,training_loop) = 0;
+    if testAcc(training_loop)>70
+        for ii = 1:length(holo_Predictions)
+            if holo_Predictions(ii) == holoOrisTrials(ii)
+                trial_correct(ii,training_loop) = 1;
+            else
+                trial_correct(ii,training_loop) = 0;
+            end
         end
+    else
+        trial_correct(1:length(holo_Predictions),training_loop) = nan;
+        'ehr'
     end
 end
 %%
 overall_correct = sum(trial_correct)/size(trial_correct,1)*100;
+
 pref_correct = sum(trial_correct(holoOrisTrials==oriToUse(1),:))/sum(holoOrisTrials==oriToUse(1))*100;
 ortho_correct = sum(trial_correct(holoOrisTrials==oriToUse(2),:))/sum(holoOrisTrials==oriToUse(2))*100;
 
