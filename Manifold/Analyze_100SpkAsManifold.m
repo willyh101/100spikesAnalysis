@@ -496,7 +496,7 @@ ensCrit = outVars.ensemblesToUse & outVars.ensOSI>0.7;% & outVars.numCellsEachEn
     
     plotExamples=0;
     
-    pauseEachInd=0;
+    pauseEachInd=1;
     
     for ind = IndsUsed
         %%
@@ -509,7 +509,7 @@ ensCrit = outVars.ensemblesToUse & outVars.ensOSI>0.7;% & outVars.numCellsEachEn
         htgs = unique([All(ind).out.exp.holoTargets{:}]);
         htgs(isnan(htgs))=[];
         cellsToUse = htgs;
-        
+        numel(cellsToUse)
         
         dat1 = dat1(:,rangeToAnalyze,:);
         dat2 = dat2(:,rangeToAnalyze,:);
@@ -551,6 +551,7 @@ ensCrit = outVars.ensemblesToUse & outVars.ensOSI>0.7;% & outVars.numCellsEachEn
         datToUseMakePCA = smoothdata(datToUseMakePCA,2); %smooth
         
         [coeff,score,latent,tsquared,explained,mu] = pca(datToUseMakePCA');
+        cumsum(explained);
         
         %data to make vis Epoch
         datToUse = dat1; %All(ind).out.vis.zdfData; %All(ind).out.vis.allData;
