@@ -143,7 +143,7 @@ ax = rshape(:,13:24);
 % resp is 4 x 24 x 10, holos, trials, cells
 pxPerMu = 800/512;
 % optoPerZ = 60/55;
-x = [-3:3:30] * pxPerMu;
+x = [-3:3:30];
 z = [-6:6:60];
 
 
