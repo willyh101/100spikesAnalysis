@@ -10,6 +10,7 @@ numExps = numel(All);
 
 c=0;
 for ind = 1:numExps
+    fprintf('.')
     %add additional constraints to cellsToUse
     if isempty(CellToUseVar)
         cellToUseLimit = ones([1 size(All(ind).out.anal.respMat,3)]);

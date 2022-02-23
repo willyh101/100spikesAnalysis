@@ -767,7 +767,7 @@ smoothFactor =3;
 allVisTC=[];
 allHoloTC=[];
 
-for ind =  4:numExps; %only 4 to end were done the correct way
+for ind = 8; 4:numExps; %only 4 to end were done the correct way
     visID = All(ind).out.vis.visID;
     uv = unique(All(ind).out.vis.visID);
     
@@ -859,7 +859,7 @@ for ind =  4:numExps; %only 4 to end were done the correct way
     datToUseMakePCA = smoothdata(datToUseMakePCA,2); %smooth
     
     [coeff,score,latent,tsquared,explained,mu] = pca(datToUseMakePCA');
-    
+    cumsum(explained)
     
     %data to make vis Epoch
     datToUse = dat1; %All(ind).out.vis.zdfData; %All(ind).out.vis.allData;
