@@ -163,6 +163,9 @@ if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstruct(varargin{1})
     opt.yLabel = '';
     opt.spreadWidth = def.spreadWidth;
     opt.individualLabels = false;
+        opt.categoryLabels = def.categoryLabels;
+
+    
     
     for fn = fieldnames(def)'
         if ~isfield(opt,fn{1})

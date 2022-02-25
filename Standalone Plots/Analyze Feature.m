@@ -464,7 +464,7 @@ ylabel('Mean Evoked dF/F')
 %% Plot Distance Curves in different Ori Bands
 
 opts.distType = 'min';
-opts.distBins =[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
+opts.distBins =10:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 opts.plotOrientation =1;%as opposed to Direction
 opts.minNumberOfCellsPerCondition =15; %set to -1 to ignore
 opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
@@ -568,7 +568,7 @@ plotDistByTwoCriteria(All,outVars,opts,21)
 
 %% Plot Space and Feature V3 
 opts.distType = 'min';
-opts.distBins =[0:2:100]; %[0:25:150]; 
+opts.distBins =[10:15:100]; %[0:25:150]; 
 opts.plotTraces = 0;
 opts.useVisCells = 1;
 opts.useTunedCells =0; %don't use tuned without vis
@@ -579,7 +579,7 @@ meanThresh = 0.5; %0.5; % 0.4687;
 closeVal =  400
 farVal =500
 
-outInfo=[]
+outInfo=[];
 axs = [];
 ax = subplot(3,2,1);
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI<meanThresh;

@@ -82,10 +82,10 @@ end
 outVars.names = names;
 
 %% restrict Cells to use
-opts.minMeanThreshold = 0;0.5;
+opts.minMeanThreshold =0;0.5;
 opts.maxMeanThreshold = inf;
 
-opts.peakThreshold =0; %exclude cells that do not ever excede this threshold (set to 0 to disable)
+opts.peakThreshold = 0; %exclude cells that do not ever excede this threshold (set to 0 to disable)
 
 opts.verbose =0;
 [All, cellExcludeResults] = cellExcluder(All,opts); 
@@ -104,7 +104,7 @@ disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd
 opts.visAlpha = 0.05;
 
 %oftarget risk params
-opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
+opts.thisPlaneTolerance =0; 11.25;%7.5;%1FWHM%10; %in um;% pixels
 opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
@@ -356,27 +356,37 @@ ylim([-0.075 0.075])
 
 
 %% create new 
-
+numPos=[];
+numneg=[];
+negThres=[];
 for ind = 1:numExps
    vals = All(ind).out.info.value1020;
    defPosThresh = prctile(vals,80);
 %    All(ind).out.info.defPos = vals>=defPosThresh;% & All(ind).out.anal.cellsToInclude;
        All(ind).out.info.defPos = vals>=defPosThresh & All(ind).out.anal.cellsToInclude;
-
-   defNegThresh = prctile(vals,20);
+numPos(ind) = sum(All(ind).out.info.defPos);
+       
+       
+   defNegThresh = prctile(vals,30);
    All(ind).out.info.defNeg = vals<=defNegThresh & All(ind).out.anal.cellsToInclude;
-   
+%    
+%       lowestBound = 1;prctile(vals,1);
+%       All(ind).out.info.defNeg = vals>=lowestBound & vals<=defNegThresh & All(ind).out.anal.cellsToInclude;
+numNeg(ind) = sum(All(ind).out.info.defNeg);
+negThres(ind) = defNegThresh;
 end
 
+% negThres
+disp(['Total ' num2str(sum(numPos)) ' pos. ' num2str(sum(numNeg)) ' Neg'])
 
 %% to match  other plots
-figure(106);clf
+figure(105);clf
 hold on
 ax = subplot(1,1,1);
 
-opts.distBins = 00:20:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 5:5:50; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
-opts.distAxisRange = [0 250]; %[0 350] is stand
+opts.distAxisRange = [0 50]; %[0 350] is stand
 
 backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
@@ -385,25 +395,24 @@ backupEnsemblesToUse = outVars.ensemblesToUse;
 disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
 % 
 CellToUseVar =[];
-[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
-p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
-p1{1}.Color=rgb('black');
-p1{1}.CapSize = 0;
-outVars.ensemblesToUse = backupEnsemblesToUse;
-hold on
-drawnow
-ylim([-0.05 0.11])
+[popRespDistAll] = popDistMaker(opts,All,CellToUseVar,0);
+% p1 = plotDistRespGeneric(popRespDistAll,outVars,opts,ax);
+% p1{1}.Color=rgb('black');
+% p1{1}.CapSize = 0;
+% outVars.ensemblesToUse = backupEnsemblesToUse;
+% hold on
+% drawnow
+% ylim([-0.05 0.11])
 
 
-backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
 %  limEnsembleToUse = outVars.ensemblesToUse & ~ismember(outVars.ensIndNumber,[1 4]);
 %  outVars.ensemblesToUse = limEnsembleToUse;
 disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
 % 
 CellToUseVar ='info.defPos';%[];
-[popRespDistDefault] = popDistMaker(opts,All,CellToUseVar,0);
-p1 = plotDistRespGeneric(popRespDistDefault,outVars,opts,ax);
+[popRespDistPos] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistPos,outVars,opts,ax);
 p1{1}.Color=rgb('red');
 p1{1}.CapSize = 0;
 outVars.ensemblesToUse = backupEnsemblesToUse;
@@ -411,21 +420,110 @@ hold on
 drawnow
 ylim([-0.05 0.11])
 
-backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
 %  limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[1 2 5]);
 %  outVars.ensemblesToUse = limEnsembleToUse;
 % disp(['Using only ' num2str(sum(outVars.ensemblesToUse)) ' Ensembles']);
 % 
 CellToUseVar ='info.defNeg'; %'info.opsinNegative';% [];
-[popRespDistData] = popDistMaker(opts,All,CellToUseVar,0);
-p1 = plotDistRespGeneric(popRespDistData,outVars,opts,ax);
+[popRespDistNeg] = popDistMaker(opts,All,CellToUseVar,0);
+p1 = plotDistRespGeneric(popRespDistNeg,outVars,opts,ax);
 p1{1}.Color=rgb('ForestGreen');
 p1{1}.CapSize = 0;
 outVars.ensemblesToUse = backupEnsemblesToUse;
 hold on
 drawnow
 ylim([-0.05 0.11])
+ylim([-0.05 0.7])
+
+
+allEnsResp = popRespDistAll(outVars.ensemblesToUse,1);
+posEnsResp = popRespDistPos(outVars.ensemblesToUse,1);
+negEnsResp = popRespDistNeg(outVars.ensemblesToUse,1);
+
+figure(107);clf
+datToPlot={posEnsResp; negEnsResp};
+plotSpread(datToPlot,[],[],'showMM',4)
+
+sum(~isnan(posEnsResp))
+sum(~isnan(negEnsResp))
+
+
+ranksum(posEnsResp,negEnsResp)
+signrank(negEnsResp)
+signrank(posEnsResp)
+
+
+%% plot ROI red Value
+
+figure(2);clf
+
+allVals=[]; posNeg=[];
+
+for ind = 1:numExps
+   vals = All(ind).out.info.value1020;
+   allVals=[allVals vals];
+   
+   sVals = sort(vals);
+   
+   defPosThresh = prctile(vals,87);
+   defNegThresh = prctile(vals,27);
+   
+   
+   temp = zeros(size(vals));
+   temp(vals>=defPosThresh)=1;
+   temp(vals<=defNegThresh)=-1;
+   
+   posNeg = [posNeg temp];
+   
+   numList = 1:numel(vals); 
+   figure(2);clf
+   p1 = plot(numList,sVals,'o');
+   p1.Color=rgb('grey');
+   hold on
+   p2 = plot(numList(sVals>=defPosThresh),sVals(sVals>=defPosThresh),'o');
+p2.Color=rgb('red')
+
+p3 = plot(numList(sVals<=defNegThresh),sVals(sVals<=defNegThresh),'o');
+p3.Color=rgb('forestgreen')
+   
+   pause
+end
+
+
+figure(3);clf
+
+numCells = numel(allVals);
+numList = 1:numCells; 
+[sAllVals sidx] = sort(allVals); 
+
+sPosNeg = posNeg(sidx); 
+
+p1 = plot(numList,sAllVals,'o');
+p1.Color=rgb('grey');
+hold on
+
+defPosThresh = prctile(allVals,80);
+defNegThresh = prctile(allVals,30);
+
+plotMode=2;
+
+if plotMode ==1
+p2 = plot(numList(sAllVals>=defPosThresh),sAllVals(sAllVals>=defPosThresh),'o');
+p2.Color=rgb('red')
+
+p3 = plot(numList(sAllVals<=defNegThresh),sAllVals(sAllVals<=defNegThresh),'o');
+p3.Color=rgb('forestgreen')
+else
+    p2 = plot(numList(sPosNeg==1),sAllVals(sPosNeg==1),'o');
+p2.Color=rgb('red')
+
+p3 = plot(numList(sPosNeg==-1),sAllVals(sPosNeg==-1),'o');
+p3.Color=rgb('forestgreen')
+end
+
+
+%    refline(0,defPosThresh);
 
 %% 
 
@@ -433,9 +531,9 @@ figure(104);clf
 hold on
 ax = subplot(1,1,1);
 
-opts.distBins = 00:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 00:5:50; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
-opts.distAxisRange = [0 250]; %[0 350] is stand
+opts.distAxisRange = [0 50]; %[0 350] is stand
 
 backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
@@ -453,7 +551,7 @@ hold on
 drawnow
 ylim([-0.05 0.11])
 
-for i=1:5
+for i=3; %1:5
 backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
  limEnsembleToUse = outVars.ensemblesToUse & ismember(outVars.ensIndNumber,[i]);
@@ -470,7 +568,7 @@ hold on
 drawnow
 ylim([-0.05 0.11])
 
-pause
+% pause
 end
 
 
