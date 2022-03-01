@@ -47,6 +47,10 @@ for ind=1:numExps
 end
 disp('Data To Use is set')
 
+%% Rematch Targeted Cells
+opts.matchDistanceMicrons = 10;
+rematchTargetedCells;
+
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
@@ -98,10 +102,10 @@ disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd
 %%Determine Vis Responsive and Process Correlation
 
 opts.visAlpha = 0.05;
-
+muPerPx=800/512;
 %oftarget risk params
-opts.thisPlaneTolerance = 9;11.25;%7.5;%1FWHM%10; %in um;% pixels
-opts.onePlaneTolerance = 9;22.5;%15;%2FWHM %20;
+opts.thisPlaneTolerance = 15/muPerPx;11.25;%7.5;%1FWHM%10; %in pixels
+opts.onePlaneTolerance = 15/muPerPx;22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
 
@@ -568,7 +572,7 @@ plotDistByTwoCriteria(All,outVars,opts,21)
 
 %% Plot Space and Feature V3 
 opts.distType = 'min';
-opts.distBins =[15:5:50]; %[0:25:150]; 
+opts.distBins =[0:5:50]; %[0:25:150]; 
 opts.plotTraces = 0;
 opts.useVisCells = 1;
 opts.useTunedCells =0; %don't use tuned without vis

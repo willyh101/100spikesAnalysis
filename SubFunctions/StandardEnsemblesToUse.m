@@ -24,7 +24,7 @@ numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 opts.IndsVisThreshold = 0.1;0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
-lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
+lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.4));
 lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 

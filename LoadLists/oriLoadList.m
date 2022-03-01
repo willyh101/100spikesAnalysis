@@ -59,5 +59,7 @@ loadList = {
     '211019_I154_1_outfile.mat' %one at a time but some eligible
     '220201_w42_2_outfile.mat'
     '220225_W42_2_outfile.mat'
+    '220228_W42_2_outfile.mat'
+
     
     };
