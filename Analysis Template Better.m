@@ -1,7 +1,7 @@
 clear;
-date = '220131';
-mouse = 'HB113';%'I138_1';%'I136_1';
-epochs = '1_2_3_4_5_6_7_8';
+date = '220225';
+mouse = 'W42_2';%'I138_1';%'I136_1';
+epochs = '1_2_3_4';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
 % basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
@@ -14,13 +14,13 @@ baseName = [mouse '_' date];%'I118a.2_180504';
 loadList = {['F_' baseName '_plane1_proc'] ['F_' baseName '_plane2_proc'] ['F_' baseName '_plane3_proc']};% ['F_' baseName '_plane4_proc']};
 
 nDepthsTotal = 3;4;%Normally 3;
-physfile = fullfile(basePath,[date '_B' '.mat']);
+physfile = fullfile(basePath,[date '_A' '.mat']);
 % physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
 disp('Loading...')
 try
     load(physfile)
 catch
-    physfile = fullfile(basePath,[date(3:end) '_B' '.mat']);
+    physfile = fullfile(basePath,[date(3:end) '_A' '.mat']);
     load(physfile)
 end
 disp('Loaded')
@@ -37,17 +37,17 @@ theList=[];
 % spk is an extra module on exp, so run exp first even if it will be
 % overrun
 theList = {
-    3 3 'stim'
+    2 2 'stim'
     ...4 4 'vis2'
-    4 4 'vis'
-    5 5 'exp'
-    5 5 'spk'
+    3 3 'vis'
+    4 4 'exp'
+    ...5 5 'spk'
     ...9 10 'exp2'
-    8 8 'exp'
-    8 8 'mani2'
-    7 7 'vis3'
-    6 6 'exp'
-    6 6 'mani'
+    ...8 8 'exp'
+    ...8 8 'mani2'
+    ...7 7 'vis3'
+   ... 6 6 'exp'
+   ... 6 6 'mani'
     ...5 5 'info'
     };
 listSize = size(theList);

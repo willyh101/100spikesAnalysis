@@ -58,5 +58,6 @@ loadList = {
     '211108_I156_1_outfile.mat' %sepW1  one at a time
     '211019_I154_1_outfile.mat' %one at a time but some eligible
     '220201_w42_2_outfile.mat'
+    '220225_W42_2_outfile.mat'
     
     };

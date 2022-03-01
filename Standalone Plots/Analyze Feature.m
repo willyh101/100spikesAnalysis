@@ -100,8 +100,8 @@ disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd
 opts.visAlpha = 0.05;
 
 %oftarget risk params
-opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
-opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
+opts.thisPlaneTolerance = 9;11.25;%7.5;%1FWHM%10; %in um;% pixels
+opts.onePlaneTolerance = 9;22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
 
@@ -568,12 +568,12 @@ plotDistByTwoCriteria(All,outVars,opts,21)
 
 %% Plot Space and Feature V3 
 opts.distType = 'min';
-opts.distBins =[10:15:100]; %[0:25:150]; 
+opts.distBins =[15:5:50]; %[0:25:150]; 
 opts.plotTraces = 0;
 opts.useVisCells = 1;
 opts.useTunedCells =0; %don't use tuned without vis
 figure(18); clf
-lim = [-0.4 0.25];
+lim =[-0.2 0.4]; [-0.4 0.25];
 
 meanThresh = 0.5; %0.5; % 0.4687;
 closeVal =  400
