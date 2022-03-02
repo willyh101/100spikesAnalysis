@@ -8,6 +8,8 @@ addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
 oriLoadList;
+oriLoadListOnlyInt;
+
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
@@ -50,7 +52,7 @@ end
 disp('Data To Use is set')
 
 %% Rematch Targeted Cells
-opts.matchDistanceMicrons = 5; 15.6; %6;
+opts.matchDistanceMicrons = 10; 15.6; %6;
 rematchTargetedCells;
 
 %% clean Data, and create fields.
@@ -476,7 +478,7 @@ recalcOffTargetRisk;
 %% Plot Distance Curves in different Ori Bands
 
 opts.distType = 'min';
-opts.distBins =0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
+opts.distBins =15:10:150; 0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 opts.plotOrientation =1;%as opposed to Direction
 opts.minNumberOfCellsPerCondition =15; %set to -1 to ignore
 opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
@@ -561,7 +563,7 @@ ylim([-0.15 0.15]);
 %% Plot Space and  Feature v2
 %% Plot Dist by Two Criteria
 opts.distType = 'min';
-opts.distBins =[0:25:150]; 
+opts.distBins =[15:15:150]; [0:25:150]; 
 opts.plotTraces = 0; 
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
 opts.criteria2Name = 'ensOSI';
@@ -582,11 +584,11 @@ plotDistByTwoCriteria(All,outVars,opts,21)
 
 %% Plot Space and Feature V3 
 opts.distType = 'min';
-opts.distBins =15:15:150; %[15:15:150]; [opts.thisPlaneTolerance*muPerPx:10:150]; %[0:25:150]; 
+opts.distBins =15:10:150; %15:15:150; %[15:15:150]; [opts.thisPlaneTolerance*muPerPx:10:150]; %[0:25:150]; 
 opts.plotTraces = 0;
 opts.useVisCells = 1;
 opts.useTunedCells =0; %don't use tuned without vis
-figure(18); clf
+figure(120); clf
 lim =[-0.1 0.2]; [-0.4 0.25];
 
 meanThresh = 0.5; %0.5; % 0.4687;
@@ -657,7 +659,7 @@ disp(['Near Untuned vs Tuned p= ' num2str(p)]);
 disp(['Far Untuned vs Tuned p= ' num2str(p)]);
 
 %%
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.5;
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.7;
 opts.useVisCells = 1;
 opts.useTunedCells =0; %don't use tuned without vis
 opts.minNumberOfCellsPerCondition = -1;
@@ -667,6 +669,7 @@ opts.variableCellFun =  '(outVars.pVisR{ind} < 0.05 & outVars.distToEnsemble{i}<
 figure(19);clf
 scatter(outVars.meanEnsOSI,closeExcitation,[],rgb('sienna'),'filled')
 refline(0)
+xlabel('MeanEnsOsi') ;
 
 x = outVars.meanEnsOSI(opts.ensemblesToPlot)';
 y = closeExcitation(opts.ensemblesToPlot);
@@ -676,6 +679,11 @@ nanEither = isnan(x) | isnan(y');
 
 [p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
 disp(['Pval is: ' num2str(pVal(1))])
+
+%% Identify activated cells in off target risk area
+
+
+
 
 %%
 toc(masterTic)

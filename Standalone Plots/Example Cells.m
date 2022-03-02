@@ -4,11 +4,12 @@ meanEnsResp = mean(outVars.popResponseEns(ensemblesToUse));
 stdEnsResp = std(outVars.popResponseEns(ensemblesToUse));
 
 eligibleEns = outVars.popResponseEns<meanEnsResp & outVars.popResponseEns<meanEnsResp>(meanEnsResp-stdEnsResp) & ensemblesToUse';
+eligibleEns =  ensemblesToUse';
 
 egL = find(eligibleEns);
 for i =1:sum(eligibleEns)
     ens = egL(i); %953;
-    thisEnsScore = outVars.popResponseEns(ens);
+    thisEnsScore = outVars.popResponseEns(ens) ;
     
     
     ind = outVars.ensIndNumber(ens);

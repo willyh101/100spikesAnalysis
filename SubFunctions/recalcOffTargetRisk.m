@@ -15,10 +15,7 @@ for ind =1:numExps
     stimDepth = All(ind).out.exp.stimDepth;
     allDepth = All(ind).out.exp.allDepth;
     muPerPx = 800/512;
-    
-    allLoc = [allCoM*muPerPx (allDepth-1)*30];
-    stimLoc = [stimCoM*muPerPx (stimDepth-1)*30];
-    
+      
     roisTargets = All(ind).out.exp.rois;
     holoTargets = All(ind).out.exp.holoTargets;
     
