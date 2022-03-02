@@ -11,7 +11,9 @@ oriLoadList;
 % % allLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
-loadPath = 'T:\Outfiles';
+% loadPath = 'T:\Outfiles';
+
+loadPath = 'C:\Users\ian\Dropbox\Outfiles';
 
 addpath(genpath(loadPath))
 
@@ -48,7 +50,7 @@ end
 disp('Data To Use is set')
 
 %% Rematch Targeted Cells
-opts.matchDistanceMicrons = 10;
+opts.matchDistanceMicrons = 5; 15.6; %6;
 rematchTargetedCells;
 
 %% clean Data, and create fields.
@@ -351,6 +353,7 @@ yticks(-.15:.05:.05)
 
 %% Plot Population Response read out in different cells
 
+
 opts.ensemblesToPlot = outVars.ensemblesToUse; 
 opts.useVisCells =0;
 opts.useTunedCells =0;
@@ -464,11 +467,16 @@ end
 
 
 ylabel('Mean Evoked dF/F')
+%%
+muPerPx = 800/512;
+opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
+opts.onePlaneTolerance = 35/muPerPx; %30/muPerPx;
 
+recalcOffTargetRisk;
 %% Plot Distance Curves in different Ori Bands
 
 opts.distType = 'min';
-opts.distBins =10:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
+opts.distBins =0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 opts.plotOrientation =1;%as opposed to Direction
 opts.minNumberOfCellsPerCondition =15; %set to -1 to ignore
 opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
@@ -483,7 +491,7 @@ ylim([-0.175 0.1])
 
 
 figure(14);
-ylim([-0.225 0.15])
+ylim([-0.225 0.5])
 %% Plot Split by Mean OSI
 opts.distType = 'min';
 opts.distBins =[0:25:150]; 
@@ -570,14 +578,16 @@ plotDistByTwoCriteria(All,outVars,opts,21)
 % figure(13)
 % ylim([-0.15 0.1]);
 
+
+
 %% Plot Space and Feature V3 
 opts.distType = 'min';
-opts.distBins =[0:5:50]; %[0:25:150]; 
+opts.distBins =15:15:150; %[15:15:150]; [opts.thisPlaneTolerance*muPerPx:10:150]; %[0:25:150]; 
 opts.plotTraces = 0;
 opts.useVisCells = 1;
 opts.useTunedCells =0; %don't use tuned without vis
 figure(18); clf
-lim =[-0.2 0.4]; [-0.4 0.25];
+lim =[-0.1 0.2]; [-0.4 0.25];
 
 meanThresh = 0.5; %0.5; % 0.4687;
 closeVal =  400

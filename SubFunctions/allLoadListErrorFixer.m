@@ -60,6 +60,7 @@ if ~isempty(indToUse)
     All(indToUse).out.exp.stimParams.roi([3 4])=[];
     All(indToUse).out.exp.stimParams.Hz([2 3])=[];
     All(indToUse).out.exp.stimParams.numCells([2 3])=[];
+    All(indToUse).out.exp.rois([2 3])=[];
     All(indToUse).out.exp.holoTargets([2 3])=[];
 end
 

@@ -26,6 +26,14 @@ for ind=1:numExps
    
 newTargetedCells(distToClosest>opts.matchDistanceMicrons)=nan;
 All(ind).out.exp.targetedCells = newTargetedCells;
+
+
+for i =1:numel(All(ind).out.exp.rois);
+    rt = All(ind).out.exp.rois{i};
+    ht = newTargetedCells(rt);
+%     ht(isnan(ht))=[];
+    All(ind).out.exp.holoTargets{i}=ht';
+end
    
 end
 disp('matched')
