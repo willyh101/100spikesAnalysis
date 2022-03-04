@@ -390,14 +390,19 @@ linkaxes([ax1,ax2])
 %     drawnow
 % end
 % disp('done')
+%%
+muPerPx = 800/512;
+opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
+opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
 
+recalcOffTargetRisk;
 %% Just a few with different binning
 figure(103);clf;
 dataInPlots =[];
 
 ax = subplot(1,2,1);
 opts.distType = 'min';
-opts.distBins = 0:10:350; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 15:15:250; %can be set variably 0:25:1000 is defaultt
 opts.distAxisRange = [0 250]; %[0 350] is stand
 CellToUseVar = 'anal.cellsToInclude';%[];
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
@@ -408,7 +413,7 @@ title('min')
 
 ax = subplot(1,2,2);
 opts.distType = 'mean';
-opts.distBins = 0:10:500; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 15:10:500; %can be set variably 0:25:1000 is defaultt
 opts.distAxisRange = [0 450]; %[0 350] is stand
 CellToUseVar = 'anal.cellsToInclude';%[];
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
@@ -470,7 +475,7 @@ disp('made new stimmed vs neverstimmed cells')
 figure(104);clf
 ax = subplot(1,1,1);
 
-opts.distBins = 10:10:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 0:5:350; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
 opts.distAxisRange = [0 250]; %[0 350] is stand
 

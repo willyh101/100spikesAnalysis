@@ -57,9 +57,9 @@ loadList = {
     '211102_I158_1_outfile.mat' %sepW1
     '211108_I156_1_outfile.mat' %sepW1  one at a time
     '211019_I154_1_outfile.mat' %one at a time but some eligible
-    ...'220201_w42_2_outfile.mat' %SST Tripple 1:2 DIO G6f-BFP
-    ...'220225_W42_2_outfile.mat' %SST Tripple 1:2 DIO G6f-BFP
-    ...'220228_W42_2_outfile.mat' %SST Tripple 1:2 DIO G6f-BFP
+    ...'220201_w42_2_outfile.mat' %SST Tripple 1:2 DIO G7f-BFP
+    ...'220225_W42_2_outfile.mat' %SST Tripple 1:2 DIO G7f-BFP
+    ...'220228_W42_2_outfile.mat' %SST Tripple 1:2 DIO G7f-BFP
 
     
     };

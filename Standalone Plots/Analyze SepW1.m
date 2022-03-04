@@ -40,7 +40,9 @@ end
 %% error fixer
 %CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
-
+%% Rematch Targeted Cells
+opts.matchDistanceMicrons = 12; 15.6; %6;
+rematchTargetedCells;
 %% Set Data To use
 for ind=1:numExps
     All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;

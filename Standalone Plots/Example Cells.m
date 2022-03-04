@@ -8,7 +8,13 @@ eligibleEns =  ensemblesToUse';
 
 egL = find(eligibleEns);
 for i =1:sum(eligibleEns)
-    ens = egL(i); %953;
+    %Nice ones 220302: 594 768 771 822 828 829 836 837 838 845 866 879 1005
+    %1027 1030 1037 1053 1056 1058
+    
+    %Nice 220303: 398 399 594 768 822 829 837 838 839 845 866 877 879 885
+    %929 983
+    %229 230 232 537 560 594 7 68 769
+    ens = egL(i); %953; 
     thisEnsScore = outVars.popResponseEns(ens) ;
     
     
@@ -18,7 +24,7 @@ for i =1:sum(eligibleEns)
     sID = h; %does this hold true if the first isn't a no hologram?
     
     
-    rawDat = All(ind).out.exp.zdfData;
+    rawDat = All(ind).out.exp.dfData;
     rawDatForCellVal = All(ind).out.exp.zdfData;
     
     us = unique(All(ind).out.exp.stimID);
@@ -94,8 +100,9 @@ for i =1:sum(eligibleEns)
 end
 
 %% Plot just one
-
-ens = 678; %578;% egL(i); %953;
+    %Nice ones 220302: 594 768 771 822 828 829 836 837 838 845 866 879 1005
+    %1027 1030 1037 1053 1056 1058
+ens = 838;%822 678; %578;% egL(i); %953;
 thisEnsScore = outVars.popResponseEns(ens);
 
 
@@ -106,7 +113,7 @@ sID = h; %does this hold true if the first isn't a no hologram?
 
 % [dfData, zdfData] =  computeDFFwithMovingBaseline(All(ind).out.exp.allData);
 try 
-    rawDat = All(ind).out.exp.zdfData;
+    rawDat = All(ind).out.exp.dfData;
 catch
     disp('err')
     if ~isfield(All(ind).out.exp,'dfData')
@@ -169,7 +176,7 @@ imagesc(smallData(fliplr(sidx),:))
 colorbar
 colormap rdbu
 % caxis([-0.75 0.75])
-caxis([-0.5 0.5])
+caxis([-0.6 0.6])
 
 title(ens)
 
@@ -188,7 +195,7 @@ l.Color = rgb('grey');
 box off
 xlabel('Frames')
 ylabel('Mean Evoked dF/F')
-ylim([-0.1 0.1])
+ylim([-0.125 0.05])
 
 %%
 plotMask=1;
@@ -197,7 +204,7 @@ eligibleCellList = find(eligibleCells);
 figure(28)
 caxisLim =[-0.5 3];
 colormap viridis
-for i = 1:numel(smallCellVal); %eligibleCellList)
+for i = (1:numel(smallCellVal)); %eligibleCellList)
     cellID = eligibleCellList(sidx(i)); %eligibleCellList(i);
     thisCellVal = smallCellVal(sidx(i));
     if 1;eligibleCells(cellID);
@@ -216,6 +223,10 @@ for i = 1:numel(smallCellVal); %eligibleCellList)
         colorbar
         caxis(caxisLim)
         
+        FR = All(ind).out.info.FR; 
+        xticks(0:FR:24)
+        xticklabels(0:4);
+        
         %     caxis([-3 3]);
         % %     colormap rdbu
         title(['Stim. ID: ' num2str(cellID)])
@@ -227,7 +238,7 @@ for i = 1:numel(smallCellVal); %eligibleCellList)
         
         subplot(2,3,6)
         %     fillPlot(noStimDataToPlot,[],'ci',rgb('DimGray'),'none',rgb('dimgray'),0.5);
-        r = rectangle('position',[6 -2 6 6]);
+        r = rectangle('position',[FR -2 6 FR]);
         r.FaceColor= [rgb('FireBrick') 0.5];
         r.LineStyle='none';
         
@@ -235,15 +246,18 @@ for i = 1:numel(smallCellVal); %eligibleCellList)
         basVal = mean(mean(stimDatToPlot(:,bwin(1):bwin(2)),2));
         %         fillPlot(stimDatToPlot-basVal,[],'ci',rgb('steelblue'),'none',rgb('steelblue'),0.5);
         fillPlot(stimDatToPlot-basVal,[],'ci',rgb('darkmagenta'),'none',rgb('darkmagenta'),0.5);
+%         fillPlot(stimDatToPlot-basVal,[],'ci',rgb('forestGreen'),'none',rgb('forestGreen'),0.5);
         
         l = line([0 25],[0 0]);
         l.LineStyle=':';
         l.LineWidth=2;
         l.Color = rgb('grey');
         box off
-        xlabel('Frames')
+        xlabel('Time(s)')
         ylabel('Mean Evoked dF/F')
-        ylim([-2 2])
+        ylim([-1.5 1])
+                xticks(0:FR:24)
+        xticklabels(0:4);
         
         if plotMask
             subplot(2,3,4)

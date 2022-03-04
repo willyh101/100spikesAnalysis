@@ -21,16 +21,16 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.1;0.05; %default 0.05
+opts.IndsVisThreshold = 0.05;0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
-lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.4));
+lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
 lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'PHP Tre' };%'SepW1 CAG 2s'
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -39,9 +39,19 @@ excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 % only include times where rate == numpulses aka the stim period is 1s.
 ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars.hzEachEns;
 
+
+
+%how many ensemblesPer Ind
+uEIN =unique(outVars.ensIndNumber);
+indEnsCount =[];
+for i=1:numel(uEIN)
+    e = uEIN(i);
+    indEnsCount(i) = sum(outVars.ensIndNumber==e);
+end
+
 %spot to add additional Exclusions
-excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
-% excludeInds = ismember(ensIndNumber,[]); 
+% excludeInds = ismember(ensIndNumber,find(indEnsCount>50)); %Its possible that the visStimIDs got messed up
+excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
@@ -65,7 +75,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 7 ...
     & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
-    ...& ensDate < 220000 ...%210420 ...
+    & ensDate < 220000 ...%210420 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...

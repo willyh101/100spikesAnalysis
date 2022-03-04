@@ -8,7 +8,7 @@ addpath(genpath('100spikesAnalysis'))
 %% loadLists
 
 oriLoadList;
-oriLoadListOnlyInt;
+% oriLoadListOnlyInt;
 
 % % allLoadList;
 
@@ -52,7 +52,7 @@ end
 disp('Data To Use is set')
 
 %% Rematch Targeted Cells
-opts.matchDistanceMicrons = 10; 15.6; %6;
+opts.matchDistanceMicrons = 12; 15.6; %6;
 rematchTargetedCells;
 
 %% clean Data, and create fields.
@@ -109,7 +109,7 @@ opts.visAlpha = 0.05;
 muPerPx=800/512;
 %oftarget risk params
 opts.thisPlaneTolerance = 15/muPerPx;11.25;%7.5;%1FWHM%10; %in pixels
-opts.onePlaneTolerance = 15/muPerPx;22.5;%15;%2FWHM %20;
+opts.onePlaneTolerance = 30/muPerPx;22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
 
@@ -469,41 +469,16 @@ end
 
 
 ylabel('Mean Evoked dF/F')
-%%
-muPerPx = 800/512;
-opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
-opts.onePlaneTolerance = 35/muPerPx; %30/muPerPx;
-
-recalcOffTargetRisk;
-%% Plot Distance Curves in different Ori Bands
-
-opts.distType = 'min';
-opts.distBins =15:10:150; 0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
-opts.plotOrientation =1;%as opposed to Direction
-opts.minNumberOfCellsPerCondition =15; %set to -1 to ignore
-opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
-% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD>500;
-% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD<400;
-
-
- plotDistByOri(All,outVars,opts)
-
- figure(10);
-ylim([-0.175 0.1])
-
-
-figure(14);
-ylim([-0.225 0.5])
 %% Plot Split by Mean OSI
 opts.distType = 'min';
-opts.distBins =[0:25:150]; 
+opts.distBins =[15:15:150];[0:25:150]; 
 opts.distAxisRange = [0 150];
 opts.plotTraces = 0; 
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3;
 opts.criteriaToSplit = outVars.meanEnsOSI;
-opts.criteriaBins = [0 0.45 0.5 inf];
+opts.criteriaBins = [0 0.4 0.5 inf];
 % opts.useVisAndTunedCells =1; 
-opts.useVisCells =1;
+opts.useVisCells =0;
 opts.useTunedCells =0; %don't use tuned without vis
 
 plotDistByCriteria(All,outVars,opts,15)
@@ -547,58 +522,59 @@ ylim([-0.15 0.1]);
 
 
 
-%% Plot Space and Feature
+%%
+muPerPx = 800/512;
+opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
+opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
+
+recalcOffTargetRisk;
+%% Plot Distance Curves in different Ori Bands
 
 opts.distType = 'min';
-opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
-opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
-opts.plotTraces =0;
-opts.useVisCells =1;
-opts.useTunedCells =0; %don't use tuned without vis
-
-plotSpaceAndFeature(All,outVars,opts,11)
-ylim([-0.15 0.15]);
+opts.distBins =15:15:150; 0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 
 
-%% Plot Space and  Feature v2
-%% Plot Dist by Two Criteria
+opts.plotOrientation =1;%as opposed to Direction
+opts.minNumberOfCellsPerCondition =-10; %set to -1 to ignore
+opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD>500;
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD<400;
+
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI<0.5;
+
+ plotDistByOri(All,outVars,opts)
+% plotDistByClosestTargetOri(All,outVars,opts)
+
+ figure(10);
+ylim([-0.1 0.125])
+
+
+figure(14);
+ylim([-0.225 0.5])
+
+
+%%Plot Space and Feature V3 
 opts.distType = 'min';
-opts.distBins =[15:15:150]; [0:25:150]; 
-opts.plotTraces = 0; 
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
-opts.criteria2Name = 'ensOSI';
-opts.criteria2 = outVars.ensOSI;
-opts.criteria2Bins = [0 0.3 0.7 inf]
-
-opts.criteriaName = 'Spread';
-opts.criteria = outVars.ensMaxD;
-opts.criteriaBins = [0 400 500 inf];
-opts.useVisCells =1; 
-opts.useTunedCells =0; 
-
-plotDistByTwoCriteria(All,outVars,opts,21)
-% figure(13)
-% ylim([-0.15 0.1]);
-
-
-
-%% Plot Space and Feature V3 
-opts.distType = 'min';
-opts.distBins =15:10:150; %15:15:150; %[15:15:150]; [opts.thisPlaneTolerance*muPerPx:10:150]; %[0:25:150]; 
+% opts.distBins =15:15:150; %15:15:150; %[15:15:150]; [opts.thisPlaneTolerance*muPerPx:10:150]; %[0:25:150]; 
 opts.plotTraces = 0;
-opts.useVisCells = 1;
-opts.useTunedCells =0; %don't use tuned without vis
+opts.useVisCells = 0;
+opts.useTunedCells = 0; %don't use tuned without vis
 figure(120); clf
-lim =[-0.1 0.2]; [-0.4 0.25];
+lim =[-0.1 0.125]; [-0.4 0.25];
 
-meanThresh = 0.5; %0.5; % 0.4687;
+highMeanThresh = 0.5; %0.5; % 0.4687;
+lowMeanThresh = 0.5;
+
+lowEnsThresh = 0.3;
+highEnsThresh = 0.7;
+
 closeVal =  400
 farVal =500
 
 outInfo=[];
 axs = [];
 ax = subplot(3,2,1);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI<meanThresh;
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<lowEnsThresh & outVars.meanEnsOSI<lowMeanThresh;
 opts.criteriaToSplit =  outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
 [e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
@@ -613,7 +589,7 @@ axs = [axs ax];
 
 
 ax = subplot(3,2,3);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 & outVars.meanEnsOSI>meanThresh;
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<lowEnsThresh & outVars.meanEnsOSI>highMeanThresh;
 % opts.criteriaToSplit = outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
 [e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
@@ -628,7 +604,7 @@ axs = [axs ax];
 
 
 ax = subplot(3,2,5);
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 & outVars.meanEnsOSI>meanThresh;
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>highEnsThresh & outVars.meanEnsOSI>highMeanThresh;
 % opts.criteriaToSplit = outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
 [e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
@@ -660,7 +636,7 @@ disp(['Far Untuned vs Tuned p= ' num2str(p)]);
 
 %%
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.7;
-opts.useVisCells = 1;
+opts.useVisCells = 0;
 opts.useTunedCells =0; %don't use tuned without vis
 opts.minNumberOfCellsPerCondition = -1;
 opts.variableCellFun =  '(outVars.pVisR{ind} < 0.05 & outVars.distToEnsemble{i}<25)';
@@ -680,7 +656,64 @@ nanEither = isnan(x) | isnan(y');
 [p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
 disp(['Pval is: ' num2str(pVal(1))])
 
-%% Identify activated cells in off target risk area
+%%
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.meanEnsOSI>0.5;
+opts.useVisCells = 0;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
+opts.variableCellFun =  '(outVars.pVisR{ind} < 0.05 & outVars.distToEnsemble{i}<30)';
+[closeExcitation] = subsetPopResponse(All,outVars,opts);
+
+figure(19);clf
+scatter(outVars.ensOSI,closeExcitation,[],rgb('sienna'),'filled')
+refline(0)
+xlabel('EnsOsi') ;
+
+x = outVars.ensOSI(opts.ensemblesToPlot)';
+y = closeExcitation(opts.ensemblesToPlot);
+nanEither = isnan(x) | isnan(y');
+
+[fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+
+[p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
+disp(['Pval is: ' num2str(pVal(1))])
+
+%% cut older analyses
+%
+
+
+%% Plot Space and Feature
+% 
+% opts.distType = 'min';
+% opts.distBins =[0:25:150];%[15:20:150];% [0:25:400];
+% opts.distAxisRange = [min(opts.distBins) max(opts.distBins)]; %[0 350];
+% opts.plotTraces =0;
+% opts.useVisCells =1;
+% opts.useTunedCells =0; %don't use tuned without vis
+% 
+% plotSpaceAndFeature(All,outVars,opts,11)
+% ylim([-0.15 0.15]);
+% 
+% 
+% %% Plot Space and  Feature v2
+% %% Plot Dist by Two Criteria
+% opts.distType = 'min';
+% opts.distBins =[15:15:150]; [0:25:150]; 
+% opts.plotTraces = 0; 
+% opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+% opts.criteria2Name = 'ensOSI';
+% opts.criteria2 = outVars.ensOSI;
+% opts.criteria2Bins = [0 0.3 0.7 inf]
+% 
+% opts.criteriaName = 'Spread';
+% opts.criteria = outVars.ensMaxD;
+% opts.criteriaBins = [0 400 500 inf];
+% opts.useVisCells =1; 
+% opts.useTunedCells =0; 
+% 
+% plotDistByTwoCriteria(All,outVars,opts,21)
+% % figure(13)
+% % ylim([-0.15 0.1]);
 
 
 
