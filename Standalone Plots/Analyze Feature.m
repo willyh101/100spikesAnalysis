@@ -425,7 +425,7 @@ opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==1
 sum(opts.ensemblesToPlot)
 opts.useVisCells =1;
 opts.useTunedCells =1;
-opts.minNumberOfCellsPerCondition =20; %set to -1 to ignore
+opts.minNumberOfCellsPerCondition =-20; %set to -1 to ignore
 
 
 opts.variableCellFun =  'outVars.ensOriDiff{i} == 0';
@@ -469,6 +469,8 @@ end
 
 
 ylabel('Mean Evoked dF/F')
+
+ranksum(OriDiff0,OriDiff90)
 %% Plot Split by Mean OSI
 opts.distType = 'min';
 opts.distBins =[15:15:150];[0:25:150]; 
