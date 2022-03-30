@@ -52,6 +52,11 @@ for ind=1:numExps
 end
 disp('Data To Use is set')
 
+%% Rematch Targeted Cells
+opts.matchDistanceMicrons = 12; 15.6; %6;
+rematchTargetedCells;
+
+
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
@@ -86,8 +91,10 @@ for Ind = 1:numel(All)
 end
 outVars.names = names;
 
+
+
 %% restrict Cells to use
-opts.minMeanThreshold = 0.25;
+opts.minMeanThreshold = -0.25;
 opts.maxMeanThreshold = inf;
 
 opts.peakThreshold =0; %exclude cells that do not ever excede this threshold (set to 0 to disable)
@@ -107,10 +114,11 @@ disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd
 %%Determine Vis Responsive and Process Correlation
 
 opts.visAlpha = 0.05;
+muPerPx=800/512;
 
 %oftarget risk params
-opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
-opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
+opts.thisPlaneTolerance = 15/muPerPx;11.25;%7.5;%1FWHM%10; %in um;% pixels
+opts.onePlaneTolerance =30/muPerPx; 22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
 
@@ -120,6 +128,12 @@ visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
 ensIndNumber =outVars.ensIndNumber;
 
+%% recalc off target
+muPerPx = 800/512;
+opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
+opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
+
+recalcOffTargetRisk;
 
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 % Always do this!! not all experiments had full orientation data during the
@@ -212,7 +226,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 10; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -371,11 +385,62 @@ dataInPlots =[];
 
 ax = subplot(1,1,1);
 opts.distType = 'min';
-opts.distBins = 0:25:350; %can be set variably 0:25:1000 is defaultt
-opts.distAxisRange = [0 250]; %[0 350] is stand
+opts.distBins = 15:15:150; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 150]; %[0 350] is stand
 CellToUseVar = 'anal.cellsToInclude';
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
 [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
 dataInPlots{1}=outDat{1};
 eHandle{1}.CapSize =0;
+eHandle{2}.CapSize =0;
 xlabel('Distance')
+
+%%
+muPerPx = 800/512;
+opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
+opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
+
+recalcOffTargetRisk;
+
+%%
+figure(103);clf;
+ax = subplot(1,1,1);
+opts.distType = 'min';
+opts.distBins =15:15:250; 0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
+opts.distAxisRange = [0 150]; %[0 350] is stand
+
+opts.plotTraces = 0;
+opts.useVisCells = 0;
+opts.useTunedCells = 0; %don't use tuned without vis
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==1;
+opts.criteriaToSplit =  outVars.ensemblesToUse;
+stateEnsBreakdown(opts.ensemblesToPlot,outVars)
+
+% opts.criteriaToSplit = outVars.ensMaxD;
+opts.criteriaBins = [-inf inf];% inf];
+[e outInfo]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('darkgray');
+% 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.criteriaToSplit =  outVars.ensemblesToUse;
+opts.criteriaBins = [-inf inf];% inf];
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{2}.Color = rgb('black');
+e{2}.CapSize = 0; 
+stateEnsBreakdown(opts.ensemblesToPlot,outVars)
+
+
+%%
+opts.distType = 'min';
+opts.distBins =15:15:150; 0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
+
+
+opts.plotOrientation =1;%as opposed to Direction
+opts.minNumberOfCellsPerCondition =-10; %set to -1 to ignore
+opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==1  &  outVars.ensOSI>0.5;
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD>500;
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD<400;
+
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI<0.5;
+
+ plotDistByOri(All,outVars,opts)

@@ -397,14 +397,16 @@ opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
 
 recalcOffTargetRisk;
 %% Just a few with different binning
-figure(103);clf;
+figure(104);clf;
 dataInPlots =[];
 
 ax = subplot(1,2,1);
 opts.distType = 'min';
-opts.distBins = 15:15:250; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 15:5:250; %can be set variably 0:25:1000 is defaultt
 opts.distAxisRange = [0 250]; %[0 350] is stand
-CellToUseVar = 'anal.cellsToInclude';%[];
+% CellToUseVar = 'anal.cellsToInclude & All(ind).out.anal.pVisR<0.05';%[];
+CellToUseVar = 'anal.cellsToInclude ';%[];
+
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
 [eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
 dataInPlots{1}=outDat{1};
@@ -413,7 +415,7 @@ title('min')
 
 ax = subplot(1,2,2);
 opts.distType = 'mean';
-opts.distBins = 15:10:500; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 15:15:500; %can be set variably 0:25:1000 is defaultt
 opts.distAxisRange = [0 450]; %[0 350] is stand
 CellToUseVar = 'anal.cellsToInclude';%[];
 [popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
@@ -422,7 +424,7 @@ dataInPlots{2}=outDat{1};
 eHandle{1}.CapSize =0;
 title('mean')
 ylim([-0.075 0.075])
-
+disp('done')
 
 %%
 %% Plot Split by Mean OSI

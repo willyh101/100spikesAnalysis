@@ -72,10 +72,16 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
             cellsPerEnsCount(i,:) =zeros([1 numel(diffsPossible)]);
         end        
     end
-    
-    
+    %plot all nonVis cells
+    cellToUseVar = ~outVars.offTargetRiskEns{i}...
+        & outVars.pVisR{ind} > 0.05 ...
+        & All(ind).out.anal.cellsToInclude ...
+        ;
+    cells2Plot =cellToUseVar;
+    popToPlot(i,:,k+1) = popDistMakerSingle(opts,All(ensIndNumber(i)),cells2Plot,0,ensHNumber(i));
+            
     else
-        popToPlot(i,:,:) = nan([numel(opts.distBins)-1 1 numel(diffsPossible)]);
+        popToPlot(i,:,:) = nan([numel(opts.distBins)-1 1 numel(diffsPossible)+1]);
     end
 end
 disp('Done')
@@ -98,19 +104,30 @@ figure(14);clf
 % ax =subplot(1,1,1);
 %  hold on
 colorListOri = colorMapPicker(numel(diffsPossible),'plasma');
+colorListOri{end+1} = rgb('grey');
 dataForStats=[];
 clear ax
 
 if plotOrientation
     diffsPossible = [0 45 90];
 end
-numToPlot = numel(diffsPossible);
 
+plotNonVis=0;
+if plotNonVis
+numToPlot = numel(diffsPossible)+1;
+else
+    numToPlot = numel(diffsPossible);
+end
 
 for k = 1:numToPlot
     figure(10);
     ax(k) =subplot(1,numToPlot,k);
+    if k<=numel(diffsPossible)
     title(['Cells Pref Angle \Delta' num2str(diffsPossible(k)) '\circ'])
+    else
+            title(['Non Visually Responsive Cells'])
+
+    end
     [eHandle outData] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,ax(k));
     if numel(unique(outVars.numCellsEachEns(ensemblesToUse)))==1
         eHandle{1}.Color = colorListOri{k};
@@ -162,12 +179,16 @@ p = anova1(datToPlot,[],'off');
 % [~,p2] = ttest2(datToPlot(:,1),datToPlot(:,3));
 % [~,p2] = ttest2([datToPlot(:,1);datToPlot(:,5)],datToPlot(:,3));
 
+[~, p2T] = ttest2(squeeze(dataForStats(1,:)),squeeze(dataForStats(3,:)));
+disp(['ranksum iso v ortho Ttest p = ' num2str(p2T)]);
+
 
 p2 = ranksum(squeeze(dataForStats(1,:)),squeeze(dataForStats(3,:)));
 disp(['ranksum iso v ortho p = ' num2str(p2)]);
 
+
 title({['Pvalue ' num2str(p)]...
-    ['Iso vs Ortho PValue: ' num2str(p2)] })
+    ['Iso vs Ortho PValue: ' num2str(p2) ' Ttest: ' num2str(p2T)] })
 
 % title('Cells by Tuning')
 % ax2 =subplot(1,2,2);

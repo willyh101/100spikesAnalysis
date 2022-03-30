@@ -3,11 +3,11 @@ muPerPx = 800/512;
 opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
 opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
 
-recalcOffTargetRisk;
+recalcOffTargetRiskNoArt;
 
-%%
-opts.nearbyActiveZThreshold = 1;
-opts.nearbyActiveThreshold = -inf; 0.5;
+%%s
+opts.nearbyActiveZThreshold = 3;
+opts.nearbyActiveThreshold =1; -inf; 0.5;
 
 
 
@@ -27,8 +27,8 @@ for i = 1:numel(outVars.offTargetRiskEns)
     meanVals = squeeze(respMat(s,1,:) - baseMat(s,1,:));
     
     nearbyList = find(zscore(meanVals)>opts.nearbyActiveZThreshold & otr');
-    %         nearbyList = find(meanVals>opts.nearbyActiveThreshold & otr');
-
+            nearbyList = find(meanVals>opts.nearbyActiveThreshold & otr');
+% 
     nearbyEns{i} = nearbyList;
     nearbySizes(i)  = numel(nearbyList);
     
@@ -65,13 +65,13 @@ title('Nearby ''ensemble'' ensOSI')
 %%
 muPerPx = 800/512;
 opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
-opts.onePlaneTolerance = 35/muPerPx; %30/muPerPx;
+opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
 
 recalcOffTargetRisk;
 opts.distType = 'min';
 opts.distBins =15:10:150; %15:15:150; %[15:15:150]; [opts.thisPlaneTolerance*muPerPx:10:150]; %[0:25:150]; 
 opts.plotTraces = 0;
-opts.useVisCells = 1;
+opts.useVisCells = 0;
 opts.useTunedCells =0; %don't use tuned without vis
 figure(19); clf
 lim =[-0.1 0.2]; [-0.4 0.25];

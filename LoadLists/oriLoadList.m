@@ -12,9 +12,9 @@ loadList = {
     ...'210831_w37_2_outfile.mat' %neo-IV Tre2s
     ...'210901_w37_2_outfile.mat' %neo-IV Tre2s
     
-    ...'191212_I138_1_outfile.mat' %Low Vis
-    ...'190523_HB40_1_outfile.mat' %runs too much excluded
-    ...'201102_w29_1_outfile.mat' %low baselineTrials
+    '191212_I138_1_outfile.mat' %Low Vis
+    '190523_HB40_1_outfile.mat' %runs too much excluded
+    '201102_w29_1_outfile.mat' %low baselineTrials
 
     ...'210910_i151_3_outfile.mat' %many random holos at 30Hz, for SM proj, (30c x 10ap)
     ...'210930_I154_2_outfile.mat' %has a weird not correctable error during respopnse window
@@ -59,7 +59,7 @@ loadList = {
     '211019_I154_1_outfile.mat' %one at a time but some eligible
     '220201_w42_2_outfile.mat'
     '220225_W42_2_outfile.mat'
-    '220228_W42_2_outfile.mat'
+    '220228_W42_2_outfile.mat' %runs too much excluded
 
     
     };

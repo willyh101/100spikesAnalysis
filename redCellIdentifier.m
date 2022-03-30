@@ -37,8 +37,8 @@ nDepthsTotal=3;
 %get the 830nm Image
 [redImageFN redImagePath] = uigetfile('*.tif');
 % rawRedImg = bigread3([redImagePath redImageFN]);
-rawRedImg = ScanImageTiffReader([redImagePath redImageFN]).data;
-rawRedImg=rawRedImg(:,:,2:2:end);
+raw800Img = ScanImageTiffReader([redImagePath redImageFN]).data;
+raw800Img=raw800Img(:,:,2:2:end);
 
 % exampleGreenImage = ScanImageTiffReader(localFiles{1}).data;
 % exampleGreenImage = exampleGreenImage(:,:,1:2:end);
@@ -61,7 +61,7 @@ for i = 1:nDepthsTotal
 
 figure(7);clf
 subplot(1,2,1)
-imToUse = rawRedImg(:,:,i:nDepthsTotal:end);
+imToUse = raw800Img(:,:,i:nDepthsTotal:end);
 
 if pregfilt>0
     imToUseBackup =imToUse;
@@ -141,7 +141,7 @@ nDepthsTotal = max(out.exp.allDepth);
 for i = 1:nDepthsTotal
 %     subplot(1,3,i)
     figure(7);clf
-    imToUse =mean(rawRedImg(:,:,i:nDepthsTotal:end),3);
+    imToUse =mean(raw800Img(:,:,i:nDepthsTotal:end),3);
     imagesc(imToUse);
 %     IMG = zeros([512 512 3]);
 %     IMG(:,:,2) = imToUse;
@@ -238,7 +238,7 @@ additionalOffsets(3,:)=[-10 12];
 % additionalOffsets(2,:)=[0 2];
 % additionalOffsets(3,:)=[0 0];
 
-%%match red cell locations
+%% match red cell locations
 figure(7);clf
 redDepth = RedCellLocations(:,3); 
 RedCellLoc = nan(size(RedCellLocations));
@@ -271,7 +271,7 @@ for s = 1:numRed
 end
 
 
-targetDistanceThresholdRed =30;15; %has been 15 
+targetDistanceThresholdRed =12 * (512/800); 30;15; %has been 15 
 RedCells = RedMapping(:,2); 
 RedCells(RedMapping(:,3)>targetDistanceThresholdRed)=nan;
 isRed = ismember(cellList,RedCells);
@@ -310,8 +310,8 @@ out.red=red;
 info = out.info;
 
 % save(['U:\ioldenburg\outputdata1\' info.date '_' info.mouse '_outfile'], 'out')
-save(['E:\100spikes-results\outfiles-master\' info.date '_' info.mouse '_outfile'], 'out')
-% save(['T:\Outfiles' info.date '_' info.mouse '_outfile'], 'out')
+% save(['E:\100spikes-results\outfiles-master\' info.date '_' info.mouse '_outfile'], 'out')
+save(['T:\Outfiles' info.date '_' info.mouse '_outfile'], 'out')
 
 disp('saved')
 

@@ -161,7 +161,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.05; %default 0.05
+opts.IndsVisThreshold = -0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -244,6 +244,12 @@ disp(['Fraction of Ens high Cell Count: ' num2str(mean(~lowCellCount))]);
 
 disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
 disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
+
+disp(['Total Fraction of Ens Used: ' num2str(mean(ensemblesToUse))]);
+% disp([num2str(sum(ensemblesToUse)) ' Ensembles Included'])
+disp(['Total of ' num2str(sum(ensemblesToUse)) ' Ensembles Included.'])
+disp([ num2str(numel(unique(ensIndNumber(ensemblesToUse)))) ' FOVs'])
+disp([ num2str(numel(unique(names(unique(ensIndNumber(ensemblesToUse)))))) ' Mice']);
 
 %%
 outVars.defaultColorMap = 'viridis';

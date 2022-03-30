@@ -58,7 +58,7 @@ rematchTargetedCells;
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
-opts.recWinRange = [0.5 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
+opts.recWinRange = [0.5 1.5]; [0.5 1.5];%[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
 
 
 %Stim Success Thresholds
@@ -125,7 +125,7 @@ ensHNumber = outVars.ensHNumber; %in order of uniqueStims
 % Always do this!! not all experiments had full orientation data during the
 % experiment epoch (but did during the vis epoch)
 disp('Recalculating Vis stuff...')
-opts.visRecWinRange = [0.5 1.5]; [0.5 1.5];
+opts.visRecWinRange = [0.5 1.5];
 [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
 visPercent = outVars.visPercent;
 outVars.visPercentFromVis = visPercent;
@@ -144,6 +144,8 @@ catch end
 indExpressionType = outVars.indExpressionType;
 ensExpressionType = indExpressionType(outVars.ensIndNumber);
 outVars.ensExpressionType = ensExpressionType;
+
+outVars.ensGenoType = outVars.indExpressionType(outVars.ensIndNumber);
 
 %%Missed Target Exclusion Criteria
 %detects if too many targets were not detected in S2p
@@ -480,7 +482,7 @@ opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==1
 opts.criteriaToSplit = outVars.meanEnsOSI;
 opts.criteriaBins = [0 0.4 0.5 inf];
 % opts.useVisAndTunedCells =1; 
-opts.useVisCells =0;
+opts.useVisCells =1;
 opts.useTunedCells =0; %don't use tuned without vis
 
 plotDistByCriteria(All,outVars,opts,15)
@@ -489,7 +491,7 @@ ylim([-0.15 0.15]);
 
 %%  Plot Split by Ensemble OSI
 opts.distType = 'min';
-opts.distBins =[0:25:150]; 
+opts.distBins =[15:15:150]; 
 opts.plotTraces = 0; 
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 &  outVars.meanEnsOSI>0.5;
 opts.criteriaToSplit = outVars.ensOSI;
@@ -504,7 +506,7 @@ ylim([-0.15 0.1]);
 
 %% Plot Dist by Two Criteria
 opts.distType = 'min';
-opts.distBins =[0:25:150]; 
+opts.distBins =[15:15:150]; 
 opts.plotTraces = 0; 
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
 opts.criteriaName = 'ensOSI';
@@ -522,6 +524,82 @@ plotDistByTwoCriteria(All,outVars,opts,13)
 figure(13)
 ylim([-0.15 0.1]);
 
+%% Plot Vis vs Not Vis
+
+
+opts.distType = 'min';
+ opts.distBins =15:15:150; %15:15:150; %[15:15:150]; [opts.thisPlaneTolerance*muPerPx:10:150]; %[0:25:150]; 
+opts.plotTraces = 0;
+opts.useVisCells = 0;
+opts.useTunedCells = 0; %don't use tuned without vis
+opts.variableCellFun='';
+
+figure(125); clf
+lim =[-0.1 0.125]; [-0.4 0.25];
+
+highMeanThresh = 0.5; %0.5; % 0.4687;
+lowMeanThresh = 0.5;
+
+lowEnsThresh = 0.3;
+highEnsThresh = 0.7;
+
+opts.criteriaToSplit =  outVars.ensMaxD;
+opts.criteriaBins = [-inf inf];% inf];
+
+outInfo=[];
+axs = [];
+ax = subplot(3,2,1);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<lowEnsThresh & outVars.meanEnsOSI<lowMeanThresh;
+
+opts.useVisCells = 1;
+opts.useTunedCells = 0;
+
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('grey');
+axs = [axs ax];
+
+ax = subplot(3,2,2);
+opts.useVisCells = -1;
+opts.useTunedCells = 0;
+
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('grey');
+axs = [axs ax];
+
+
+ax = subplot(3,2,3);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<lowEnsThresh & outVars.meanEnsOSI>highMeanThresh;
+opts.useVisCells = 1;
+
+[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('sienna');
+axs = [axs ax];
+
+ax = subplot(3,2,4);
+opts.useVisCells = -1;
+
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('sienna');
+axs = [axs ax];
+
+
+ax = subplot(3,2,5);
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>highEnsThresh & outVars.meanEnsOSI>highMeanThresh;
+opts.useVisCells = 1;
+
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('Magenta');
+axs = [axs ax];
+
+ax = subplot(3,2,6);
+opts.useVisCells = -1;
+
+[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+e{1}.Color = rgb('Magenta');
+axs = [axs ax];
+
+linkaxes(axs)
+ylim(lim);
 
 
 %%
@@ -530,10 +608,10 @@ opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
 opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
 
 recalcOffTargetRisk;
-%% Plot Distance Curves in different Ori Bands
+%% Plot Distance Curves in different Ori Bands %% MAIN FIGURE PLOTTER
 
-opts.distType = 'min';
-opts.distBins =15:15:150; 0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
+opts.distType = 'min'
+opts.distBins =  15:15:150; 0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
 
 
 opts.plotOrientation =1;%as opposed to Direction
@@ -543,6 +621,9 @@ opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==
 % opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD<400;
 
 % opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI<0.5;
+% opts.ensemblesToPlot = outVars.ensGenoType==5 &  outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
+
+opts.variableCellFun = ''; %'All(ind).out.red.isRed'; 
 
  plotDistByOri(All,outVars,opts)
 % plotDistByClosestTargetOri(All,outVars,opts)
@@ -561,7 +642,7 @@ opts.distType = 'min';
 opts.plotTraces = 0;
 opts.useVisCells = 0;
 opts.useTunedCells = 0; %don't use tuned without vis
-figure(120); clf
+figure(121); clf
 lim =[-0.1 0.125]; [-0.4 0.25];
 
 highMeanThresh = 0.5; %0.5; % 0.4687;
@@ -673,6 +754,32 @@ xlabel('EnsOsi') ;
 
 x = outVars.ensOSI(opts.ensemblesToPlot)';
 y = closeExcitation(opts.ensemblesToPlot);
+nanEither = isnan(x) | isnan(y');
+
+[fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+
+[p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
+disp(['Pval is: ' num2str(pVal(1))])
+
+%%
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.useVisCells = 0;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
+opts.variableCellFun =  '(outVars.distToEnsemble{i}<30)';
+
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[midResponse] = subsetPopResponse(All,outVars,opts);
+
+figure(19);clf
+
+% x = outVars.ensOSI(opts.ensemblesToPlot)';  
+x = outVars.ensMaxD(opts.ensemblesToPlot)';  
+y = midResponse(opts.ensemblesToPlot);
+
+scatter(x,y,[],rgb('sienna'),'filled')
+refline(0)
+xlabel('Spread ') ;
 nanEither = isnan(x) | isnan(y');
 
 [fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');

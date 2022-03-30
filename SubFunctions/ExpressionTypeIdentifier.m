@@ -81,9 +81,53 @@ function [All,outVars] = ExpressionTypeIdentifier(All,outVars)
      'AAV Tre 2s'
      };
 
+  genoTypeNameList = {
+     'double'
+     'EMX'
+     'iue'
+     'PV'
+     'PV'
+     'EMX'
+     'EMX'
+     'EMX'
+     'EMX'
+     'Ai203'
+     'double'
+     'SST'
+     'double'
+     'PV'
+     'Ai203'
+     'PV'
+     'Ai203'
+     'SST'
+     'SST'
+     'SST'
+     'SST'
+     'PV'
+     'SST'
+     'Ai203'
+     'Ai203'
+     'PV'
+     'EMX'
+     'double'
+     'double'
+     'SepW1'
+     'Control'
+     'SST'
+     'Control'
+     'SepW1'
+     'SepW1'
+     'SepW1'
+     'SST'
+     };
+ 
  [uniqueExpressionTypes, ~, ExpressionTypeNum] = unique(ExpressionTypeList);
 
+  [uniqueGenoTypes, ~, GenoTypeNum] = unique(genoTypeNameList);
+
+ 
 indExpressionType = zeros([1 numExps]);
+indGenoType = zeros([1 numExps]);
  for ind =1:numExps
      mouseName = All(ind).out.info.mouse;
 
@@ -94,8 +138,17 @@ indExpressionType = zeros([1 numExps]);
          All(ind).out.info.ExpressionType = ExpressionTypeList{idx};
          All(ind).out.info.ExpressionTypeNum = ExpressionTypeNum(idx);
          indExpressionType(ind) =  ExpressionTypeNum(idx);
+         
+          All(ind).out.info.GenoType = genoTypeNameList{idx};
+         All(ind).out.info.GenoTypeNum = GenoTypeNum(idx);
+         indGenoType(ind) =  GenoTypeNum(idx);
+         
      end
  end
 
  outVars.uniqueExpressionTypes = uniqueExpressionTypes;
  outVars.indExpressionType=indExpressionType;
+
+  outVars.uniqueGenoTypes = uniqueGenoTypes;
+ outVars.indGenoType=indGenoType;
+ 

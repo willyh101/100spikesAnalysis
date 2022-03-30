@@ -1,7 +1,7 @@
 function [All, outVars] = getEnsembleOSI(All, outVars)
 
 clear meanEnsOSI meanEnsOri cmeanEnsOri ensCurve ensCurveSEM ensOSI ensPO
-
+skipGreyScreen = 1;
 for ind = 1:numel(All)
     
     clear meanOSI meanOri cmeanOri curve2save curveSEM curve ensPO ensOSI
@@ -27,8 +27,13 @@ for ind = 1:numel(All)
         curve = mean(All(ind).out.anal.oriCurve(:, ht), 2); %set in getTuningCurve
         curve2save(:,h) = curve;
         curveSEM(:, h) = sem2(All(ind).out.anal.oriCurve(:, ht), 2);
-        [~, ensPOidx] = max(curve);
-        curve(:, ensPOidx==1) = nan;
+        if skipGreyScreen
+            [~, ensPOidx] = max(curve(2:end));
+            ensPOidx=ensPOidx+1;
+        else
+            [~, ensPOidx] = max(curve);
+            curve(:, ensPOidx==1) = nan;
+        end
         curve(1, :) = [];
         ensPO(h) = idx2ori(ensPOidx, [nan 0:45:315]);
         ensOSI(h) = osi(curve);

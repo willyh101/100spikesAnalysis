@@ -17,7 +17,6 @@ numEns = numel(ensemblesToUse);
 
 ensIndNumber = outVars.ensIndNumber;
 ensHNumber = outVars.ensHNumber;
-
 clear popToPlot
 for i=1:numEns %i know its slow, but All is big so don't parfor it
     if mod(i,round(numEns/10))==1
@@ -28,6 +27,15 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         ind = ensIndNumber(i);
         
         cellToUseVar = ~outVars.offTargetRiskEns{i} &  All(ind).out.anal.cellsToInclude & ~All(ind).out.anal.ROIinArtifact';
+        
+        if ~isempty(opts.variableCellFun)
+            try
+            cellToUseVar = cellToUseVar & eval(opts.variableCellFun);
+            catch
+                disp(['Variable Cell Fun Error. ens: ' num2str(i)])
+                cellToUseVar= zeros(size(cellToUseVar));
+            end
+        end
         
         if opts.useVisCells == 1
             cellToUseVar = cellToUseVar...
@@ -42,8 +50,12 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
                 ;
         end
         
-        popToPlot(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
         
+        if all(cellToUseVar==0)
+            popToPlot(i,:) = nan([numel(opts.distBins)-1 1]);
+        else
+            popToPlot(i,:) = popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
+        end
     else
         popToPlot(i,:) = nan([numel(opts.distBins)-1 1]);
     end
@@ -53,6 +65,7 @@ disp('Done')
 
 colorListOri = colorMapPicker(numel(bins)-1,'plasma');
 for k = 1:numel(bins)-1
+  
 %     figure(figNum+1);
     ensembleSelecter = criteria<bins(k) | criteria>bins(k+1)  | ~ensemblesToUse | isnan(criteria);
     title({...

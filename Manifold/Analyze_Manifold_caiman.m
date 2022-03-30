@@ -767,7 +767,7 @@ smoothFactor =3;
 allVisTC=[];
 allHoloTC=[];
 
-for ind = 8; 4:numExps; %only 4 to end were done the correct way
+for ind =  4:numExps; %only 4 to end were done the correct way
     visID = All(ind).out.vis.visID;
     uv = unique(All(ind).out.vis.visID);
     
@@ -1631,12 +1631,13 @@ EnsCosSimNaive = [
     0.4808
     0.5816
     ]; % copy from other worksheet
-pOnvNaive = ranksum(cosSimOnDiagOut,EnsCosSimPreferred);
+
+pOnvNaive = ranksum(cosSimOnDiagOut,EnsCosSimNaive);
 disp(['P on diag vs Naive Approach: ' num2str(pOnvNaive)])
 
 
 figure(17);clf
-plotSpread({cosSimOnDiagOut cosSimOffDiagOut CosSimToSpont cosSimOnDiagShuffleOut cosSimOnDiagVis EnsCosSimPreferred})
+plotSpread({cosSimOnDiagOut cosSimOffDiagOut CosSimToSpont cosSimOnDiagShuffleOut cosSimOnDiagVis EnsCosSimNaive})
 set(gca,'TickDir','out')
 
 %% Plot indiv cell Tuning Curve Similarities

@@ -21,7 +21,7 @@ numTrialsPerEns(numSpikesEachStim==0)=[];
 numTrialsPerEnsTotal(numSpikesEachStim==0)=[];
 
 %ID inds to be excluded
-opts.IndsVisThreshold = 0.05;0.05; %default 0.05
+opts.IndsVisThreshold = -0.05;0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
@@ -30,7 +30,7 @@ lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'PHP Tre' 'control' };%'SepW1 CAG 2s'
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'PHP Tre' };%'SepW1 CAG 2s'
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -75,7 +75,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 7 ...
     & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
-    ...& (ensDate < 220000 & ensDate>210420) ...
+    ...& (ensDate < 220000 & ensDate>210420) ...S
     & ensDate < 220000 ...
     ...& ensDate < 210000 ...
     ...& (ensDate > 220000 & ensDate>220226) ...
@@ -110,7 +110,7 @@ disp(['Fraction of Control Ens high trial count: ' num2str(mean(~lowBaseLineTria
 disp(['Fraction of Ens No ''red'' cells shot: ' num2str(mean(~ensHasRed))]);
 disp(['Fraction of Ens usable Expression Type: ' num2str(mean(~excludeExpressionType))]);
 disp(['Fraction of Ens enough targets detected by s2p: ' num2str(mean(~ensMissedTarget))]);
-disp(['Fraction of Ens number targets matched >=7: ' num2str(mean(numMatchedTargets >= 3))]);
+disp(['Fraction of Ens number targets matched >=3: ' num2str(mean(numMatchedTargets >= 3))]);
 disp(['Fraction of Ens Stim took 1s (aka correct stim Rate): ' num2str(mean(ensembleOneSecond))]);
 disp(['Fraction of Ens that were not repeats: ' num2str(mean(~outVars.removedRepeats)) ]);
 disp(['Fraction of Ens high Cell Count: ' num2str(mean(~lowCellCount))]);
