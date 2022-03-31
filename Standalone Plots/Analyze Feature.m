@@ -612,7 +612,7 @@ recalcOffTargetRisk;
 
 opts.distType = 'min'
 opts.distBins =  15:15:150; 0:25:150; %15:15:150; %[0:25:150];%[0:200:1000];%[0:25:150]; [0:100:1000];% [0:25:400];
-
+opts.distAxisRange = [0 150];
 
 opts.plotOrientation =1;%as opposed to Direction
 opts.minNumberOfCellsPerCondition =-10; %set to -1 to ignore
@@ -761,13 +761,71 @@ nanEither = isnan(x) | isnan(y');
 [p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
 disp(['Pval is: ' num2str(pVal(1))])
 
-%%
+%% Mid Distance Inhibition
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
 opts.useVisCells = 0;
 opts.useTunedCells =0; %don't use tuned without vis
 opts.minNumberOfCellsPerCondition = -1;
-opts.variableCellFun =  '(outVars.distToEnsemble{i}<30)';
 
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}<30)';
+opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[midResponse] = subsetPopResponse(All,outVars,opts);
+
+figure(19);clf
+
+% x = outVars.ensOSI(opts.ensemblesToPlot)';  
+x = outVars.ensMaxD(opts.ensemblesToPlot)';  
+y = midResponse(opts.ensemblesToPlot);
+
+scatter(x,y,[],rgb('sienna'),'filled')
+refline(0)
+xlabel('Spread ') ;
+nanEither = isnan(x) | isnan(y');
+
+[fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+hold on
+plot(fs)
+legend off
+
+[p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
+disp(['Pval is: ' num2str(pVal(1))])
+
+%% Mid Distance Inhibition Ens OSI
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.useVisCells = 0;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
+
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}<30)';
+opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[midResponse] = subsetPopResponse(All,outVars,opts);
+
+figure(19);clf
+
+x = outVars.ensOSI(opts.ensemblesToPlot)';  
+% x = outVars.ensMaxD(opts.ensemblesToPlot)';  
+y = midResponse(opts.ensemblesToPlot);
+
+scatter(x,y,[],rgb('sienna'),'filled')
+refline(0)
+xlabel('Spread ') ;
+nanEither = isnan(x) | isnan(y');
+
+[fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+hold on
+plot(fs)
+legend off
+
+[p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
+disp(['Pval is: ' num2str(pVal(1))])
+
+%% Close Excitation
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.useVisCells = 0;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
+
+opts.variableCellFun =  '(outVars.distToEnsemble{i}<30)';
 % opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
 [midResponse] = subsetPopResponse(All,outVars,opts);
 
@@ -783,9 +841,13 @@ xlabel('Spread ') ;
 nanEither = isnan(x) | isnan(y');
 
 [fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+hold on
+plot(fs)
+legend off
 
 [p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
 disp(['Pval is: ' num2str(pVal(1))])
+
 
 %% cut older analyses
 %

@@ -325,4 +325,30 @@ if ~isempty(indToUse)
     
 end
 %%
+nameToUse = '200724_W18_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+  All(indToUse).out.exp.stimID = All(indToUse).out.exp.stimID(1:76);
+    All(indToUse).out.exp.visID = All(indToUse).out.exp.visID(1:76);
+        All(indToUse).out.exp.runVal = All(indToUse).out.exp.runVal(1:76,:);
+    All(indToUse).out.exp.lowRunTrials = All(indToUse).out.exp.lowRunTrials(1:76);
+
+
+end
+
+%%
+nameToUse = '210105_W29_1_outfile.mat';
+indToUse = find(cellfun(@(x) strcmp(x,nameToUse),loadList));
+
+if ~isempty(indToUse)
+  All(indToUse).out.exp.stimID = All(indToUse).out.exp.stimID(1:160);
+    All(indToUse).out.exp.visID = All(indToUse).out.exp.visID(1:160);
+        All(indToUse).out.exp.runVal = All(indToUse).out.exp.runVal(1:160,:);
+    All(indToUse).out.exp.lowRunTrials = All(indToUse).out.exp.lowRunTrials(1:160);
+
+
+end
+
+%%
 disp('Done fixing.')

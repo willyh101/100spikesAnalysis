@@ -121,7 +121,11 @@ ix(1) =subplot(2,numSizes+1,1);
 imagesc(meanTSSquareNR(IndsUsed,:))
 title('NoStim')
 ylabel('Mouse')
-xlabel('Frame')
+
+xticks(0:3:12)
+xlim([0.5 12.5])
+xticklabels(-0.5:0.5:1.5)
+xlabel('Time (s)')
 
 colormap rdbu
 caxis(clim)
@@ -147,7 +151,11 @@ r.Color = rgb('grey');
 r.LineStyle=':';
 r.LineWidth=2;
 ylabel('\DeltaZ-Scored dF/F')
-xlabel('Frame')
+% xlabel('Frame')
+xticks(0:3:12)
+xlim([0.5 12.5])
+xticklabels(-0.5:0.5:1.5)
+xlabel('Time (s)')
 
 if numSizes==1
     colorList{1} = rgb('FireBrick')
@@ -164,8 +172,11 @@ for i = 1:numSizes
     %      cellsToPlot = cellsToPlot(randperm(numel(cellsToPlot)));
     imagesc(meanTSSquare(cellsToPlot,:))
     ylabel('Ensemble')
-    xlabel('Frame')
-    
+%     xlabel('Frame')
+xticks(0:3:12)
+xlim([0.5 12.5])
+xticklabels(-0.5:0.5:1.5)
+xlabel('Time (s)')
     % imagesc(meanTSSquare(:,:))
     title([num2str(uniqueNumCells(i)) ' Cell Stim'])
     
@@ -189,7 +200,11 @@ for i = 1:numSizes
         faceCol,...
         fAlpha);
     ylabel('\DeltaZ-Scored dF/F')
-    xlabel('Frame')
+%     xlabel('Frame')
+xticks(0:3:12)
+xlim([0.5 12.5])
+xticklabels(-0.5:0.5:1.5)
+xlabel('Time (s)')
     
     % line([minStrtFrame minStrtFrame], [min(meanTSSquare(ensemblesToUse,:)) max(meanTSSquare(ensemblesToUse,:))]);
     r = refline(0);

@@ -68,24 +68,24 @@ loadList = {
         '211021_W40_2_outfile.mat' %rate Exp, but several valid
 
     %manifold
-        '200722_W18_1_outfile.mat' %Spike Test Only (w Rates)
-    '200724_W18_1_outfile.mat' %Spike Test Only
-    '200723_I140_2_outfile.mat' %Spike Test Only (also 100spk)
-    '201229_w29_4_outfile.mat' %spike Test Only
+   ...     '200722_W18_1_outfile.mat' %Spike Test Only (w Rates)
+   ... '200724_W18_1_outfile.mat' %Spike Test Only
+    ...'200723_I140_2_outfile.mat' %Spike Test Only (also 100spk)
+    ...'201229_w29_4_outfile.mat' %spike Test Only
 
-    '200730_I140_2_outfile.mat' %was this the example? %note there is a second mani attempt in this same recording, and a 'perceptual bias'
-    '210105_W29_1_outfile.mat' %Note: 2 unexported manifold attempts
-    '210111_W29_3_outfile.mat' %chrome2s Note: Mani is 75 Targets, Mani2 34 but all vis responsive
-    '210127_W29_3_outfile.mat' %chrome2s
+   ... '200730_I140_2_outfile.mat' %was this the example? %note there is a second mani attempt in this same recording, and a 'perceptual bias'
+    ...'210105_W29_1_outfile.mat' %Note: 2 unexported manifold attempts
+   ... '210111_W29_3_outfile.mat' %chrome2s Note: Mani is 75 Targets, Mani2 34 but all vis responsive
+   ... '210127_W29_3_outfile.mat' %chrome2s
     %ai203 manifold
-    '200727_W26_1_outfile.mat'
-    '200728_W26_1_outfile.mat'
-     '210426_I143_outfile.mat'
-    '210517_I147_outfile.mat'
-    '210518_I147_outfile.mat'
-    '220127_HB120_outfile.mat'
-    '220131_HB120_outfile.mat' %mani (daq epoch 10) is better used peg zero
-    '220131_HB113_outfile.mat'
+   ... '200727_W26_1_outfile.mat'
+   ... '200728_W26_1_outfile.mat'
+    ... '210426_I143_outfile.mat'
+    ...'210517_I147_outfile.mat'
+   ... '210518_I147_outfile.mat'
+   ... '220127_HB120_outfile.mat'
+   ... '220131_HB120_outfile.mat' %mani (daq epoch 10) is better used peg zero
+   ... '220131_HB113_outfile.mat'
     
     %sepW1 load List
      '211108_I156_1_outfile.mat' %sepW1

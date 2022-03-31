@@ -402,7 +402,7 @@ dataInPlots =[];
 
 ax = subplot(1,2,1);
 opts.distType = 'min';
-opts.distBins = 15:5:250; %can be set variably 0:25:1000 is defaultt
+opts.distBins = 15:15:250; %can be set variably 0:25:1000 is defaultt
 opts.distAxisRange = [0 250]; %[0 350] is stand
 % CellToUseVar = 'anal.cellsToInclude & All(ind).out.anal.pVisR<0.05';%[];
 CellToUseVar = 'anal.cellsToInclude ';%[];

@@ -180,7 +180,7 @@ lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'SepW1 CAG 2s' 'control' };
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -313,7 +313,12 @@ outVars.numCellsEachEns= numCellsEachEns;
 %% Optional Reset ensemble grouping to default
 numCellsEachEns = outVars.numCellsEachEnsBackup;
 outVars.numCellsEachEns= numCellsEachEns;
+%%
+muPerPx = 800/512;
+opts.thisPlaneTolerance =15/muPerPx;% 15/muPerPx;
+opts.onePlaneTolerance = 30/muPerPx; %30/muPerPx;
 
+recalcOffTargetRisk;
 %% Basic Response Plots
 outVars.defaultColorMap = 'viridis';
 plotAllEnsResponse(outVars)
@@ -327,6 +332,24 @@ plotPopResponseByExpressionType(All,outVars);
 opts.distBins = 0:25:1000;
 plotResponseByDistance(outVars,opts);
 
+%% Just a few with different binning
+figure(104);clf;
+dataInPlots =[];
+
+ax = subplot(1,1,1);
+opts.distType = 'min';
+opts.distBins = 15:15:250; %can be set variably 0:25:1000 is defaultt
+opts.distAxisRange = [0 250]; %[0 350] is stand
+% CellToUseVar = 'anal.cellsToInclude & All(ind).out.anal.pVisR<0.05';%[];
+CellToUseVar = 'anal.cellsToInclude ';%[];
+
+[popRespDist] = popDistMaker(opts,All,CellToUseVar,0);
+[eHandle outDat] = plotDistRespGeneric(popRespDist,outVars,opts,ax);
+dataInPlots{1}=outDat{1};
+for i =1: size(eHandle,2)-1
+eHandle{i}.CapSize =0;
+end
+title('min')
 
 %% Compare Distance responses
 figure(102);clf
