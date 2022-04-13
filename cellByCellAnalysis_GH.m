@@ -113,7 +113,7 @@ for outer_loop = 1:length(loadList_all)
         %%
         
         tempIndices = find(dffCellResp>2 & cellDist<20 & ~offTargetRisks(cellsToUse)');
-        if ~isempty(tempIndices) && 0
+        if ~isempty(tempIndices) && 0 
             tempIndices %(664)
             %%
 %             tempIndices = tg_adj();
@@ -129,10 +129,10 @@ for outer_loop = 1:length(loadList_all)
             baselinedResp = zeros(12,24);
             for gg = 1:size(tracesHolodfData,3)
                 baselinedResp(gg,:) = tracesHolodfData(tempIndices(1),:,gg)-baselineEst(gg);
-                plot(baselinedResp(gg,:),'color',[0 0 0 0.3])
+                plot(baselinedResp(gg,:),'color',[0 0.447 0.741 0.3])
             end
             
-            plot(mean(baselinedResp),'k','linewidth',2)
+            plot(mean(baselinedResp),'linewidth',2,'color',[0 0.447 0.741])
             plot(round(All.out.exp.visStart*All.out.info.FR)+[0 0],[-1 7],'k--')
             plot(round((All.out.exp.visStart+1)*All.out.info.FR)+[0 0],[-1 7],'k--')
           
@@ -145,8 +145,8 @@ for outer_loop = 1:length(loadList_all)
             %%
         end
         %%
-        if expNum>15 &&  0
-            figure(131432499); clf; 
+        if  ~isempty(tempIndices) && 0 % expNum>15 &&  0
+%             figure(131432499); clf; 
         tracesHolodfData = All.out.exp.dfData(:, :, trialsToUse);
         recWinSec=opts.recWinRange+All.out.exp.visStart;
         winToUse = round(recWinSec*All.out.info.FR);
@@ -166,6 +166,7 @@ for outer_loop = 1:length(loadList_all)
             plot(round((All.out.exp.visStart+1)*All.out.info.FR)+[0 0],[-1 5],'k--')
             title(sprintf('Dist to Stim: %.2f',All.out.anal.minDistbyHolo(ensID,tg_adj(stimLoop))))
         end
+        'here'
         end
         
         %%
@@ -217,7 +218,6 @@ Fig5_cbc(cellTable,cellCondTuned);
 %% Figure 6: Tight co-tuned investigation
 Fig6(cellTable,cellCond)
 Fig6_cbc(cellTable,cellCond);
-
 Fig6IsoOrtho(cellTable,cellCondTuned)
 
 %% Figure plotting the percent activated/suppressed as a function of dist
