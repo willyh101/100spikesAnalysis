@@ -1,8 +1,13 @@
+%%
+% Reproduces the effect of ensemble spread figure
+%%
 function [ensResp] = FigSpace(cellTable)
 
-ensResp = zeros(160,1);
-ensSpread = zeros(160,1);
-for ii = 1:160
+totalNumEns = cellTable.ensNum(end);
+
+ensResp = zeros(totalNumEns,1);
+ensSpread = zeros(totalNumEns,1);
+for ii = 1:totalNumEns
    cellSelector =  cellTable.ensNum == ii & cellTable.offTarget == 0 ...
        & cellTable.cellDist>50 & cellTable.cellDist<100;
    

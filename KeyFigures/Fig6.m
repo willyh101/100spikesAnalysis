@@ -1,59 +1,55 @@
-function [] = Fig6(cellTable,visCells)
+%%
+% Reproduces close vs. far co-tuned plots
+%
+% cellCond is a vector of 1's and 0's that denotes which cells should be
+% included (e.g., only non-offTarget cells)
+%%
+function Fig6(cellTable,cellCond)
 
+totalNumEns = cellTable.ensNum(end);
 distBins = [15:15:150];
 plotDist = distBins(1:end-1) + 15/2;
+
+% Ensemble thresholds
 ensThreshs = [-inf 0.3; 0.7 inf];
 meanEnsThreshs = [-inf 0.5; 0.5 inf];
 spatialThresh = [-inf 400; 500 inf];
 
-numEnsUsedTight = zeros(length(distBins)-1,2);
-numEnsUsedLoose = zeros(length(distBins)-1,2);
+% Conditions for this analysis
+ensSelectorSpreadTight = cellTable.cellEnsMaxD>spatialThresh(1,1) & cellTable.cellEnsMaxD<spatialThresh(1,2);
+ensSelectorSpreadLoose = cellTable.cellEnsMaxD>spatialThresh(2,1) & cellTable.cellEnsMaxD<spatialThresh(2,2);
 
-respAveTight = zeros(length(distBins)-1,2);
-respStdErrTight = zeros(length(distBins)-1,2);
-respAveLoose = zeros(length(distBins)-1,2);
-respStdErrLoose = zeros(length(distBins)-1,2);
-
+respAveTight = zeros(length(distBins)-1,2); respAveLoose = zeros(length(distBins)-1,2);
+respStdErrTight = zeros(length(distBins)-1,2); respStdErrLoose = zeros(length(distBins)-1,2);
+numEnsUsedTight = zeros(length(distBins)-1,2); numEnsUsedLoose = zeros(length(distBins)-1,2);
 
 % Loop over conditions
 for jj = 1:2
-    cellDataAveTight=[];
-    cellDataAveLoose=[];
+    ensSelectorTuning = cellTable.cellEnsOSI>ensThreshs(jj,1) & cellTable.cellEnsOSI<ensThreshs(jj,2)...
+        & cellTable.cellMeanEnsOSI>meanEnsThreshs(jj,1) & cellTable.cellMeanEnsOSI<meanEnsThreshs(jj,2);
+    
+    cellDataAveTight=zeros(length(distBins)-1,totalNumEns);
+    cellDataAveLoose=zeros(length(distBins)-1,totalNumEns);
     % Loop over ensembles
-    for ii = 1:160
+    for ii = 1:totalNumEns
         % Loop over distances
         for ll = 1:length(distBins)-1
-            cellSelectorConds = cellTable.ensNum == ii & ...
-                cellTable.cellDist>distBins(ll) & cellTable.cellDist<distBins(ll+1) ...
-                & cellTable.offTarget==0;
-            ensSelectorTuning = cellTable.cellEnsOSI>ensThreshs(jj,1) & cellTable.cellEnsOSI<ensThreshs(jj,2)...
-                & cellTable.cellMeanEnsOSI>meanEnsThreshs(jj,1) & cellTable.cellMeanEnsOSI<meanEnsThreshs(jj,2);
-            
-            ensSelectorSpreadTight = cellTable.cellEnsMaxD>spatialThresh(1,1) & cellTable.cellEnsMaxD<spatialThresh(1,2);
-            ensSelectorSpreadLoose = cellTable.cellEnsMaxD>spatialThresh(2,1) & cellTable.cellEnsMaxD<spatialThresh(2,2);
-            
-            if visCells == 1
-                cellSelectorTuned = cellTable.visP<0.05 & cellTable.cellOSI>0.25;
-            else
-                cellSelectorTuned = ones(length(cellTable.visP),1);
-            end
-            
-            cellSelectorTight = cellSelectorConds & ensSelectorTuning & ensSelectorSpreadTight & cellSelectorTuned;
-            cellSelectorLoose = cellSelectorConds & ensSelectorTuning & ensSelectorSpreadLoose & cellSelectorTuned;
+            cellSelectorDist = cellTable.ensNum == ii & ...
+                cellTable.cellDist>distBins(ll) & cellTable.cellDist<distBins(ll+1);
+           
+            cellSelectorTight = cellSelectorDist & ensSelectorTuning & ensSelectorSpreadTight & cellCond;
+            cellSelectorLoose = cellSelectorDist & ensSelectorTuning & ensSelectorSpreadLoose & cellCond;
             
             cellDataAveTight(ll,ii) = nanmean(cellTable.dff(cellSelectorTight));
             cellDataAveLoose(ll,ii) = nanmean(cellTable.dff(cellSelectorLoose));
-            
-            if sum(cellSelectorTight)~=0
-                numEnsUsedTight(ll,jj) = numEnsUsedTight(ll,jj)+1;
-            end
-            
-            if sum(cellSelectorLoose)~=0
-                numEnsUsedLoose(ll,jj) = numEnsUsedLoose(ll,jj)+1;
-            end
+                        
+            % Keep track of the number of ensembles used at each distance
+            numEnsUsedTight(ll,jj) = numEnsUsedTight(ll,jj) + sign(sum(cellSelectorTight));
+            numEnsUsedLoose(ll,jj) = numEnsUsedLoose(ll,jj) + sign(sum(cellSelectorLoose));
         end
     end
     
+    % Averave across ensembles
     respAveTight(:,jj) = nanmean(cellDataAveTight,2);
     respStdErrTight(:,jj) = nanstd(cellDataAveTight,[],2)./sqrt(numEnsUsedTight(:,jj));
     
@@ -61,6 +57,7 @@ for jj = 1:2
     respStdErrLoose(:,jj) = nanstd(cellDataAveLoose,[],2)./sqrt(numEnsUsedLoose(:,jj));
 end
 
+% Plot the results
 colorScheme =[];
 colorScheme(1,1,:) = [0 0 0]; colorScheme(1,2,:) = [0 0 0]+0.5;
 colorScheme(2,1,:) = [0.494 0.184 0.556]; colorScheme(2,2,:) = [1 0 1];

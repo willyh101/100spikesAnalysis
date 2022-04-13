@@ -1,31 +1,37 @@
-function [outputArg1,outputArg2] = Fig3_cbc(cellTable)
-% distBins = [15:15:250];
+%%
+% Reproduces the minimal distance to the ensemble plot by not averaging
+% across all ensembles first
+%
+% cellCond is a vector of 1's and 0's that denotes which cells should be
+% included (e.g., only non-offTarget cells)
+%%
+function Fig3_cbc(cellTable,cellCond)
+
 distBins = [15:15:250];
 plotDist = distBins(1:end-1) + 15/2;
 
 cellDistDataAve = zeros(1,length(distBins)-1);
 cellDistDataMedian = zeros(1,length(distBins)-1);
 cellDistDataErr = zeros(1,length(distBins)-1);
-
-cellDistData=[];
+% Loop over all distances
 for ll = 1:length(distBins)-1
-    cellSelector = cellTable.cellDist>distBins(ll) & cellTable.cellDist<distBins(ll+1) ... 
-        & cellTable.offTarget==0;
+    cellSelectorDist = cellTable.cellDist>distBins(ll) & cellTable.cellDist<distBins(ll+1);
+    cellSelector = cellSelectorDist & cellCond;
     
+    % Average across distances
     cellDistDataAve(ll) = nanmean(cellTable.dff(cellSelector));
     cellDistDataMedian(ll) = nanmedian(cellTable.dff(cellSelector));
     cellDistDataErr(ll) = nanstd(cellTable.dff(cellSelector))/sqrt(sum(cellSelector));
 end
 
-
+% Plot the results
 figure(); clf;
 subplot(1,2,1);
 plot(cellTable.cellDist(cellTable.offTarget==0),cellTable.dff(cellTable.offTarget==0),'.')
 set(gca,'fontsize',16)
 xlabel('Min Dist to Stim Location')
-xlim([15 50])
+xlim([0 250])
 ylabel('\DeltaF/F')
-
 
 subplot(1,2,2); hold on;
 leg(1) = plot(plotDist,cellDistDataAve,'k.-','markersize',16);

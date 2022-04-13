@@ -1,56 +1,59 @@
-function [] = Fig6IsoOrtho(cellTable,cellOrisDiff)
+%%
+% Reproduces iso vs. ortho plot for close vs. far co-tuned condition
+%
+% cellCond is a vector of 1's and 0's that denotes which cells should be
+% included (e.g., only non-offTarget cells)
+%
+% Should only included tuned and visually responsive cells
+%%
+function Fig6IsoOrtho(cellTable,cellCond)
 
+totalNumEns = cellTable.ensNum(end);
 distBins = [15:15:150];
 plotDist = distBins(1:end-1) + 15/2;
+
+% Ensemble thresholds
 ensThreshs = [0.7 inf];
 meanEnsThreshs = [0.5 inf];
 spatialThresh = [-inf 400; 500 inf];
 
-numEnsUsedIso = zeros(length(distBins)-1,2);
-numEnsUsedOrtho = zeros(length(distBins)-1,2);
+% Conditions for this analysis
+ensSelectorTuning = cellTable.cellEnsOSI>ensThreshs(1,1) & cellTable.cellEnsOSI<ensThreshs(1,2)...
+    & cellTable.cellMeanEnsOSI>meanEnsThreshs(1,1) & cellTable.cellMeanEnsOSI<meanEnsThreshs(1,2);
+cellSelectorOriIso = cellTable.cellOrisDiff==0;
+cellSelectorOriOrtho = cellTable.cellOrisDiff==90;
 
-respAveIso = zeros(length(distBins)-1,2);
-respStdErrIso = zeros(length(distBins)-1,2);
-respAveOrtho = zeros(length(distBins)-1,2);
-respStdErrOrtho = zeros(length(distBins)-1,2);
-
+respAveIso = zeros(length(distBins)-1,2); respAveOrtho = zeros(length(distBins)-1,2);
+respStdErrIso = zeros(length(distBins)-1,2); respStdErrOrtho = zeros(length(distBins)-1,2);
+numEnsUsedIso = zeros(length(distBins)-1,2); numEnsUsedOrtho = zeros(length(distBins)-1,2);
 
 % Loop over conditions
 for jj = 1:2
-    cellDataAveIso=[];
-    cellDataAveOrtho=[];
+    
+    ensSelectorSpread = cellTable.cellEnsMaxD>spatialThresh(jj,1) & cellTable.cellEnsMaxD<spatialThresh(jj,2);
+    
+    cellDataAveIso=zeros(length(distBins)-1,totalNumEns);
+    cellDataAveOrtho=zeros(length(distBins)-1,totalNumEns);
     % Loop over ensembles
-    for ii = 1:160
+    for ii = 1:totalNumEns
         % Loop over distances
         for ll = 1:length(distBins)-1
-            cellSelectorConds = cellTable.ensNum == ii & ...
-                cellTable.cellDist>distBins(ll) & cellTable.cellDist<distBins(ll+1) ...
-                & cellTable.offTarget==0;
+            cellSelectorDist = cellTable.ensNum == ii & ...
+                cellTable.cellDist>distBins(ll) & cellTable.cellDist<distBins(ll+1);
+                       
+            cellSelectorIso = cellSelectorDist & ensSelectorTuning & ensSelectorSpread & cellSelectorOriIso & cellCond;
+            cellSelectorOrtho = cellSelectorDist & ensSelectorTuning & ensSelectorSpread & cellSelectorOriOrtho & cellCond;
             
-            ensSelectorTuning = cellTable.cellEnsOSI>ensThreshs(1,1) & cellTable.cellEnsOSI<ensThreshs(1,2)...
-                & cellTable.cellMeanEnsOSI>meanEnsThreshs(1,1) & cellTable.cellMeanEnsOSI<meanEnsThreshs(1,2);
+            cellDataAveIso(ll,ii) = nanmean(cellTable.dff(cellSelectorIso));
+            cellDataAveOrtho(ll,ii) = nanmean(cellTable.dff(cellSelectorOrtho));
             
-            ensSelectorSpread = cellTable.cellEnsMaxD>spatialThresh(jj,1) & cellTable.cellEnsMaxD<spatialThresh(jj,2);
-            
-            cellSelectorIso = cellOrisDiff==0 & cellTable.visP < 0.05 & cellTable.cellOSI>0.25;
-            cellSelectorOrtho = cellOrisDiff==90 & cellTable.visP < 0.05 & cellTable.cellOSI>0.25;
-            
-            cellSelector1 = cellSelectorConds & ensSelectorTuning & ensSelectorSpread & cellSelectorIso;
-            cellSelector2 = cellSelectorConds & ensSelectorTuning & ensSelectorSpread & cellSelectorOrtho;
-            
-            cellDataAveIso(ll,ii) = nanmean(cellTable.dff(cellSelector1));
-            cellDataAveOrtho(ll,ii) = nanmean(cellTable.dff(cellSelector2));
-            
-            if sum(cellSelector1)~=0
-                numEnsUsedIso(ll,jj) = numEnsUsedIso(ll,jj)+1;
-            end
-            
-            if sum(cellSelector2)~=0
-                numEnsUsedOrtho(ll,jj) = numEnsUsedOrtho(ll,jj)+1;
-            end
+            % Keep track of the number of ensembles used at each distance
+            numEnsUsedIso(ll,jj) = numEnsUsedIso(ll,jj)+sign(sum(cellSelectorIso));
+            numEnsUsedOrtho(ll,jj) = numEnsUsedOrtho(ll,jj)+sign(sum(cellSelectorOrtho));
         end
     end
     
+    % Averave across ensembles
     respAveIso(:,jj) = nanmean(cellDataAveIso,2);
     respStdErrIso(:,jj) = nanstd(cellDataAveIso,[],2)./sqrt(numEnsUsedIso(:,jj));
     
@@ -58,7 +61,7 @@ for jj = 1:2
     respStdErrOrtho(:,jj) = nanstd(cellDataAveOrtho,[],2)./sqrt(numEnsUsedOrtho(:,jj));
 end
 
-%%
+% Plot the results
 colorScheme =[];
 colorScheme(1,:) = [0 0.447 0.741];
 colorScheme(2,:) = [0.4940 0.184 0.556];
