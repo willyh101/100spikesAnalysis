@@ -12,6 +12,10 @@ for ind=1:numExps
 end
 % disp('Data To Use is set')
 
+%% Rematch Targeted Cells
+opts.matchDistanceMicrons = 12; 15.6; %6;
+rematchTargetedCells;
+
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
@@ -47,7 +51,11 @@ end
 outVars.names = names;
 
 %% restrict Cells to use
-opts.minMeanThreshold = 0.25;
+
+% This may be different between the space vs (space and feature plot)
+% opts.minMeanThreshold = 0.25;
+% opts.maxMeanThreshold = inf;
+opts.minMeanThreshold = -0.25;
 opts.maxMeanThreshold = inf;
 
 opts.verbose =0;
@@ -67,10 +75,10 @@ tooFewCellsInds = cellfun(@(x) sum(~x)<opts.minNumCellsInd,cellExcludeResults);
 %%Determine Vis Responsive and Process Correlation
 
 opts.visAlpha = 0.05;
-
+muPerPx=800/512;
 %oftarget risk params
-opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
-opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
+opts.thisPlaneTolerance = 15/muPerPx; %11.25;%7.5;%1FWHM%10; %in pixels
+opts.onePlaneTolerance = 30/muPerPx; %22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
 
@@ -80,6 +88,7 @@ visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
 ensIndNumber =outVars.ensIndNumber;
 
+% recalcOffTargetRisk; % Not necessary?
 
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
 % Always do this!! not all experiments had full orientation data during the
@@ -152,12 +161,12 @@ opts.IndsVisThreshold = 0.05; %default 0.05
 
 highVisPercentInd = ~ismember(ensIndNumber,find(visPercent<opts.IndsVisThreshold)); %remove low vis responsive experiments
 lowRunInds = ismember(ensIndNumber,find(percentLowRunTrials>0.5));
-
 lowCellCount = ismember(ensIndNumber,find(tooFewCellsInds));
 
 %exclude certain expression types:
 uniqueExpressionTypes = outVars.uniqueExpressionTypes;
-excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };%'SepW1 CAG 2s'};
+% excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' };%'SepW1 CAG 2s'};
+excludedTypes ={'AAV CamK2' 'Ai203' 'neo-IV Tre 2s' 'IUE CAG' 'PHP Tre' 'control' };%'SepW1 CAG 2s'
 
 
 exprTypeExclNum = find(ismember(uniqueExpressionTypes,excludedTypes));
@@ -166,6 +175,16 @@ excludeExpressionType = ismember(ensExpressionType,exprTypeExclNum);
 % only include times where rate == numpulses aka the stim period is 1s.
 ensembleOneSecond = outVars.numSpikesEachEns./outVars.numCellsEachEns == outVars.hzEachEns;
 
+
+%how many ensemblesPer Ind
+uEIN =unique(outVars.ensIndNumber);
+indEnsCount =[];
+for i=1:numel(uEIN)
+    e = uEIN(i);
+    indEnsCount(i) = sum(outVars.ensIndNumber==e);
+end
+
+
 %spot to add additional Exclusions
 excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got messed up
 % excludeInds = ismember(ensIndNumber,[]); 
@@ -173,7 +192,8 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+% opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 10; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -189,9 +209,10 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
-    & numMatchedTargets >= 3 ...
+    & numMatchedTargets >= 7 ...
     & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
+    & ensDate < 220000 ...
     ...& ensDate >= -210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
@@ -246,7 +267,6 @@ for ind=1:numExps
             ;
     All(ind).out.anal.defaultTrialsToUse = trialsToUse;
 end
-
 
 end
 
