@@ -1,5 +1,7 @@
 %%
 % Plots the percent of cells activated/suppressed
+%
+% Run cellByCellAnalysis_GH to use this function
 %%
 function FigPercentAct(cellTable,cellCond,thresVal)
 

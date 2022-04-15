@@ -1,3 +1,8 @@
+%%
+%
+%
+% Run cellByCellAnalysis_GH to use this function
+%%
 function FigCellByCell(cellTable, cellCond)
 
 thresVal = [0 0.05];

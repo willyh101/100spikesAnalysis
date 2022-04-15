@@ -5,6 +5,8 @@
 % included (e.g., only non-offTarget cells)
 %
 % Should only included tuned and visually responsive cells
+%
+% Run cellByCellAnalysis_GH to use this function
 %%
 function Fig5(cellTable,cellCond)
 

@@ -1,5 +1,7 @@
 %%
 % Plots results pertaining to the targeted cells
+%
+% Run cellByCellAnalysis_GH to use this function
 %%
 function FigTargets(cellTable)
 

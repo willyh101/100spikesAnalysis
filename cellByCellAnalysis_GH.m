@@ -93,7 +93,7 @@ for outer_loop = 1:length(loadList_all)
         tempBase = squeeze(All.out.anal.baseMat(s,cellsToUse));
         dffCellResp = (tempResp-tempBase)';
         
-        % Methods should be identical, but something is off...
+        % Methods should be identical
 %         if norm(dffCellResp-dffCellResp2)~=0
 %            plot(dffCellResp,dffCellResp2)
 %            'here';

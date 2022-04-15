@@ -1,5 +1,7 @@
 %%
 % Reproduces the effect of ensemble spread figure
+%
+% Run cellByCellAnalysis_GH to use this function
 %%
 function [ensResp] = FigSpace(cellTable)
 

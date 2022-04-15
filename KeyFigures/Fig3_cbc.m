@@ -4,6 +4,8 @@
 %
 % cellCond is a vector of 1's and 0's that denotes which cells should be
 % included (e.g., only non-offTarget cells)
+%
+% Run cellByCellAnalysis_GH to use this function
 %%
 function Fig3_cbc(cellTable,cellCond)
 
