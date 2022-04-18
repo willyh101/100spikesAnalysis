@@ -1,11 +1,6 @@
 %%
-% Attempts to recreate the plots using a cell-by-cell analysis, where the
-% final average occurs across all cells, as opposed to across ensembles
-%
-% Unclear how to index into All.out.anal.minDistbyHolo (see line ~96 below)
-%
-% Also unclear how to baseline All.out.exp.dfData (currently using the
-% first six seconds average across relevant trials for the cell; line ~88)
+% Recreates the key plots of the paper (averaged over ensembles), and 
+% reproducing them using a cell-by-cell analysis 
 %%
 clear; close all; clc;
 
@@ -16,11 +11,18 @@ folder = fileparts(which('cellByCellAnalysis_GH.m'));
 addpath(genpath(folder));
 rmpath(folder);
 
+%% Specify data location and loadList
+
+% loadPath = '/Users/gregoryhandy/Research_Local/outputdata1/'; % where ever your files are
+loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
+
+% Options: short (for debugging), all (all avaliable outfiles), used (data
+% files currently being used here; created for speed)
+loadList_all = oriLoadList_GH('used');
+
 %% Loop over each experiment
-
-loadPath = '/Users/gregoryhandy/Research_Local/outputdata1/'; % where ever your files are
-loadList_all = oriLoadList_GH('long');
-
+ensNum = 1;
+expNum = 1;
 cellData = [];
 for outer_loop = 1:length(loadList_all)
     
@@ -36,10 +38,10 @@ for outer_loop = 1:length(loadList_all)
     [All, outVars] = defineDistanceTypes(All, outVars);
     All.out.exp.ensMaxD =  outVars.ensMaxD;
     
-    
     %% Only consider valid ensembles from this experiment
     ensIDs = outVars.ensHNumber(outVars.ensemblesToUse);
-    
+    cellsToUse = [];
+    tempTrial = 0;
     %% Loop over all ensembles and store the data
     for ii = 1:length(ensIDs)
         
@@ -53,203 +55,178 @@ for outer_loop = 1:length(loadList_all)
             All.out.exp.lowMotionTrials &...
             All.out.exp.lowRunTrials &...
             All.out.exp.stimSuccessTrial &...
-            ismember(All.out.exp.visID, [0 1]);
-        
+           (All.out.exp.visID == 1 |  All.out.exp.visID == 0 ); % not sure what this is   
+        %ismember(All.out.exp.visID, [0 1]);
+                
+        tempTrial = tempTrial + sum(trialsToUse);
         %% Cells to use
         holo = All.out.exp.stimParams.roi{s};  % tracks stimID -> hologram
         
-        % tg = All.out.exp.rois{holo}; % this is cells in ensemble
-        % fixed finding the cells in the ensembles? 
-        % Not used for this analysis
+        % tg = All.out.exp.rois{holo}; % these ROIs for cells in ensemble
+        % These are the cell indices for those in ensemble
         tg_adj = All.out.exp.holoTargets{holo}(~isnan(All.out.exp.holoTargets{holo}));
         
         offTargetRisks = All.out.anal.offTargetRisk(holo,:);
         ROIinArtifact  = All.out.anal.ROIinArtifact; % cells at edge of FOV in laser artifact
-        visCells = All.out.anal.pVisR < 0.05; % visually responsive
+        pVis = All.out.anal.pVisR;
+        % visCells = All.out.anal.pVisR < 0.05; % visually responsive
+        % cellsToUse = ~offTargetRisks & ~ROIinArtifact' & visCells;
+        cellsToUse = ~ROIinArtifact' & ~All.out.anal.cellsToExclude;
+                    
+        tgCell = zeros(length(cellsToUse),1);
+        tgCell(tg_adj) = true;
+        numOfTgs(ensNum) = length(tg_adj);
+        %% Baseline the df data
+        % Options: dfData, zdfData, allData
         
-        cellsToUse = ~offTargetRisks & ~ROIinArtifact' & visCells;
-        
-        %%
-        opts.recWinRange = [0.5 1.5];
-        recWinSec=opts.recWinRange+All.out.vis.visStart;
+        % Method 1: 
+        recWinSec=opts.recWinRange+All.out.exp.visStart;
         winToUse = round(recWinSec*All.out.info.FR);
-        
-        tracesHolozdfData = All.out.exp.zdfData(cellsToUse, :, trialsToUse);
-        tracesHoloAll = All.out.exp.allData(cellsToUse, :, trialsToUse);
-        
-        zdfCellResp = mean((mean(tracesHolozdfData(:,winToUse(1):winToUse(end),:),2)),3);
-        allCellResp = mean((mean(tracesHoloAll(:,winToUse(1):winToUse(end),:),2)),3);
-        
+        bwinToUse = max(floor([0 All.out.exp.visStart]*All.out.info.FR),[1 1]);
         tracesHolodfData = All.out.exp.dfData(cellsToUse, :, trialsToUse);
         dfCellResp = mean((mean(tracesHolodfData(:,winToUse(1):winToUse(end),:),2)),3);
+        baselineEst = mean((mean(tracesHolodfData(:,bwinToUse(1):bwinToUse(2),:),2)),3);
+        dffCellResp2 = (dfCellResp-baselineEst);
+         
+        % Method 2: use results from anal 
+        tempResp = squeeze(All.out.anal.respMat(s,cellsToUse));
+        tempBase = squeeze(All.out.anal.baseMat(s,cellsToUse));
+        dffCellResp = (tempResp-tempBase)';
         
-        %% Baseline the df data
-        baselineEst = mean((mean(tracesHolodfData(:,1:6,:),2)),3);
-        dffCellResp = (dfCellResp-baselineEst)./baselineEst;
+        % Methods should be identical
+%         if norm(dffCellResp-dffCellResp2)~=0
+%            plot(dffCellResp,dffCellResp2)
+%            'here';
+%         end
         
-        %% Unclear how to index into All.out.anal.minDistbyHolo
         
-        % All.out.exp.ensMaxD has 20 entires but All.out.anal.minDistbyHolo
-        % has 21 entries
-        % All.out.anal.minDistbyHolo(1,:) is all 0's so using holo seems
-        % wrong. So instead, use ensID (or s) from above
+        %% Careful indexing into All.out.anal.minDistbyHolo
         cellDist = All.out.anal.minDistbyHolo(ensID,cellsToUse)';
+        cellPO = All.out.anal.prefOri(cellsToUse)';
+        cellOSI = All.out.anal.osi(cellsToUse)';
         
         %% Shared across all cells 
         cellEnsMaxD = All.out.exp.ensMaxD(holo)*ones(sum(cellsToUse),1);
         cellMeanEnsOSI = All.out.exp.meanEnsOSI(holo)*ones(sum(cellsToUse),1);
         cellEnsOSI = All.out.exp.ensOSI(holo)*ones(sum(cellsToUse),1);
+        cellEnsPO = All.out.exp.ensPO(holo)*ones(sum(cellsToUse),1);
         %%
-        cellData = [cellData; zdfCellResp allCellResp dfCellResp dffCellResp...
-            cellDist cellEnsMaxD cellMeanEnsOSI cellEnsOSI];
         
+        tempIndices = find(dffCellResp>2 & cellDist<20 & ~offTargetRisks(cellsToUse)');
+        if ~isempty(tempIndices) && 0 
+            tempIndices %(664)
+            %%
+%             tempIndices = tg_adj();
+            tracesHolodfData = All.out.exp.dfData(cellsToUse, :, trialsToUse);
+            
+            recWinSec=opts.recWinRange+All.out.exp.visStart;
+            winToUse = round(recWinSec*All.out.info.FR);
+            bwinToUse = max(floor([0 All.out.exp.visStart]*All.out.info.FR),[1 1]);
+            baselineEst = squeeze(mean(tracesHolodfData(tempIndices(1),bwinToUse(1):bwinToUse(2),:)));
+            
+            figure(131432499); clf; 
+            subplot(2,length(tg_adj),1); hold on;
+            baselinedResp = zeros(12,24);
+            for gg = 1:size(tracesHolodfData,3)
+                baselinedResp(gg,:) = tracesHolodfData(tempIndices(1),:,gg)-baselineEst(gg);
+                plot(baselinedResp(gg,:),'color',[0 0.447 0.741 0.3])
+            end
+            
+            plot(mean(baselinedResp),'linewidth',2,'color',[0 0.447 0.741])
+            plot(round(All.out.exp.visStart*All.out.info.FR)+[0 0],[-1 7],'k--')
+            plot(round((All.out.exp.visStart+1)*All.out.info.FR)+[0 0],[-1 7],'k--')
+          
+            tempResp = mean(baselinedResp);
+            mean(tempResp(winToUse(1):winToUse(2)))
+            dffCellResp(tempIndices(1))
+            ylim([-1 5])
+            title(sprintf('Dist to Stim: %.2f',cellDist(tempIndices(1))))
+
+            %%
+        end
+        %%
+        if  ~isempty(tempIndices) && 0 % expNum>15 &&  0
+%             figure(131432499); clf; 
+        tracesHolodfData = All.out.exp.dfData(:, :, trialsToUse);
+        recWinSec=opts.recWinRange+All.out.exp.visStart;
+        winToUse = round(recWinSec*All.out.info.FR);
+        bwinToUse = max(floor([0 All.out.exp.visStart]*All.out.info.FR),[1 1]);
+        figure(131432499); hold on;
+        baselinedResp=[];
+        for stimLoop = 1:length(tg_adj)
+            
+            baselineEst = squeeze(mean(tracesHolodfData(tg_adj(stimLoop),bwinToUse(1):bwinToUse(2),:)));
+            subplot(2,length(tg_adj),stimLoop+length(tg_adj)); hold on;
+            for gg = 1:size(tracesHolodfData,3)
+                baselinedResp(gg,:) = tracesHolodfData(tg_adj(stimLoop),:,gg)-baselineEst(gg);
+                plot(baselinedResp(gg,:),'color',[0 0 0 0.3])
+            end
+            plot(mean(baselinedResp),'k','linewidth',2)
+            plot(round(All.out.exp.visStart*All.out.info.FR)+[0 0],[-1 5],'k--')
+            plot(round((All.out.exp.visStart+1)*All.out.info.FR)+[0 0],[-1 5],'k--')
+            title(sprintf('Dist to Stim: %.2f',All.out.anal.minDistbyHolo(ensID,tg_adj(stimLoop))))
+        end
+        'here'
+        end
+        
+        %%
+        
+        cellData = [cellData; dffCellResp cellDist cellPO cellOSI ...
+            cellEnsMaxD cellMeanEnsOSI cellEnsOSI pVis(cellsToUse)' offTargetRisks(cellsToUse)'...
+            tgCell(cellsToUse) ensNum*ones(sum(cellsToUse),1) expNum*ones(sum(cellsToUse),1) cellEnsPO];
+        ensNum = ensNum + 1;
+    end
+    
+    if ~isempty(cellsToUse)
+        expNum = expNum +1;
     end
     
     fprintf('Exp %d out of %d done loading\n',outer_loop, length(loadList_all));
 end
 
+%% Turn matrix into a table (easier to access specific columns by name)
 
-%% Plot the data
-distBins = [15:25:500];
+cellTable = array2table(cellData,'VariableNames',{'dff','cellDist','cellPO','cellOSI','cellEnsMaxD',...
+    'cellMeanEnsOSI','cellEnsOSI','visP','offTarget','tgCell','ensNum','expNum','ensPO'});
 
-cellDistDataAve = zeros(1,length(distBins)-1);
-cellDistDataMedian = zeros(1,length(distBins)-1);
-cellDistDataErr = zeros(1,length(distBins)-1);
+%% Iso vs. ortho calculation
+oriVals = [NaN 0:45:315];
+cellOris = oriVals(cellTable.cellPO)';
+cellOrisDiff = abs(cellOris-cellTable.ensPO);
+cellOrisDiff(cellOrisDiff>180) = abs(cellOrisDiff(cellOrisDiff>180)-360);
+cellOrisDiff(cellOrisDiff==135)=45;
+cellOrisDiff(cellOrisDiff==180)=0;
+cellTable.cellOrisDiff = cellOrisDiff;
 
-ylabels = {'zdf','All','df','dff'};
+%% Cell conditions used in the functions
+cellCond = cellTable.offTarget==0;
+cellCondTuned = cellTable.offTarget==0 & cellTable.visP<0.05 & cellTable.cellOSI > 0.25;
 
-figure(1); clf;
-for ii = 1:4
-    
-    cellDistData=[];
-    for ll = 1:length(distBins)-1
-        cellSelector = cellData(:,5)>distBins(ll) & cellData(:,5)<distBins(ll+1);
-        
-        cellDistDataAve(ll) = nanmean(cellData(cellSelector,ii));
-        cellDistDataMedian(ll) = nanmedian(cellData(cellSelector,ii));
-        cellDistDataErr(ll) = nanstd(cellData(cellSelector,ii))/sqrt(sum(cellSelector));
-    end
-    
-    subplot(4,2,1+(ii-1)*2)
-    plot(cellData(:,5),cellData(:,ii),'.')
-    set(gca,'fontsize',16)
-    ylabel(ylabels{ii})
-    xlabel('Min Dist')
-    xlim([0 250])
-    
-    subplot(4,2,2+(ii-1)*2); hold on;
-    leg(1) = plot(distBins(1:end-1),cellDistDataAve,'k.','markersize',16);
-    errorbar(distBins(1:end-1),cellDistDataAve,cellDistDataErr,'k','linewidth',1.5)
-    leg(2) = plot(distBins(1:end-1),cellDistDataMedian,'.','markersize',16);
-    plot([0 distBins(end)],0*[0 distBins(end)],'k--');
-    set(gca,'fontsize',16)
-    xlabel('Min Dist')
-    xlim([0 250])
-    
-    if ii == 4
-        legend(leg,{'Mean','Median'})
-    end
-end
+%% Figure 3: min distance plot
 
+Fig3(cellTable,cellCond)
+Fig3_cbc(cellTable,cellCond)
 
-% Column Information
-% cellData = [zdfCellResp allCellResp dfCellResp dffCellResp 
-%             cellDist cellEnsMaxD cellMeanEnsOSI cellEnsOSI];
+%% Figure Space: Effect of the spread of ensemble
+ensResp = FigSpace(cellTable);
 
-figure(4); clf;
+%% Figure 5: Iso vs. ortho
 
-% 1 for zscore; 4 for baseline df
-metric_num = 1; 
+Fig5(cellTable,cellCondTuned);
+Fig5_cbc(cellTable,cellCondTuned);
 
-ensDistThresTight = 400;
-ensDistThresLoose = 500;
+%% Figure 6: Tight co-tuned investigation
+Fig6(cellTable,cellCond)
+Fig6_cbc(cellTable,cellCond);
+Fig6IsoOrtho(cellTable,cellCondTuned)
 
-ensTuningList = {'untuned','mixedTuned','coTuned'};
+%% Figure plotting the percent activated/suppressed as a function of dist
+% Third input is threshold value
+FigPercentAct(cellTable,cellCond,0)
 
-untunedThres = 0.3;
-meanEnsOSIThres = 0.5;
-ensOSIThres = 0.5;
-ylimMax = 0;
-ylimMin = 0;
+%% Target cell statistics
+FigTargets(cellTable)
 
-for jj = 1:length(ensTuningList)
-    ensTuning = ensTuningList(jj);
-    for ii = 1:2
-        
-        cellDistData=[];
-        for ll = 1:length(distBins)-1
-            if strcmp(ensTuning,'untuned')
-                if ii == 2
-                    cellSelector = cellData(:,5)>distBins(ll) & cellData(:,5)<distBins(ll+1) ...
-                        & cellData(:,6) < ensDistThresTight  ...
-                        & cellData(:,7) < untunedThres & cellData(:,8) < untunedThres;
-                else
-                    cellSelector = cellData(:,5)>distBins(ll) & cellData(:,5)<distBins(ll+1) ...
-                        & cellData(:,6) > ensDistThresLoose  ...
-                        & cellData(:,7) < untunedThres & cellData(:,8) < untunedThres;
-                end
-            elseif strcmp(ensTuning,'mixedTuned')
-                if ii == 2
-                    cellSelector = cellData(:,5)>distBins(ll) & cellData(:,5)<distBins(ll+1) ...
-                        & cellData(:,6) < ensDistThresTight  ...
-                        & cellData(:,7) > meanEnsOSIThres & cellData(:,8) < ensOSIThres;
-                else
-                    cellSelector = cellData(:,5)>distBins(ll) & cellData(:,5)<distBins(ll+1) ...
-                        & cellData(:,6) > ensDistThresLoose  ...
-                        & cellData(:,7) > meanEnsOSIThres & cellData(:,8) < ensOSIThres;
-                end
-            elseif strcmp(ensTuning,'coTuned')
-                if ii == 2
-                    cellSelector = cellData(:,5)>distBins(ll) & cellData(:,5)<distBins(ll+1) ...
-                        & cellData(:,6) < ensDistThresTight  ...
-                        & cellData(:,7) > meanEnsOSIThres & cellData(:,8) > ensOSIThres;
-                else
-                    cellSelector = cellData(:,5)>distBins(ll) & cellData(:,5)<distBins(ll+1) ...
-                        & cellData(:,6) > ensDistThresLoose  ...
-                        & cellData(:,7) > meanEnsOSIThres & cellData(:,8) > ensOSIThres;
-                end
-            end
-            
-            cellDistDataAve(ll) = nanmean(cellData(cellSelector,metric_num));
-            cellDistDataMedian(ll) = nanmedian(cellData(cellSelector,metric_num));
-            cellDistDataErr(ll) = nanstd(cellData(cellSelector,metric_num))/sqrt(sum(cellSelector));
-        end
-        
-        subplot(2,3,ii+(ii-1)*2+jj-1); hold on;
-        leg(1) = plot(distBins(1:end-1),cellDistDataAve,'k.','markersize',16);
-        errorbar(distBins(1:end-1),cellDistDataAve,cellDistDataErr,'k','linewidth',1.5)
-        leg(2) = plot(distBins(1:end-1),cellDistDataMedian,'.','markersize',16);
-        set(gca,'fontsize',16)
-        xlabel('Min Dist')
-        xlim([0 150])
-        plot([0 distBins(end)],0*[0 distBins(end)],'k--');
-        
-        ylimMax = max(max(ylim),ylimMax);
-        ylimMin = min(min(ylim),ylimMin);
-    end 
-end
-
-
-subplot(2,3,1)
-title(sprintf('Untuned \n ensOSI < %.1f, meanEnsOSI < %.1f',untunedThres,untunedThres))
-if metric_num==1 
-    ylabel(sprintf('Max Ens Dist > 500 \n z-scored df'))
-elseif metric_num==4
-    ylabel(sprintf('Max Ens Dist > 500 \n (f-f0)/f0'))
-end
-subplot(2,3,2)
-title(sprintf('Mixed Tuned \n meanEnsOSI > %.1f, ensOSI < %.1f',meanEnsOSIThres, ensOSIThres))
-subplot(2,3,3)
-title(sprintf('Cotuned \n meanEnsOSI > %.1f, ensOSI > %.1f',meanEnsOSIThres,ensOSIThres))
-subplot(2,3,4)
-if metric_num==1 
-    ylabel(sprintf('Max Ens Dist < 400 \n z-scored df'))
-elseif metric_num==4
-    ylabel(sprintf('Max Ens Dist < 400 \n (f-f0)/f0'))
-end
-
-
-for ii = 1:6
-    subplot(2,3,ii)
-   ylim([ylimMin ylimMax]) 
-end
+%% Figure illustrating the total number of cells suppressed
+clc;
+FigCellByCell(cellTable,cellCond)
