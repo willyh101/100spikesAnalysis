@@ -1,11 +1,11 @@
 clear;
-date = '220228';
-mouse = 'W42_2';%'I138_1';%'I136_1';
-epochs = '1_2_3_4_5';
+date = '20220413';
+mouse = 'W46_2';%'I138_1';%'I136_1';
+epochs = '2_3_4';
 
 % addpath(genpath('C:\Users\Will\Lab Code\Ian Code'))
-% basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
-basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
+basePath = ['E:\Contrast Modulated Ensembles\' mouse '\' date '\'];
+% basePath = ['C:\Users\ian\Documents\DATA\F\' mouse '\' date '\'];
 % basePath = ['T:\Ian\F\' mouse '\' date '\'];
 
 path = fullfile(basePath,epochs);
@@ -37,10 +37,10 @@ theList=[];
 % spk is an extra module on exp, so run exp first even if it will be
 % overrun
 theList = {
-    2 2 'stim'
+    1 1 'stim'
     ...4 4 'vis2'
-    4 4 'vis'
-    5 5 'exp'
+    2 2 'vis'
+    3 3 'exp'
     ...5 5 'spk'
     ...9 10 'exp2'
     ...8 8 'exp'
