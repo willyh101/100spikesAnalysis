@@ -60,6 +60,7 @@ loadList = {
     '220201_w42_2_outfile.mat'
     '220225_W42_2_outfile.mat'
     '220228_W42_2_outfile.mat' %runs too much excluded
+    '220413_W46_2_outfile.mat' % new
 
     
     };

@@ -128,6 +128,14 @@ for ind=1:2
             bVal = mean(mean(dat(cellsToUse,bwin(1):bwin(2),trialsToUse),2),3)';
             cellVal = cellVal-bVal;
             temp(i,:) = cellVal;
+%             err_temp(i,:) =
+            % error
+            mcellVal = squeeze(mean(dat(cellsToUse,win(1):win(2),trialsToUse),2));
+            mbVal = squeeze(mean(dat(cellsToUse,bwin(1):bwin(2),trialsToUse),2));
+            result = mcellVal - mbVal;
+            mVal = mean(result,2);
+%             eVal = 
+
         end
         resp{c} = temp;
     end
@@ -274,6 +282,7 @@ for i=1:numel(hwa)
     disp(['Axial PPSF (hwhm):  ' num2str(hwa(i))])
 
     if one_by_one
+        disp(['Cell idx # ' num2str(i)])
         pause
         clf
     end
@@ -299,8 +308,8 @@ xlim([0 50])
 %% overall fit
 
 center_fit = 1;
-scaled = 0;
-show_err = 0;
+scaled = 1;
+show_err = 1;
 
 % radial
 if center_fit
@@ -429,7 +438,7 @@ disp(['PPSF (HWHM) Axial: ' num2str(ppsf_ax_all)])
 
 %% find lowest 10th percentile of activation
 
-percentile = 0.2;
+percentile = 0.1;
 
 xr = 0:0.1:100;
 vals = feval(rf, xr);
@@ -441,3 +450,68 @@ vals = feval(af, xr);
 y_min = find(vals<percentile*max(vals),1);
 ax_min = xr(y_min);
 disp(['Axial distance for ' num2str(percentile) ' activation: ' num2str(ax_min)])
+
+%% example cell
+
+% current example is 13
+
+ex = 13;
+
+figure(25)
+clf
+% radial
+subplot(1,2,1)
+hold on
+y = rad2(ex,:)';
+x1 = xs(ex,:)';
+ff = fit(x1,y, 'gauss1');
+hwhm_rad = (2*sqrt(2*log(2))*ff.c1/sqrt(2))/2;
+p1 = plot(x1,y,'o');
+p2 = plot(min(x1):max(x1),feval(ff,min(x1):max(x1)));
+p2.Color= p1.Color;
+p2.LineWidth = 1;
+title(['Radial ' num2str(hwhm_rad) ' \mum'])
+ylabel('\DeltaF/F')
+xlabel('Distance \mum')
+xline(0, 'k--')
+xlim([-3 33])
+
+% axial
+subplot(1,2,2)
+hold on
+y = ax2(ex,:)';
+z1 = zs(ex,:)';
+ff = fit(z1,y, 'gauss1');
+hwhm_ax = (2*sqrt(2*log(2))*ff.c1/sqrt(2))/2;
+p1 = plot(z1, y,'o');
+p2 = plot(min(z1):max(z1),feval(ff,min(z1):max(z1)));
+p2.Color= p1.Color;
+p2.LineWidth = 1;
+title(['Axial ' num2str(hwhm_ax) ' \mum'])
+ylabel('\DeltaF/F')
+xlabel('Distance \mum')
+xline(0, 'k--')
+xlim([-7 65])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

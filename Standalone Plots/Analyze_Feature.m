@@ -15,7 +15,8 @@ oriLoadList;
 % loadPath = 'path/to/outfiles/directory';
 % loadPath = 'T:\Outfiles';
 
-loadPath = 'C:\Users\ian\Dropbox\Outfiles';
+% loadPath = 'C:\Users\ian\Dropbox\Outfiles';
+loadPath = 'e:/outfiles';
 
 addpath(genpath(loadPath))
 

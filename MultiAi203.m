@@ -66,8 +66,8 @@ opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
 
 
-All = cleanDataVisOnly(All,opts);
-% All = cleanDataGMNOnly(All,opts); % assumes that GMN is vis2
+% All = cleanDataVisOnly(All,opts);
+All = cleanDataGMNOnly(All,opts); % assumes that GMN is vis2
 
 names=[];
 for Ind = 1:numel(All)
@@ -89,8 +89,9 @@ opts.visAlpha = 0.05;
 % ensIndNumber =outVars.ensIndNumber;
 
 %% vis
-[All, outVars] = CalcPVisRFromVis(All,opts,outVars);
-% [All, outVars] = CalcPVisRFromGMN(All,opts,outVars); % again assumes that GMN is vis2
+opts.visAlpha = 0.05;
+% [All, outVars] = CalcPVisRFromVis(All,opts,outVars);
+[All, outVars] = CalcPVisRFromGMN(All,opts,outVars); % again assumes that GMN is vis2
 visPercent = outVars.visPercent;
 outVars.visPercentFromVis = visPercent;
 
@@ -114,6 +115,9 @@ for ind=1:numExps
         pVisR = All(ind).out.anal.pVisR;
         winToUse = All(ind).out.vis2.win;
         bwinToUse = All(ind).out.vis2.bwin;
+
+        All(ind).out.info
+        pause
 
         for i=1:numel(vs)
             v = vs(i);
@@ -230,6 +234,10 @@ tre_contrast = dat;
 ai203_contrast = dat2;
 save('e:/ai203/data/contrast_data_exported.mat', 'tre_contrast', 'ai203_contrast', '-v7.3')
 
+%% save single cells
+tre = crf;
+ai203 = crf2;
+save('e:/ai203/data/contrast_data_cells.mat', 'tre', 'ai203', '-v7.3')
 
 %%
 
