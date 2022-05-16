@@ -3,15 +3,15 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function [ensResp] = FigSpace(cellTable)
+function [ensResp] = FigSpace(cellTable,cellCond)
 
 totalNumEns = cellTable.ensNum(end);
 
 ensResp = zeros(totalNumEns,1);
 ensSpread = zeros(totalNumEns,1);
 for ii = 1:totalNumEns
-   cellSelector =  cellTable.ensNum == ii & cellTable.offTarget == 0 ...
-       & cellTable.cellDist>50 & cellTable.cellDist<100;
+   cellSelector =  cellTable.ensNum == ii ...
+       & cellTable.cellDist>50 & cellTable.cellDist<100 & cellCond;
    
    ensResp(ii) = nanmean(cellTable.dff(cellSelector));
    ensSpread(ii) = mean(cellTable.cellEnsMaxD(cellSelector));

@@ -15,8 +15,8 @@ for ll = 1:length(distBins)-1
     
     cellSelector = cellSelectorDist & cellCond;
     
-    cellAct(ll) = sum(cellTable.dff(cellSelector)>thresVal)/sum(cellSelector);
-    cellSupp(ll) = sum(cellTable.dff(cellSelector)<-thresVal)/sum(cellSelector);
+    cellAct(ll) = sum(cellTable.dff(cellSelector)>thresVal)/sum(~isnan(cellTable.dff(cellSelector)));
+    cellSupp(ll) = sum(cellTable.dff(cellSelector)<-thresVal)/sum(~isnan(cellTable.dff(cellSelector)));
 end
 
 figure(); clf; hold on;

@@ -11,7 +11,7 @@ function Fig3(cellTable,cellCond)
 totalNumEns = cellTable.ensNum(end);
 
 distBins = [15:15:250];
-plotDist = distBins(1:end-1) + 15/2;
+plotDist = distBins(1:end-1) + diff(distBins(1:2))/2;
 
 cellDistDataAve=zeros(length(distBins)-1,totalNumEns);
 % Loop over all ensembles
@@ -36,6 +36,7 @@ plot(plotDist,respAve,'k.-','linewidth',1.5,'markersize',15)
 errorbar(plotDist,respAve,respStdErr,'k','linewidth',1.5)
 plot([0 250],0*[0 250],'k--')
 xlim([0 250])
+xticks([0:25:250])
 maxVal = abs(max(respAve+respStdErr));
 minVal = abs(min(respAve-respStdErr));
 ylim([-round(max(minVal,maxVal),2) round(max(minVal,maxVal),2)])

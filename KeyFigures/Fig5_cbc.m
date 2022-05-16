@@ -42,7 +42,7 @@ for ll = 1:length(distBins)-1
     end
 end
 
-figure(); hold on;
+figure(421354); hold on;
 hLeg(1) = plot(plotDist,respAveIso,'.-','linewidth',1.5,'markersize',15,'color',[0 0.447 0.741]);
 errorbar(plotDist,respAveIso,respStdErrIso,'linewidth',1.5,'color',[0 0.447 0.741])
 plot(plotDist,respMedIso,'*','linewidth',1.5,'markersize',15,'color',[0 0.447 0.741]);
@@ -55,7 +55,7 @@ xlim([0 150])
 legend(hLeg,{'Iso','Ortho'})
 
 %% First bin analyis
-figure();
+figure(4213541);
 subplot(1,2,1); hold on;
 boxplot([cellResponsesIso; cellResponsesOrtho], ...
     [ones(length(cellResponsesIso),1); 2*ones(length(cellResponsesOrtho),1)])
@@ -66,8 +66,8 @@ xticklabels({'Iso','Ortho'})
 xticks([1 2])
 
 subplot(1,2,2); hold on
-bar([sum(cellResponsesIso<0)/length(cellResponsesIso)*100 ...
-    sum(cellResponsesOrtho<0)/length(cellResponsesOrtho)*100])
+bar([sum(cellResponsesIso<0)/sum(~isnan(cellResponsesIso))*100 ...
+    sum(cellResponsesOrtho<0)/sum(~isnan(cellResponsesOrtho))*100])
 plot([0 3], 50 + [0 0],'k--')
 set(gca,'fontsize',16)
 xticklabels({'Iso','Ortho'})

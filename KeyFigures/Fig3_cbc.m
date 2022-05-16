@@ -29,7 +29,7 @@ end
 % Plot the results
 figure(); clf;
 subplot(1,2,1);
-plot(cellTable.cellDist(cellTable.offTarget==0),cellTable.dff(cellTable.offTarget==0),'.')
+plot(cellTable.cellDist(cellCond),cellTable.dff(cellCond),'.')
 set(gca,'fontsize',16)
 xlabel('Min Dist to Stim Location')
 xlim([0 250])
@@ -44,6 +44,7 @@ set(gca,'fontsize',16)
 xlabel('Min Dist to Stim Location')
 ylabel('Mean Evoked \DeltaF/F')
 xlim([0 250])
+xticks([0:25:250])
 legend(leg,{'Mean','Median'})
 
 end
