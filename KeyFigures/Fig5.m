@@ -47,7 +47,8 @@ respAveOrtho = nanmean(cellDistDataAveOrtho,2);
 respStdErrOrtho = nanstd(cellDistDataAveOrtho,[],2)./sqrt(numEnsOrtho);
 
 % Plot the result
-figure(); clf; hold on;
+figure(231); %clf; 
+hold on;
 hLeg(1) = plot(plotDist,respAveIso,'.-','linewidth',1.5,'markersize',15,'color',[0 0.447 0.741]);
 errorbar(plotDist,respAveIso,respStdErrIso,'linewidth',1.5,'color',[0 0.447 0.741])
 hLeg(2) = plot(plotDist,respAveOrtho,'.-','linewidth',1.5,'markersize',15,'color',[0.494 0.184 0.556]);

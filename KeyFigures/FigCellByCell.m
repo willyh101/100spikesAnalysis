@@ -11,7 +11,7 @@ for thresLoop = 1:2
     suppFrac = zeros(cellTable.ensNum(end),1);
     actFrac = zeros(cellTable.ensNum(end),1);
     for ii = 1:cellTable.ensNum(end)
-        cellSelectorAll = cellCond & cellTable.ensNum == ii;
+        cellSelectorAll = cellCond & cellTable.ensNum == ii & ~isnan(cellTable.dff);
         cellRespTemp = cellTable.dff(cellSelectorAll);
         
         actFrac(ii) = sum(cellRespTemp>thresVal(thresLoop))/sum(cellSelectorAll);
@@ -22,8 +22,8 @@ for thresLoop = 1:2
         figure();clf;
         subplot(1,2,1); hold on;
         histogram(suppFrac*100,[20:5:70])
-        plot(mean(suppFrac*100),[50],'*','markersize',15)
-        plot(50+[0 0],[0 50],'k--','linewidth',1.5)
+        plot(mean(suppFrac*100),[60],'*','markersize',15)
+        plot(50+[0 0],[0 60],'k--','linewidth',1.5)
         set(gca,'fontsize',16)
         xlabel('% of Population Suppressed')
         title(sprintf('Threshold: %.2f',thresVal(thresLoop)))

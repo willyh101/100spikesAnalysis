@@ -110,11 +110,13 @@ for ind=1:numExps
         if numel(Tg) == 1
             temp = radialDistToStim(Tg,:)<thisPlaneTolerance & axialDistToStim(Tg,:) ==0;
             temp2 = radialDistToStim(Tg,:)<onePlaneTolerance & abs(axialDistToStim(Tg,:)) ==1;
+            temp3 = radialDistToStim(Tg,:)<onePlaneTolerance & abs(axialDistToStim(Tg,:)) ==2;
         else
             temp = any(radialDistToStim(Tg,:)<thisPlaneTolerance & axialDistToStim(Tg,:) ==0);
             temp2 = any(radialDistToStim(Tg,:)<onePlaneTolerance & abs(axialDistToStim(Tg,:)) ==1);
+            temp3 = any(radialDistToStim(Tg,:)<onePlaneTolerance & abs(axialDistToStim(Tg,:)) ==2);
         end
-        offTargetRisk(i,:) = temp | temp2;
+        offTargetRisk(i,:) = temp | temp2 | temp3;
     end
     All(ind).out.anal.offTargetRisk = offTargetRisk;
     
