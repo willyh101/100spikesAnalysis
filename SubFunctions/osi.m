@@ -23,4 +23,6 @@ for i=1:numel(prefOri)
         / (curve(prefOri(i),i) + curve(orthoOri(i),i));
 end
 
-result = OSI;
+result.osi = OSI;
+result.po = prefOri;
+result.oo = orthoOri;
