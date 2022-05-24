@@ -1,40 +1,35 @@
-%%offtargetRisk
+function [All] = calcOffTargetRisk(All,opts)
+
 thisPlaneTolerance = opts.thisPlaneTolerance;
 onePlaneTolerance = opts.onePlaneTolerance;
+numExps = numel(All);
 
-offTargetRiskEns=[];
-
-disp('Recalculating OffTargetRisk')
 for ind =1:numExps
-    fprintf('.')
-    dataToUse = All(ind).out.exp.dataToUse;
-    
+    %%offtargetRisk
     stimCoM = All(ind).out.exp.stimCoM;
-    numCells = size(dataToUse,1);
+    numCells = size(All(ind).out.exp.allData,1);
     allCoM = All(ind).out.exp.allCoM;
     stimDepth = All(ind).out.exp.stimDepth;
     allDepth = All(ind).out.exp.allDepth;
     muPerPx = 800/512;
-      
+    
+    allLoc = [allCoM*muPerPx (allDepth-1)*30];
+    stimLoc = [stimCoM*muPerPx (stimDepth-1)*30];
+    
     roisTargets = All(ind).out.exp.rois;
     holoTargets = All(ind).out.exp.holoTargets;
     
-    if ~isfield(All(ind).out.anal, 'radialDistToStim')
-        radialDistToStim=zeros([size(stimCoM,1) numCells]);
-        axialDistToStim = zeros([size(stimCoM,1) numCells]);
-        for i=1:size(stimCoM,1);
-            for k=1:numCells;
-                D = sqrt(sum((stimCoM(i,:)-allCoM(k,:)).^2));
-                radialDistToStim(i,k)=D;
-                z = stimDepth(i)-allDepth(k);
-                axialDistToStim(i,k) = z;
-            end
+    radialDistToStim=zeros([size(stimCoM,1) numCells]);
+    axialDistToStim = zeros([size(stimCoM,1) numCells]);
+    StimDistance = zeros([size(stimCoM,1) numCells]);
+    for i=1:size(stimCoM,1)
+        for k=1:numCells
+            D = sqrt(sum((stimCoM(i,:)-allCoM(k,:)).^2));
+            radialDistToStim(i,k)=D;
+            z = stimDepth(i)-allDepth(k);
+            axialDistToStim(i,k) = z;
+            StimDistance(i,k) = sqrt(sum((stimLoc(i,:)-allLoc(k,:)).^2));
         end
-        All(ind).out.anal.radialDistToStim = radialDistToStim;
-        All(ind).out.anal.axialDistToStim = axialDistToStim;
-    else
-        radialDistToStim = All(ind).out.anal.radialDistToStim;
-        axialDistToStim = All(ind).out.anal.axialDistToStim;
     end
     
     offTargetRisk = zeros([numel(roisTargets) numCells]);
@@ -56,20 +51,7 @@ for ind =1:numExps
         offTargetRisk(i,:) = temp | temp2 | temp3;
     end
     All(ind).out.anal.offTargetRisk = offTargetRisk;
-    
-    ROIinArtifact = All(ind).out.anal.ROIinArtifact;
-    us = unique(All(ind).out.exp.stimID);
-    for k=1:numel(us)
-        s = us(k);
-        sidx = find(us==s);
-        holo = All(ind).out.exp.stimParams.roi{sidx}; % Better Identifying ensemble
-        if holo~=0
-        offTargetRiskEns{end+1} =  ROIinArtifact' |...
-            offTargetRisk(holo,:);
-        end
-    end
 end
-outVars.offTargetRiskEns=offTargetRiskEns;
 
+end
 
-disp('done')

@@ -29,11 +29,12 @@ end
 % Average across ensembles
 respAve = nanmean(cellDistDataAve,2);
 respStdErr = nanstd(cellDistDataAve,[],2)/sqrt(size(cellDistDataAve,2));
-
+%%
 % Plot the results
 figure(); clf; hold on;
-plot(plotDist,respAve,'k.-','linewidth',1.5,'markersize',15)
-errorbar(plotDist,respAve,respStdErr,'k','linewidth',1.5)
+leg(1) = plot(plotDist,respAve,'k.','markersize',20);
+e = errorbar(plotDist,respAve,respStdErr,'k','linewidth',2,'CapSize',0);
+e.LineStyle = 'none';
 plot([0 250],0*[0 250],'k--')
 xlim([0 250])
 xticks([0:25:250])
@@ -43,6 +44,17 @@ ylim([-round(max(minVal,maxVal),2) round(max(minVal,maxVal),2)])
 set(gca,'fontsize',16)
 ylabel('Mean evoked \DeltaF/F')
 xlabel('Min Dist to Stim Loc')
+ylim([-0.02 0.07])
+
+%%
+
+expFn = 'A*exp(-x^2./sigma1)+B*exp(-x^2./sigma2)';
+f2 = fit(plotDist',respAve,expFn,'StartPoint',[0.15 -0.02 500 2e4]);
+xPlot = [20:0.1:250];
+leg(2) = plot(xPlot,f2.A*exp(-xPlot.^2./f2.sigma1)+f2.B*exp(-xPlot.^2./f2.sigma2),'k','linewidth',1.5);
+
+
+legend(leg,{'Data','Fit'})
 
 end
 

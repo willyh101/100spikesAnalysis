@@ -6,12 +6,6 @@ function [All,opts,outVars] = loadData_GH(loadList,loadPath)
 %CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
 
-%% Set Data To use
-for ind=1:numExps
-    All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
-end
-% disp('Data To Use is set')
-
 %% Rematch Targeted Cells
 opts.matchDistanceMicrons = 12; 15.6; %6;
 rematchTargetedCells;
@@ -21,17 +15,32 @@ rematchTargetedCells;
 opts.FRDefault=6;
 opts.recWinRange = [0.5 1.5]; %[0.5 1.5];[1.5 2.5];%[0.5 1.5];% %from vis Start in s [1.25 2.5];
 
-
 %Stim Success Thresholds
 opts.stimsuccessZ = 0.25; %0.3, 0.25 over this number is a succesfull stim
 opts.stimEnsSuccess = 0.5; %0.5, fraction of ensemble that needs to be succsfull
 opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates based on zdfDat;
 
-
 %run Threshold
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
 opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
+[All, ~] = cleanData(All,opts); 
+
+%% Calculate the offTarget risk
+muPerPx=800/512;
+opts.thisPlaneTolerance = 15/muPerPx; %11.25;%7.5;%1FWHM%10; %in pixels
+opts.onePlaneTolerance = 30/muPerPx; %22.5;%15;%2FWHM %20;
+[All] = calcOffTargetRisk(All,opts);
+
+%% Remove cells from analysis if they were an offTarget in the previous trial
+[All] = prevOffTargetRemoval(All);
+
+%% Set Data To use
+for ind=1:numExps
+    All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
+end
+
+%% Re-run clean data, and create fields.
 [All, outVars] = cleanData(All,opts); 
 
 ensStimScore        = outVars.ensStimScore;
@@ -82,7 +91,7 @@ opts.onePlaneTolerance = 30/muPerPx; %22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
 
-[All, outVars] = meanMatrixVisandCorr(All,opts,outVars); %one of the main analysis functions
+[All, outVars] = meanMatrixVisandCorr_v2(All,opts,outVars); %one of the main analysis functions
 
 visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
@@ -212,7 +221,7 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & numMatchedTargets >= 7 ...
     & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
-    & ensDate < 220000 ...
+    ...& ensDate < 220000 ...
     ...& ensDate >= -210428 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...

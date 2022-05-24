@@ -4,7 +4,6 @@
 %%
 clear; close all; clc;
 
-
 %%
 % Adds all subfolders to the path
 restoredefaultpath;
@@ -22,10 +21,8 @@ loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
 loadList_all = oriLoadList_GH('used');
 
 %% Loop over each experiment
-ensNum = 1;
-expNum = 1;
-cellData = [];
-expData=[];
+ensNum = 1; expNum = 1;
+cellData = []; expData=[];
 cellID=0;
 %%
 for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
@@ -42,44 +39,8 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
     
     [All, outVars] = defineDistanceTypes(All, outVars);
     All.out.exp.ensMaxD =  outVars.ensMaxD;
-    %% Additional pre-processing: 
-    % Remove cells from trials where they were offTargets/targets within some
-    % buffer zone
-    % Key parameters: length of buffer zone and whether to remove targets
-    % or offTargets
-    % If the total trial count for these cells drops below 10, they are
-    % removed entirely
-    
-    % length(All.out.anal.targets) % total unique targets
-    unID = unique(All.out.exp.stimID);
-    IDshift = unID(2)-1;
-    totalCells = size(All.out.exp.dfData,1);
-    totalTrials = size(All.out.exp.stimID,2);
-    
-    % Everyone starts being avaliable for analysis
-    bufferZone = 1;
-    lastTimeStimmed = bufferZone+zeros(totalCells,1);
-    % Loop through all trials sequentially
-    for ii = 1:totalTrials
-        
-        % Remove these cells from this trial
-        doNotInclude = lastTimeStimmed<bufferZone;
-        All.out.exp.dfData(doNotInclude,:,ii) = nan;
-        
-        % Update the lastTimeStimmed list
-        % Figure out who is currently stimmed
-        holoIndex = All.out.exp.stimID(ii)-IDshift;
-        if holoIndex > 0
-            % If you only want to remove targets, uncomment this line
-            currTargets=find(All.out.anal.offTargetRisk(holoIndex,:)==1);
-        else
-            currTargets=[];
-        end
-        lastTimeStimmed = lastTimeStimmed + 1;
-        % Reset the count of those just stimmed
-        lastTimeStimmed(currTargets) = 0;
-    end
-    
+    All.out.exp.ensMeaD =  outVars.ensMeaD;
+           
     %% Only consider valid ensembles from this experiment
     ensIDs = outVars.ensHNumber(outVars.ensemblesToUse);
     cellsToUse = [];
@@ -123,15 +84,22 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
         dfCellResp = nanmean((nanmean(tracesHolodfData(:,winToUse(1):winToUse(end),:),2)),3);
         baselineEst = nanmean((nanmean(tracesHolodfData(:,bwinToUse(1):bwinToUse(2),:),2)),3);   
         dffCellResp = (dfCellResp-baselineEst);
+                
+        % Method 2: use results from anal 
+        tempResp = squeeze(All.out.anal.respMat(s,cellsToUse));
+        tempBase = squeeze(All.out.anal.baseMat(s,cellsToUse));
+        dffCellResp2 = (tempResp-tempBase)';
         
-        % Remove cells that don't have enough (10) trials
-        tempTotalTrials = sum(trialsToUse);
-        badCells = (tempTotalTrials-sum(isnan(tracesHolodfData(:,1,:)),3))<10;
-        dffCellResp(badCells) = nan;
+        % Methods should be identical
+        if norm(dffCellResp(~isnan(dffCellResp))-dffCellResp2(~isnan(dffCellResp)))~=0 ...
+                || sum(isnan(dffCellResp))~=sum(isnan(dffCellResp2))
+            plot(dffCellResp,dffCellResp2)
+            error('Something went wrong!');
+        end
                 
         %% Control response (using the no stim epochs)
         % Method 1: 
-        stimIDs = unique(All.out.exp.stimID);        
+        stimIDs = unique(All.out.exp.stimID);  
         trialsToUse = ismember(All.out.exp.stimID, stimIDs(1)) &...
             All.out.exp.lowMotionTrials &...
             All.out.exp.lowRunTrials & All.out.exp.visID==1;
@@ -144,12 +112,10 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
         dfCellResp = nanmean((nanmean(tracesHolodfData(:,winToUse(1):winToUse(end),:),2)),3);
         baselineEst = nanmean((nanmean(tracesHolodfData(:,bwinToUse(1):bwinToUse(2),:),2)),3);
         dffCellCtlResp_noStim = (dfCellResp-baselineEst);
-        
-        % Remove cells that don't have enough (10) trials
-        badCells = (tempTotalTrials-sum(isnan(tracesHolodfData(:,1,:)),3))<10;
-        dffCellCtlResp_noStim(badCells) = nan;
-            
-        if unique(All.out.anal.minDistbyHolo(1,:)) ~=0
+                
+        % The gray screen should be the first stimID on this list
+        % Here, we do a quick check for this
+        if unique(All.out.anal.minDistbyHolo(1,:)) ~=0 || All.out.exp.stimParams.roi{1}~=0
             error('Something wrong with minDistbyHolo');
         end
         
@@ -162,6 +128,7 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
         
         %% Shared across all cells 
         cellEnsMaxD = All.out.exp.ensMaxD(holo)*ones(sum(cellsToUse),1);
+        cellEnsMeaD = All.out.exp.ensMeaD(holo)*ones(sum(cellsToUse),1);
         cellMeanEnsOSI = All.out.exp.meanEnsOSI(holo)*ones(sum(cellsToUse),1);
         cellEnsOSI = All.out.exp.ensOSI(holo)*ones(sum(cellsToUse),1);
         cellEnsPO = All.out.exp.ensPO(holo)*ones(sum(cellsToUse),1);
@@ -173,7 +140,7 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
         end
                
         cellData = [cellData; dffCellResp cellDist cellPO cellOSI ...
-            cellEnsMaxD cellMeanEnsOSI cellEnsOSI pVis(cellsToUse)' offTargetRisks(cellsToUse)'...
+            cellEnsMaxD cellEnsMeaD cellMeanEnsOSI cellEnsOSI pVis(cellsToUse)' offTargetRisks(cellsToUse)'...
             tgCell(cellsToUse) ensNum*ones(sum(cellsToUse),1) expNum*ones(sum(cellsToUse),1) cellEnsPO,...
             dffCellCtlResp_noStim cellID];
         ensNum = ensNum + 1;
@@ -191,7 +158,7 @@ end
 %% Turn matrix into a table (easier to access specific columns by name)
 
 cellTable = array2table(cellData,'VariableNames',{'dff','cellDist','cellPO','cellOSI','cellEnsMaxD',...
-    'cellMeanEnsOSI','cellEnsOSI','visP','offTarget','tgCell','ensNum','expNum','ensPO',...
+    'cellEnsMeaD', 'cellMeanEnsOSI','cellEnsOSI','visP','offTarget','tgCell','ensNum','expNum','ensPO',...
     'ctlResp_noStim','cellID'});
 
 %% Iso vs. ortho calculation
@@ -209,8 +176,12 @@ cellCondTuned = cellTable.offTarget==0 & cellTable.visP<0.05 & cellTable.cellOSI
 
 %% Figure 3: min distance plot
 Fig3(cellTable,cellCond)
+%%
 Fig3_cbc(cellTable,cellCond)
 Fig3_noStimCtl(cellTable)
+
+%%
+Fig3_cbc_dataFit(cellTable,cellCond)
 
 %% Percent of cells suppressed vs. activated across all ensembles
 allResp = cellTable.dff(cellCond);
@@ -235,8 +206,19 @@ Fig5(cellTable,cellCondTuned);
 Fig5_cbc(cellTable,cellCondTuned);
 
 %% Figure 6: Tight co-tuned investigation
+clc;
+fprintf('-------------------------\n')
 Fig6(cellTable,cellCond);
+
+%%
+% clc;
+fprintf('-------------------------\n')
 Fig6_cbc(cellTable,cellCond);
+
+%%
+Fig6_cbc_dataFit(cellTable,cellCond);
+
+%%
 Fig6IsoOrtho(cellTable,cellCondTuned)
 
 %% Figure plotting the percent activated/suppressed as a function of dist
@@ -247,7 +229,8 @@ FigPercentAct(cellTable,cellCond,0)
 FigTargets(cellTable)
 
 %% Figure illustrating the total number of cells suppressed
-clc;
+% clc;
+fprintf('-------------------------\n')
 FigCellByCell(cellTable,cellCond)
 
 %%

@@ -62,8 +62,8 @@ for ind =1:numExps
     winToUse = min(round(recWinSec*All(ind).out.info.FR),[inf sz(2)]) ;
     bwinToUse = max(floor([0 All(ind).out.exp.visStart]*All(ind).out.info.FR),[1 1]);
     
-    rdata = squeeze(mean(dataToUse(:,winToUse(1):winToUse(2),:),2));
-    bdata = squeeze(mean(dataToUse(:,bwinToUse(1):bwinToUse(2),:),2));
+    rdata = squeeze(nanmean(dataToUse(:,winToUse(1):winToUse(2),:),2));
+    bdata = squeeze(nanmean(dataToUse(:,bwinToUse(1):bwinToUse(2),:),2));
     
     All(ind).out.exp.rdData=rdata;
     All(ind).out.exp.bdata=bdata;
@@ -168,8 +168,8 @@ for ind =1:numExps
     numTrials = size(dataToUse,3);
     
     if isfield(opts, 'stimSuccessByZ') && opts.stimSuccessByZ
-        rdata = squeeze(mean(All(ind).out.exp.zdfData(:,winToUse(1):winToUse(2),:),2));
-        bdata = squeeze(mean(All(ind).out.exp.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
+        rdata = squeeze(nanmean(All(ind).out.exp.zdfData(:,winToUse(1):winToUse(2),:),2));
+        bdata = squeeze(nanmean(All(ind).out.exp.zdfData(:,bwinToUse(1):bwinToUse(2),:),2));
     else
         rdata = All(ind).out.exp.rdData;
         bdata = All(ind).out.exp.bdata;
