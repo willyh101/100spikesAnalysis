@@ -14,11 +14,16 @@ plotDist = distBins(1:end-1) + 15/2;
 % Ensemble thresholds
 ensThreshs = [-inf 0.3; 0.7 inf];
 meanEnsThreshs = [-inf 0.5; 0.5 inf];
-spatialThresh = [-inf 400; 500 inf];
+
+% ensDistMetric = cellTable.cellEnsMaxD;
+% spatialThresh = [-inf 400; 500 inf];
+
+ensDistMetric = cellTable.cellEnsMeaD;
+spatialThresh = [-inf 200; 200 inf];
 
 % Conditions for this analysis
-ensSelectorSpreadTight = cellTable.cellEnsMaxD>spatialThresh(1,1) & cellTable.cellEnsMaxD<spatialThresh(1,2);
-ensSelectorSpreadLoose = cellTable.cellEnsMaxD>spatialThresh(2,1) & cellTable.cellEnsMaxD<spatialThresh(2,2);
+ensSelectorSpreadTight = ensDistMetric>spatialThresh(1,1) & ensDistMetric<spatialThresh(1,2);
+ensSelectorSpreadLoose = ensDistMetric>spatialThresh(2,1) & ensDistMetric<spatialThresh(2,2);
 
 respAveTight = zeros(length(distBins)-1,2); respAveLoose = zeros(length(distBins)-1,2);
 respStdErrTight = zeros(length(distBins)-1,2); respStdErrLoose = zeros(length(distBins)-1,2);
@@ -50,6 +55,31 @@ for jj = 1:2
         end
     end
 end
+%%
+strOps = {'','*'};
+fprintf('1st point different from zero (untuned)\n')
+p1 = signrank(cellResponsesTight{1},0); s1 = strOps{1+(p1<0.05)};
+p2 = signrank(cellResponsesLoose{1},0); s2 = strOps{1+(p2<0.05)};
+fprintf('Two-sided test, Tight: %.3f%s Loose: %.3f%s\n',p1,s1,p2,s2)
+
+p1 = signrank(cellResponsesTight{1},0,'Tail','right'); s1 = strOps{1+(p1<0.05)};
+p2 = signrank(cellResponsesLoose{1},0,'Tail','right'); s2 = strOps{1+(p2<0.05)};
+fprintf('One-sided test, Tight: %.3f%s Loose: %.3f%s\n',p1,s1,p2,s2)
+
+fprintf('1st point different from zero (co-tuned)\n')
+p1 = signrank(cellResponsesTight{2},0); s1 = strOps{1+(p1<0.05)};
+p2 = signrank(cellResponsesLoose{2},0); s2 = strOps{1+(p2<0.05)};
+fprintf('Two-sided test, Tight: %.3f%s Loose: %.3f%s\n',p1,s1,p2,s2)
+
+p1=signrank(cellResponsesTight{2},0,'Tail','left'); s1 = strOps{1+(p1<0.05)};
+p2=signrank(cellResponsesLoose{2},0,'Tail','right'); s2 = strOps{1+(p2<0.05)};
+fprintf('One-sided test, Tight: %.3f%s Loose: %.3f%s\n',p1,s1,p2,s2)
+
+p = ranksum(cellResponsesTight{2},cellResponsesLoose{2});
+fprintf('Rank sum test, Near vs Far p=%.3f\n',p);
+
+
+%%
 
 % Plot the results
 colorScheme =[];

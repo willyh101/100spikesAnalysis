@@ -8,6 +8,11 @@
 %%
 function Fig6(cellTable,cellCond)
 
+% ensDistMetric = cellTable.cellEnsMaxD;
+% spatialThresh = [-inf 400; 500 inf];
+ensDistMetric = cellTable.cellEnsMeaD;
+spatialThresh = [-inf 200; 200 inf];
+
 totalNumEns = cellTable.ensNum(end);
 distBins = [15:15:150];
 plotDist = distBins(1:end-1) + 15/2;
@@ -15,11 +20,10 @@ plotDist = distBins(1:end-1) + 15/2;
 % Ensemble thresholds
 ensThreshs = [-inf 0.3; -inf 0.3;  0.7 inf];
 meanEnsThreshs = [-inf 0.5; 0.5 inf; 0.5 inf];
-spatialThresh = [-inf 400; 500 inf];
 
 % Conditions for this analysis
-ensSelectorSpreadTight = cellTable.cellEnsMaxD>spatialThresh(1,1) & cellTable.cellEnsMaxD<spatialThresh(1,2);
-ensSelectorSpreadLoose = cellTable.cellEnsMaxD>spatialThresh(2,1) & cellTable.cellEnsMaxD<spatialThresh(2,2);
+ensSelectorSpreadTight = ensDistMetric>spatialThresh(1,1) & ensDistMetric<spatialThresh(1,2);
+ensSelectorSpreadLoose = ensDistMetric>spatialThresh(2,1) & ensDistMetric<spatialThresh(2,2);
 
 respAveTight = zeros(length(distBins)-1,3); respAveLoose = zeros(length(distBins)-1,3);
 respStdErrTight = zeros(length(distBins)-1,3); respStdErrLoose = zeros(length(distBins)-1,3);
@@ -57,6 +61,33 @@ for jj = 1:3
     
     respAveLoose(:,jj) = nanmean(cellDataAveLoose,2);
     respStdErrLoose(:,jj) = nanstd(cellDataAveLoose,[],2)./sqrt(numEnsUsedLoose(:,jj));
+    
+    %%
+    strOps = {'','*'};
+    if jj == 1
+        fprintf('1st point different from zero (untuned)\n')
+    elseif jj == 2
+        fprintf('1st point different from zero (mixed tuned)\n')
+    else
+        fprintf('1st point different from zero (co-tuned)\n')
+    end
+    p1 = signrank(cellDataAveTight(1,:),0); s1 = strOps{1+(p1<0.05)};
+    p2 = signrank(cellDataAveLoose(1,:),0); s2 = strOps{1+(p2<0.05)};
+    fprintf('Two-sided test, Tight: %.3f%s Loose: %.3f%s\n',p1,s1,p2,s2)
+    
+    p2=signrank(cellDataAveLoose(1,:),0,'Tail','right'); s2 = strOps{1+(p2<0.05)};
+    if jj < 3
+        p1=signrank(cellDataAveTight(1,:),0,'Tail','right'); s1 = strOps{1+(p1<0.05)};
+    else
+        p1=signrank(cellDataAveTight(1,:),0,'Tail','left'); s1 = strOps{1+(p1<0.05)};
+    end 
+    fprintf('One-sided test, Tight: %.3f%s Loose: %.3f%s\n',p1,s1,p2,s2)
+        
+    p=ranksum(cellDataAveTight(1,:),cellDataAveLoose(1,:));
+    fprintf('Near vs Far p=%.3f\n',p);
+    
+    %%
+    
 end
 
 % Plot the results
@@ -85,6 +116,26 @@ for jj = 1:3
     ylim([-0.11 0.11])
     title(sprintf('Num Ens: %d',min(numEnsUsedLoose(:,jj))))
 end
+
+
+
+%%
+
+
+% disp('pVal first point diff from zero')
+% for i =1:6
+%     disp(num2str(signrank(outInfo{i}{1}.dat(:,1),0)))
+% end
+% 
+% [p h] = ranksum(outInfo{5}{1}.dat(:,1),outInfo{6}{1}.dat(:,1));
+% disp(['Tuned Near vs Far p= ' num2str(p)]);
+% 
+% [p h] = ranksum(outInfo{1}{1}.dat(:,1),outInfo{5}{1}.dat(:,1));
+% disp(['Near Untuned vs Tuned p= ' num2str(p)]);
+% 
+% [p h] = ranksum(outInfo{2}{1}.dat(:,1),outInfo{6}{1}.dat(:,1));
+% disp(['Far Untuned vs Tuned p= ' num2str(p)]);
+
 
 end
 

@@ -41,9 +41,6 @@ for exp_loop = 1:length(loadList_all) %10 for 60 offTarget
     % Note: The lowest unID is always a gray screen
     % Shift necessary to map onto holoIndex
     IDshift = unID(2)-1;
-    if unID(2)-unID(1) ~=1
-        'here'
-    end
     totalCells = size(All.out.exp.dfData,1);
     totalTrials = size(All.out.exp.stimID,2);
     
@@ -59,11 +56,6 @@ for exp_loop = 1:length(loadList_all) %10 for 60 offTarget
         % Update the lastTimeStimmed list
         % Figure out who is currently stimmed
         holoIndex = All.out.exp.stimID(ii)-IDshift;
-        holoIndex2 = All.out.exp.stimParams.roi{All.out.exp.stimID(ii)==unID};
-        if holoIndex>0 && holoIndex-holoIndex2~=0 
-            'error';
-        end
-        
         if holoIndex > 0
             % If you only want to remove targets, uncomment this line
             %currTargets = All.out.exp.holoTargets{holoIndex}(~isnan(All.out.exp.holoTargets{holoIndex}));
@@ -96,21 +88,19 @@ for exp_loop = 1:length(loadList_all) %10 for 60 offTarget
     dfCellResp = nanmean((nanmean(tracesHolodfData(:,winToUse(1):winToUse(end),:),2)),3);
     baselineEst = nanmean((nanmean(tracesHolodfData(:,bwinToUse(1):bwinToUse(2),:),2)),3);
     dffCellCtlResp_noStim = (dfCellResp-baselineEst);
-        
+    
     % Remove cells that don't have enough (10) trials
     badCells = (tempTotalTrials-sum(isnan(tracesHolodfData(:,1,:)),3))<10;
     dffCellCtlResp_noStim(badCells) = nan;
-    sum(badCells)
     
     % Method 2: (used as a check for bufferZone=0; doesn't work for bufferZone>0)
     tempCtlResp = squeeze(All.out.anal.respMat(1,cellsToUse));
     tempCtlBase = squeeze(All.out.anal.baseMat(1,cellsToUse));
     dffCellCtlResp_v3 = (tempCtlResp-tempCtlBase)';
-    if bufferZone <= 0 && norm(dffCellCtlResp_noStim(~isnan(dffCellCtlResp_noStim))-dffCellCtlResp_v3(~isnan(dffCellCtlResp_noStim)))~=0
+    if bufferZone<=0 && norm(dffCellCtlResp_noStim-dffCellCtlResp_v3)~=0
        error('Something went wrong calculating the gray screen response')
     end
-        
-    %%
+    
     figure(100+exp_loop); clf;
     subplot(1,2,1); hold on;
     tempAve = nanmean(tracesHolodfData,3)-baselineEst;
@@ -151,50 +141,6 @@ for exp_loop = 1:length(loadList_all) %10 for 60 offTarget
     title(sprintf('Population resp: %.3f',nanmean(vals)))
     xlabel('Time (sec)')
     
-    %% Standard error over trials instead of over cells 
-    
-    tempTraces = squeeze(nanmean(tracesHolodfData,1));
-    dfCellResp_v2 = squeeze(nanmean((nanmean(tracesHolodfData(:,winToUse(1):winToUse(2),:),2)),1));
-    baselineEst_v2 = squeeze(nanmean((nanmean(tracesHolodfData(:,bwinToUse(1):bwinToUse(2),:),2)),1));
-    dffCellCtlResp_noStim_v2 = (dfCellResp_v2-baselineEst_v2);
-    
-    figure(1000+exp_loop); clf;
-    subplot(1,2,1); hold on;
-    tempAve = squeeze(nanmean(tracesHolodfData,1))'-baselineEst_v2;
-    [vals,Indices]=sort(dffCellCtlResp_noStim_v2,'ascend');
-    
-    imagesc(tempAve(Indices,:))
-    colorbar
-    colormap rdbu
-    caxis([-0.5 0.5])
-    set(gca,'fontsize',16)
-    xticks([1:1:5]*All.out.info.FR)
-    xticklabels([1 2 3 4])
-    ylim([0 size(tempAve,1)])
-    xlim([1 size(tempAve,2)])
-    title(loadList{1},'Interpreter', 'none')
-    xlabel('Time (sec)')
-    
-    timeVecTemp = [0:1:size(tempAve,2)-1]/All.out.info.FR;    
-    subplot(1,2,2); hold on;
-    tempMean = nanmean(tempAve);
-    tempSTDErr = nanstd(tempAve)/sqrt(size(tempAve,1));
-    plot(timeVecTemp,mean(tempAve),'linewidth',1.5)
-    hTemp = patch([timeVecTemp fliplr(timeVecTemp)], [tempMean+tempSTDErr fliplr(tempMean-tempSTDErr)],[0 0.447 0.741]);
-    hTemp.FaceAlpha=0.2;
-    hTemp.EdgeColor=[1 1 1];
-    xlim([0 timeVecTemp(end)])
-    ylim([-0.1 0.1])
-    ylimTemp = ylim;
-    xlimTemp = xlim;
-    plot(xlimTemp,0*xlimTemp,'k--')
-    plot(All.out.exp.visStart+0*ylimTemp,ylimTemp,'k--')
-    plot(All.out.exp.visStart+1+0*ylimTemp,ylimTemp,'k--')
-    set(gca,'fontsize',16)
-    title(sprintf('Population resp: %.3f',nanmean(vals)))
-    xlabel('Time (sec)')
-    
-    %%
     if unique(All.out.anal.minDistbyHolo(1,:)) ~=0
         error('Something off with minDistbyHolo');
     end
