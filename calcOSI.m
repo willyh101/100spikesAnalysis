@@ -13,9 +13,9 @@ for ind = 1:numExps
     curve(1,:) = [];
     result = osi(curve);
     All(ind).out.anal.osi = result.osi;
-    All(ind).out.anal.poFromOSI = result.po;
+    All(ind).out.anal.poFromOSI = result.po+1;
     osi2save{ind} = result.osi;
-    po2save{ind} = result.po;
+    po2save{ind} = result.po+1;
 end
 
 outVars.osi = osi2save;

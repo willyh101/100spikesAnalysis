@@ -38,7 +38,7 @@ for ind = 1:numel(All)
 %         ensPO(h) = idx2ori(ensPOidx, [nan 0:45:315]);
         tmp = osi(curve);
         ensOSI(h) = tmp.osi;
-        ensPO(h) = idx2ori(tmp.po, [nan 0:45:315]);
+        ensPO(h) = idx2ori(tmp.po, 0:45:315);
     end
     
     All(ind).out.exp.meanEnsOSI = meanOSI;
