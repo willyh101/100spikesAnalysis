@@ -13,7 +13,7 @@ rmpath(folder);
 
 %% Specify data location and loadList
 
-% loadPath = '/Users/gregoryhandy/Research_Local/outputdata1/'; % where ever your files are
+% loadPath = '/Users/gregoryhandy/Research_Local/outfiles/'; % where ever your files are
 loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
 
 % Options: short (for debugging), all (all avaliable outfiles), used (data
@@ -62,7 +62,7 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
         tempTrial = tempTrial + sum(trialsToUse);
         %% Cells to use
         ROIinArtifact  = All.out.anal.ROIinArtifact; % cells at edge of FOV in laser artifact
-        cellsToUse = ~ROIinArtifact' & ~All.out.anal.cellsToExclude;
+        cellsToUse = ~All.out.anal.cellsToExclude & ~ROIinArtifact';% & ;
         
         %% pVis value
         pVis = All.out.anal.pVisR;
@@ -173,23 +173,52 @@ cellTable.cellOrisDiff = cellOrisDiff;
 %% Cell conditions used in the functions
 cellCond = cellTable.offTarget==0;
 cellCondTuned = cellTable.offTarget==0 & cellTable.visP<0.05 & cellTable.cellOSI > 0.25;
+cellCondNonVis = cellTable.offTarget==0 & cellTable.visP>0.05;
 
 %% Figure 3: min distance plot
 Fig3(cellTable,cellCond)
 %%
 Fig3_cbc(cellTable,cellCond)
+
+%%
 Fig3_noStimCtl(cellTable)
+
+%%
+Fig3_dataFit(cellTable,cellCond)
 
 %%
 Fig3_cbc_dataFit(cellTable,cellCond)
 
 %% Percent of cells suppressed vs. activated across all ensembles
-allResp = cellTable.dff(cellCond);
+
+totalNumEns = cellTable.ensNum(end);
+allResp =zeros(totalNumEns,1);
+for ii = 1:totalNumEns
+    cellSelector = cellCond & cellTable.ensNum == ii & cellTable.cellDist<inf;
+    allResp(ii) = sum(cellTable.dff(cellSelector)<0)/sum(~isnan(cellTable.dff(cellSelector)));
+end
+
+figure(7773); clf; 
+subplot(1,2,1); hold on
+violins = violinplot(allResp*100);
+plot([0 2],50+[0 0],'k--','linewidth',1.5)
+ylabel('% of cells suppressed')
+set(gca,'fontsize',16)
+
+subplot(1,2,2); hold on
+histogram(allResp)
+xlabel('% of cells suppressed')
+ylabel('Number of Ensembles')
+set(gca,'fontsize',16)
+%%
+cellSelector = cellCond & cellTable.cellDist<200;
+allResp = cellTable.dff(cellSelector);
 allResp(isnan(allResp))=[];
 temp1=sum(allResp<0)/sum(~isnan(allResp));
 temp2=sum(allResp>0)/sum(~isnan(allResp));
 
-figure(7773); clf; hold on
+fprintf('Percent of cells activated: %.2f\n',temp2*100)
+figure(7774); clf; hold on
 bar([temp1;temp2]*100)
 set(gca,'fontsize',16)
 xticks([1 2])
@@ -203,11 +232,15 @@ ensResp = FigSpace(cellTable,cellCond);
 
 %% Figure 5: Iso vs. ortho
 Fig5(cellTable,cellCondTuned);
+
+%%
 Fig5_cbc(cellTable,cellCondTuned);
 
 %% Figure 6: Tight co-tuned investigation
 clc;
 fprintf('-------------------------\n')
+
+cellCond = cellTable.offTarget==0;
 Fig6(cellTable,cellCond);
 
 %%
@@ -215,15 +248,38 @@ Fig6(cellTable,cellCond);
 fprintf('-------------------------\n')
 Fig6_cbc(cellTable,cellCond);
 
+
+%%
+
+figure();
+
+subplot(1,2,1)
+plot(unique(cellTable.cellEnsMeaD,'stable'),unique(cellTable.cellEnsOSI,'stable'),'.','markersize',16)
+set(gca,'fontsize',16)
+xlabel('Ens Spread')
+ylabel('Ens OSI')
+ylim([0 1])
+
+subplot(1,2,2)
+plot(unique(cellTable.cellEnsMeaD,'stable'),unique(cellTable.cellMeanEnsOSI,'stable'),'.','markersize',16)
+set(gca,'fontsize',16)
+xlabel('Ens Spread')
+ylabel('Mean Ens OSI')
+ylim([0 1])
+
 %%
 Fig6_cbc_dataFit(cellTable,cellCond);
 
 %%
-Fig6IsoOrtho(cellTable,cellCondTuned)
+
+Fig6IsoOrtho(cellTable,cellCondTuned,cellCondNonVis)
 
 %% Figure plotting the percent activated/suppressed as a function of dist
 % Third input is threshold value
 FigPercentAct(cellTable,cellCond,0)
+
+%%
+FigPercentActEns(cellTable,cellCond,0)
 
 %% Target cell statistics
 FigTargets(cellTable)

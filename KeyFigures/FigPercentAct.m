@@ -28,6 +28,7 @@ end
 set(gca,'fontsize',16)
 legend('Activated','Suppressed')
 xlabel('Min Dist to Stim Location')
+ylabel('Percent of cells')
 
 end
 
