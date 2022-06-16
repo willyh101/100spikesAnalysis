@@ -17,7 +17,7 @@ binWidths = [5 10 15];
 f2=[];
 figure(42134); clf; hold on;
 
-for gh = 2:2%length(binWidths)
+for gh = 3:3%length(binWidths)
 
 distBins = [15:binWidths(gh):150];
 plotDist = distBins(1:end-1) + binWidths(gh)/2;
@@ -69,7 +69,8 @@ else
 end
 g2{gh} = fit(plotDist',respAveLoose(:,2),expFn,'StartPoint',[0.15 -0.02 500 2e4]);
 
-xPlot = [15:0.1:plotDist(end)];
+% xPlot = [15:0.1:plotDist(end)];
+xPlot = [plotDist(1):0.1:plotDist(end)];
 colorScheme =[];
 colorScheme(1,1,:) = [0 0 0]; colorScheme(1,2,:) = [0 0 0]+0.5;
 colorScheme(2,1,:) = [0.494 0.184 0.556]; colorScheme(2,2,:) = [1 0 1];

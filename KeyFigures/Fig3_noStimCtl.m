@@ -33,7 +33,7 @@ plot([0 200],0*[0 200],'k--')
 set(gca,'fontsize',16)
 xlabel('Min dist to (fake) stim')
 ylabel('Mean \DeltaF/F')
-ylim([-0.05 0.02])
+ylim([-0.02 0.02])
 title('All cells')
 
 legend(hLeg,'Gray screen (no stim)')

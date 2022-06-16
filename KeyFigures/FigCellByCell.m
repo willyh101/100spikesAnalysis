@@ -21,11 +21,11 @@ for thresLoop = 1:2
     if thresLoop == 1
         figure();clf;
         subplot(1,2,1); hold on;
-        histogram(suppFrac*100,[20:5:70])
-        plot(mean(suppFrac*100),[60],'*','markersize',15)
+        histogram(actFrac*100,[20:5:70])
+        plot(mean(actFrac*100),[60],'*','markersize',15)
         plot(50+[0 0],[0 60],'k--','linewidth',1.5)
         set(gca,'fontsize',16)
-        xlabel('% of Population Suppressed')
+        xlabel('% of Population Activated')
         title(sprintf('Threshold: %.2f',thresVal(thresLoop)))
         
         subplot(1,2,2); hold on;

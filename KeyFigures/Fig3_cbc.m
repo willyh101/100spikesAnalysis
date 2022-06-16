@@ -27,15 +27,15 @@ for ll = 1:length(distBins)-1
 end
 
 % Plot the results
-figure(); clf;
-subplot(1,2,1);
-plot(cellTable.cellDist(cellCond),cellTable.dff(cellCond),'.')
-set(gca,'fontsize',16)
-xlabel('Min Dist to Stim Location')
-xlim([0 250])
-ylabel('\DeltaF/F')
+figure(); clf;hold on;
+% subplot(1,2,1);
+% plot(cellTable.cellDist(cellCond),cellTable.dff(cellCond),'.')
+% set(gca,'fontsize',16)
+% xlabel('Min Dist to Stim Location')
+% xlim([0 250])
+% ylabel('\DeltaF/F')
 
-subplot(1,2,2); hold on;
+% subplot(1,2,2); 
 leg(1) = plot(plotDist,cellDistDataAve,'k.-','markersize',16);
 errorbar(plotDist,cellDistDataAve,cellDistDataErr,'k','linewidth',1.5)
 leg(2) = plot(plotDist,cellDistDataMedian,'*','markersize',16);
@@ -44,7 +44,7 @@ set(gca,'fontsize',16)
 xlabel('Min Dist to Stim Location')
 ylabel('Mean Evoked \DeltaF/F')
 xlim([0 250])
-xticks([0:25:250])
+xticks([0:50:250])
 legend(leg,{'Mean','Median'})
 
 end

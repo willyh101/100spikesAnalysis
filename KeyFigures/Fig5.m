@@ -8,7 +8,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function Fig5(cellTable,cellCond)
+function Fig5(cellTable,cellCondTuned)
 
 totalNumEns = cellTable.ensNum(end);
 distBins = [15:15:150];
@@ -16,47 +16,72 @@ plotDist = distBins(1:end-1) + 15/2;
 
 % Conditions for this analysis
 cellSelectorEns = cellTable.cellEnsOSI>0.7 & cellTable.cellMeanEnsOSI>0.5; % co-tuned ensembles
-cellSelectorOriIso = cellTable.cellOrisDiff == 0;
-cellSelectorOriOrtho = cellTable.cellOrisDiff == 90;
+cellSelectorOri = [cellTable.cellOrisDiff==0 cellTable.cellOrisDiff==45 ...
+    cellTable.cellOrisDiff==90 cellTable.cellOrisDiff>0];
 
-cellDistDataAveOrtho=zeros(length(distBins)-1,totalNumEns);
-cellDistDataAveIso=zeros(length(distBins)-1,totalNumEns);
-numEnsPref = zeros(length(distBins)-1,1);
-numEnsOrtho = zeros(length(distBins)-1,1);
+% Iso, 45, Ortho, Not Iso
+num_conds = 4;
+respAve = zeros(length(distBins)-1,2,num_conds); 
+respStdErr = zeros(length(distBins)-1,2,num_conds); 
+
+cellDistDataAve=zeros(length(distBins)-1,totalNumEns,num_conds);
+numEnsUsed = zeros(length(distBins)-1,totalNumEns);
 % Loop over all ensembles
 for ii = 1:totalNumEns
     % Loop over all distances
     for ll = 1:length(distBins)-1
         cellSelectorDist = cellTable.ensNum == ii & ...
             cellTable.cellDist>distBins(ll) & cellTable.cellDist<distBins(ll+1);
-        cellSelectorIso= cellSelectorDist & cellSelectorEns & cellSelectorOriIso & cellCond;
-        cellSelectorOrtho= cellSelectorDist & cellSelectorEns & cellSelectorOriOrtho & cellCond;
-       
-        cellDistDataAveIso(ll,ii) = nanmean(cellTable.dff(cellSelectorIso));
-        cellDistDataAveOrtho(ll,ii) = nanmean(cellTable.dff(cellSelectorOrtho));
-        
-        % Keep track of the number of ensembles used at each distance
-        numEnsPref(ll) = numEnsPref(ll) + sign(sum(cellSelectorIso));
-        numEnsOrtho(ll) = numEnsOrtho(ll) + sign(sum(cellSelectorOrtho));
+        for gg = 1:num_conds
+            cellSelector = cellSelectorDist & cellSelectorEns ...
+                        & cellSelectorOri(:,gg) & cellCondTuned;      
+            cellDistDataAve(ll,ii,gg) = nanmean(cellTable.dff(cellSelector));
+            % Keep track of the number of ensembles used at each distance
+            numEnsUsed(ll,gg) = numEnsUsed(ll,gg)+sign(sum(cellSelector));
+        end
     end
 end
 % Average across ensembles
-respAveIso = nanmean(cellDistDataAveIso,2);
-respStdErrIso = nanstd(cellDistDataAveIso,[],2)./sqrt(numEnsPref);
-respAveOrtho = nanmean(cellDistDataAveOrtho,2);
-respStdErrOrtho = nanstd(cellDistDataAveOrtho,[],2)./sqrt(numEnsOrtho);
+for gg = 1:num_conds
+    respAve(:,gg) = nanmean(cellDistDataAve(:,:,gg),2);
+    respStdErr(:,gg) = nanstd(cellDistDataAve(:,:,gg),[],2)./sqrt(numEnsUsed(:,gg));
+end
 
-% Plot the result
-figure(231); %clf; 
-hold on;
-hLeg(1) = plot(plotDist,respAveIso,'.-','linewidth',1.5,'markersize',15,'color',[0 0.447 0.741]);
-errorbar(plotDist,respAveIso,respStdErrIso,'linewidth',1.5,'color',[0 0.447 0.741])
-hLeg(2) = plot(plotDist,respAveOrtho,'.-','linewidth',1.5,'markersize',15,'color',[0.494 0.184 0.556]);
-errorbar(plotDist,respAveOrtho,respStdErrOrtho,'linewidth',1.5,'color',[0.494 0.184 0.556])
-plot([0 250],0*[0 250],'k--')
-set(gca,'fontsize',16)
-xlim([0 150])
-legend(hLeg,{'Iso','Ortho'})
+%% Plot the result
+colorScheme = [[0,0,139]/255; [128,0,128]/255; [255,0,255]/255];
+figure(231); clf;
+for gg = 1:3
+    subplot(1,3,gg); hold on;
+    errorbar(plotDist,respAve(:,gg),respStdErr(:,gg),'linewidth',1.5,'color',colorScheme(gg,:),'capsize',0,'linewidth',2)
+    plot([0 250],0*[0 250],'k--')
+    xlim([0 150])
+    set(gca,'fontsize',16)
+    ylim([-0.1 0.125])
+    if gg == 1
+        title('Iso')
+    elseif gg == 3
+        title('Ortho')
+    end
+end
+
+%% Iso vs. Not Iso plot
+% indicesToPlot = [1 4];
+% figure(2322); 
+% 
+% for gg = 1:2
+%     subplot(1,2,gg); hold on;
+%     errorbar(plotDist,respAve(:,indicesToPlot(gg)),respStdErr(:,indicesToPlot(gg)),...
+%         'linewidth',1.5,'color',colorScheme(gg,:),'capsize',0,'linewidth',2)
+%     plot([0 250],0*[0 250],'k--')
+%     xlim([0 150])
+%     set(gca,'fontsize',16)
+%     ylim([-0.1 0.125])
+%     if gg == 1
+%         title('Iso')
+%     else
+%         title('Not Iso')
+%     end
+% end
 
 end
 
