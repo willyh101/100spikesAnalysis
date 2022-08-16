@@ -13,6 +13,7 @@ sepW1LoadList;
 
 % loadPath = 'path/to/outfiles/directory';
 loadPath = 'T:\Outfiles';
+loadPath = 'C:\Users\ian\Dropbox\Outfiles'
 
 addpath(genpath(loadPath))
 
@@ -214,7 +215,7 @@ excludeInds = ismember(ensIndNumber,noOpsinDataInd); %Its possible that the visS
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
-opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange = [1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -232,9 +233,9 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
-    & numMatchedTargets >= 3 ...
-    & ensembleOneSecond ... %cuts off a lot of the earlier
-    & numCellsEachEns==10 ...
+    ...& numMatchedTargets >= 3 ...
+    ...& ensembleOneSecond ... %cuts off a lot of the earlier
+    & numCellsEachEns==1 ...
     ...& ensDate >= 211101 ...
     ...& outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
@@ -367,10 +368,10 @@ ylim([-0.075 0.075])
 for ind = 1:numExps
     if ~ismember(ind,noOpsinDataInd)
         vals = All(ind).out.info.value1020;
-        defPosThresh = prctile(vals,75);
+        defPosThresh = prctile(vals,70);
         All(ind).out.info.defPos = vals>=defPosThresh;
         
-        defNegThresh = prctile(vals,25);
+        defNegThresh = prctile(vals,30);
         All(ind).out.info.defNeg = vals<=defNegThresh;
     else
         All(ind).out.info.defPos = zeros([1 All(ind).out.anal.numCells]);
