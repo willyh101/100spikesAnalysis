@@ -3,7 +3,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function FigPercentAct(cellTable,cellCond,thresVal)
+function SFigPercentAct(cellTable,cellCond,thresVal)
 
 distBins = [15:15:250];
 plotDist = distBins(1:end-1) + 15/2;

@@ -7,7 +7,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function Fig3_cbc_dataFit(cellTable,cellCond)
+function SFig_cbc_dataFit(cellTable,cellCond)
 
 
 colorScheme = [0    0.4470    0.7410;

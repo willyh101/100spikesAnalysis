@@ -6,7 +6,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function [cellResponsesTight, cellResponsesLoose] = Fig6_cbc(cellTable,cellCond)
+function [cellResponsesTight, cellResponsesLoose] = Fig5_cbc(cellTable,cellCond)
 
 distBins = [15:15:150];
 plotDist = distBins(1:end-1) + 15/2;
