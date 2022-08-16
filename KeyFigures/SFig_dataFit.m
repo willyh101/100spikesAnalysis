@@ -6,7 +6,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function Fig3_dataFit(cellTable,cellCond)
+function SFig_dataFit(cellTable,cellCond)
 
 totalNumEns = cellTable.ensNum(end);
 

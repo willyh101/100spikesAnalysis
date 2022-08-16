@@ -1,4 +1,4 @@
-function Fig3_noStimCtl(cellTable)
+function SFig_noStimCtl(cellTable)
 
 %%
 binSize = 15;

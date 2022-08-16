@@ -3,7 +3,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function FigPercentActEns(cellTable,cellCond,thresVal)
+function SFigPercentActEns(cellTable,cellCond,thresVal)
 
 
 totalNumEns = cellTable.ensNum(end);

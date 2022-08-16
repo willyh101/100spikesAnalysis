@@ -8,7 +8,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function Fig5(cellTable,cellCondTuned)
+function Fig4(cellTable,cellCondTuned)
 
 totalNumEns = cellTable.ensNum(end);
 distBins = [15:15:150];
