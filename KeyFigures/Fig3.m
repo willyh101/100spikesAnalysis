@@ -1,60 +1,34 @@
 %%
-% Reproduces the minimal distance to the ensemble plot
-%
-% cellCond is a vector of 1's and 0's that denotes which cells should be
-% included (e.g., only non-offTarget cells)
+% Reproduces the effect of ensemble spread figure
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function Fig3(cellTable,cellCond)
+function [ensResp] = Fig3(cellTable,cellCond)
+
+ensDistMetric = cellTable.cellEnsMeaD;
 
 totalNumEns = cellTable.ensNum(end);
 
-distBins = [15:15:250];
-plotDist = distBins(1:end-1) + diff(distBins(1:2))/2;
-
-cellDistDataAve=zeros(length(distBins)-1,totalNumEns);
-% Loop over all ensembles
+ensResp = zeros(totalNumEns,1);
+ensSpread = zeros(totalNumEns,1);
 for ii = 1:totalNumEns
-    % Loop over all distances
-    for ll = 1:length(distBins)-1
-        cellSelectorDist = cellTable.ensNum == ii & ...
-            cellTable.cellDist>distBins(ll) & cellTable.cellDist<distBins(ll+1);
-        
-        cellSelector = cellSelectorDist & cellCond;
-        
-        cellDistDataAve(ll,ii) = nanmean(cellTable.('dff')(cellSelector));
-    end
+   cellSelector =  cellTable.ensNum == ii ...
+       & cellTable.cellDist>50 & cellTable.cellDist<150 & cellCond;
+   
+   ensResp(ii) = nanmean(cellTable.dff(cellSelector));
+   ensSpread(ii) = unique(ensDistMetric(cellSelector));
+    
 end
-% Average across ensembles
-respAve = nanmean(cellDistDataAve,2);
-respStdErr = nanstd(cellDistDataAve,[],2)/sqrt(size(cellDistDataAve,2));
-%%
-% Plot the results
-figure(); clf; hold on;
-leg(1) = plot(plotDist,respAve,'k.','markersize',20);
-e = errorbar(plotDist,respAve,respStdErr,'k','linewidth',2,'CapSize',0);
-e.LineStyle = 'none';
-plot([0 250],0*[0 250],'k--')
-xlim([0 250])
-xticks([0:25:250])
-maxVal = abs(max(respAve+respStdErr));
-minVal = abs(min(respAve-respStdErr));
-ylim([-round(max(minVal,maxVal),2) round(max(minVal,maxVal),2)])
+
+figure(); hold on;
+plot(ensSpread,ensResp,'.','markersize',16)
+plot([90 350], 0+[0 0],'k--','linewidth',1.5) 
 set(gca,'fontsize',16)
-ylabel('Mean evoked \DeltaF/F')
-xlabel('Min Dist to Stim Loc')
-ylim([-0.02 0.07])
-
-%%
-
-expFn = 'A*exp(-x^2./sigma1)+B*exp(-x^2./sigma2)';
-f2 = fit(plotDist',respAve,expFn,'StartPoint',[0.15 -0.02 500 2e4]);
-xPlot = [20:0.1:250];
-leg(2) = plot(xPlot,f2.A*exp(-xPlot.^2./f2.sigma1)+f2.B*exp(-xPlot.^2./f2.sigma2),'k','linewidth',1.5);
-
-
-legend(leg,{'Data','Fit'})
+fitLM = fit(double(ensSpread),ensResp,'poly1');
+plot([90 350],fitLM.p2+fitLM.p1*[90 350],'linewidth',2)
+xlabel('Ens Spread')
+ylabel('Mean evoked \Delta F/F')
+xlim([90 350])
 
 end
 

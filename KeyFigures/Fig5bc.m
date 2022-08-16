@@ -8,7 +8,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function Fig6IsoOrtho(cellTable,cellCondTuned,cellCondNonVis)
+function Fig5bc(cellTable,cellCondTuned,cellCondNonVis)
 
 
 % ensDistMetric = cellTable.cellEnsMaxD;
@@ -106,8 +106,8 @@ colorScheme(1,:) = [0 0.447 0.741];
 colorScheme(2,:) = [0.4940 0.184 0.556];
 colorScheme(3,:) = [255, 0, 255]/255;
 colorScheme(4,:) = [0.5 0.5 0.5];
-titles={'Iso','45','Ortho','Non-Vis'};
-indicesToPlot = [1 2 3 5];
+titles={'Iso','45','Ortho'};
+indicesToPlot = [1 2 3];
 numToPlot = length(indicesToPlot);
 
 figure(668877); clf; 
@@ -131,9 +131,9 @@ end
 
 %%
 
-figure(6688); clf; 
+figure(6688); clf; hold on
 
-subplot(1,2,1); hold on;
+% subplot(1,2,1); hold on;
 % plot([respAveIso(1,1) respAve45(1,1) respAveOrtho(1,1)],'.','markersize',16,'color',[0    0.4470    0.7410])
 
 errorbar(1:3,squeeze(respAve(1,1,1:3)),squeeze(respStdErr(1,1,1:3)),...
@@ -156,18 +156,18 @@ xlim([0.75 4.25])
 legend('Far','Close')
 
 
-subplot(1,2,2); hold on;
-diffAve = squeeze(respAve(1,1,[1 2 3 5]) -respAve(1,2,[1 2 3 5]));
-diffError = sqrt(squeeze(respStdErr(1,1,[1 2 3 5])).^2+...
-    squeeze(respStdErr(1,2,[1 2 3 5])).^2);
-errorbar([1 2 3 4],diffAve,diffError,'linewidth',1.5,'capsize',0)
-xlim([0.75 4.25])
-
-plot([1 3],0+[0 0],'k--')
-xticks([1 2 3 4])
-xticklabels({'Iso', '', 'Ortho','Non-vis'})
-set(gca,'fontsize',16)
-ylabel('Far-Close \DeltaF/F')
+% subplot(1,2,2); hold on;
+% diffAve = squeeze(respAve(1,1,[1 2 3 5]) -respAve(1,2,[1 2 3 5]));
+% diffError = sqrt(squeeze(respStdErr(1,1,[1 2 3 5])).^2+...
+%     squeeze(respStdErr(1,2,[1 2 3 5])).^2);
+% errorbar([1 2 3 4],diffAve,diffError,'linewidth',1.5,'capsize',0)
+% xlim([0.75 4.25])
+% 
+% plot([1 3],0+[0 0],'k--')
+% xticks([1 2 3 4])
+% xticklabels({'Iso', '', 'Ortho','Non-vis'})
+% set(gca,'fontsize',16)
+% ylabel('Far-Close \DeltaF/F')
 
 
 

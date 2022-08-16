@@ -6,7 +6,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function Fig6(cellTable,cellCond)
+function Fig5a(cellTable,cellCond)
 
 % ensDistMetric = cellTable.cellEnsMaxD;
 % spatialThresh = [-inf 400; 500 inf];
@@ -112,16 +112,16 @@ colorScheme(3,1,:) = [0.494 0.184 0.556]; colorScheme(3,2,:) = [1 0 1];
 %%
 
 
-figure(3148866); clf; hold on;
-bar([nanmedian(tightFirst(1,:)) nanmedian(tightFirst(3,:)) ...
-    nanmedian(looseFirst(1,:)) nanmedian(looseFirst(3,:))])
-% bar(nanmedian(tightFirst(1,:)),'facecolor',colorScheme(1,1,:))
-plot(1,tightFirst(1,:),'.','markersize',16,'color',colorScheme(1,1,:))
-plot(2,tightFirst(3,:),'.','markersize',16,'color',colorScheme(3,1,:))
-
-plot(3,looseFirst(1,:),'.','markersize',16,'color',colorScheme(1,2,:))
-plot(4,looseFirst(3,:),'.','markersize',16,'color',colorScheme(3,2,:))
-set(gca,'fontsize',16)
+% figure(3148866); clf; hold on;
+% bar([nanmedian(tightFirst(1,:)) nanmedian(tightFirst(3,:)) ...
+%     nanmedian(looseFirst(1,:)) nanmedian(looseFirst(3,:))])
+% % bar(nanmedian(tightFirst(1,:)),'facecolor',colorScheme(1,1,:))
+% plot(1,tightFirst(1,:),'.','markersize',16,'color',colorScheme(1,1,:))
+% plot(2,tightFirst(3,:),'.','markersize',16,'color',colorScheme(3,1,:))
+% 
+% plot(3,looseFirst(1,:),'.','markersize',16,'color',colorScheme(1,2,:))
+% plot(4,looseFirst(3,:),'.','markersize',16,'color',colorScheme(3,2,:))
+% set(gca,'fontsize',16)
 
 %%
 strOps = {'','*'};

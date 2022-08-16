@@ -3,7 +3,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function FigTargets(cellTable)
+function SFigTargets(cellTable)
 
 totalNumEns = cellTable.ensNum(end);
 
