@@ -30,7 +30,13 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
     %% Load the data from a specific experiment (code from Will)
     loadList = loadList_all(outer_loop);
     [All,opts,outVars] = loadData_GH(loadList,loadPath);
-       
+    
+    %% Mouse name
+    mouseName = loadList_all(outer_loop);
+    mouseName = mouseName{1};
+    tempIndices = find(mouseName=='_');
+    mouseName([1:tempIndices(1) tempIndices(end):end])='';
+
     %% Get orientation tuning and OSI from dataset
     [All, outVars] = getTuningCurve(All, opts, outVars);
     [All, outVars] = calcOSI(All, outVars);
@@ -143,6 +149,7 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
             cellEnsMaxD cellEnsMeaD cellMeanEnsOSI cellEnsOSI pVis(cellsToUse)' offTargetRisks(cellsToUse)'...
             tgCell(cellsToUse) ensNum*ones(sum(cellsToUse),1) expNum*ones(sum(cellsToUse),1) cellEnsPO,...
             dffCellCtlResp_noStim cellID];
+        mouseNames{ensNum} = mouseName;
         ensNum = ensNum + 1;
     end
     
@@ -171,6 +178,6 @@ cellTable.cellOrisDiff = cellOrisDiff;
 
 %% Optional: After the code runs, save cellTable to the compressedData folder 
 
-% clearvars -except cellTable
+% clearvars -except cellTable mouseNames
 % save('cellTableTodaysDate')
 

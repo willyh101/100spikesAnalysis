@@ -8,7 +8,7 @@
 %
 % Run cellByCellAnalysis_GH to use this function
 %%
-function Fig4(cellTable,cellCondTuned)
+function Fig4(cellTable,cellCondTuned,mouseNames)
 
 totalNumEns = cellTable.ensNum(end);
 distBins = [15:15:150];
@@ -63,6 +63,38 @@ for gg = 1:3
         title('Ortho')
     end
 end
+
+%%
+
+isoData = cellDistDataAve(1,:,1);
+isoData = isoData(~isnan(isoData));
+
+orthoData = cellDistDataAve(1,:,3);
+orthoData = orthoData(~isnan(orthoData));
+
+pVal = ranksum(isoData,orthoData,'tail','right');
+
+fprintf('Iso vs. Ortho first bin p-val: %f\n',pVal)
+
+%%
+usedEns = find(~isnan(cellDistDataAve(1,:,1))==1);
+ensExpNum = [];
+for ii=1:length(usedEns)
+    tempExp = cellTable.expNum(cellTable.ensNum==usedEns(ii));
+    ensExpNum(ii) = tempExp(1);
+end
+
+FOVs = unique(ensExpNum);
+saveNames = [];
+for ii = 1:length(FOVs)
+    saveNames{ii} = mouseNames{FOVs(ii)};
+end
+mice = unique(saveNames);
+
+fprintf('N = %d, FOVs = %d, Mice = %d\n',min(length(isoData),length(orthoData)),...
+    length(FOVs),length(mice))
+%%
+
 
 %% Iso vs. Not Iso plot
 % indicesToPlot = [1 4];
