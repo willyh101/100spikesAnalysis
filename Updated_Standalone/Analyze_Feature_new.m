@@ -19,9 +19,9 @@ oriLoadList_relevant % Load only relevant data for this analysis (faster)
 
 % loadPath = 'path/to/outfiles/directory';
 % loadPath = 'T:\Outfiles';
-% loadPath = 'C:\Users\ian\Dropbox\Outfiles';
+loadPath = 'C:\Users\ian\Dropbox\Outfiles';
 % loadPath = 'e:/outfiles';
-loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
+% loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
 
 addpath(genpath(loadPath))
 
@@ -738,6 +738,8 @@ disp(['Near Untuned vs Tuned p= ' num2str(p)]);
 [p h] = ranksum(outInfo{2}{1}.dat(:,1),outInfo{6}{1}.dat(:,1));
 disp(['Far Untuned vs Tuned p= ' num2str(p)]);
 
+[p h] = ranksum(outInfo{1}{1}.dat(:,1),outInfo{2}{1}.dat(:,1));
+disp(['Untuned Near vs Far p= ' num2str(p)]);
 
 %%
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.7;
@@ -796,7 +798,7 @@ opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{
 figure(19);clf
 
 % x = outVars.ensOSI(opts.ensemblesToPlot)';  
-x = outVars.ensMaxD(opts.ensemblesToPlot)';  
+x = outVars.ensMeaD(opts.ensemblesToPlot)';  
 y = midResponse(opts.ensemblesToPlot);
 
 scatter(x,y,[],rgb('sienna'),'filled')
@@ -854,7 +856,7 @@ opts.variableCellFun =  '(outVars.distToEnsemble{i}<30)';
 figure(19);clf
 
 % x = outVars.ensOSI(opts.ensemblesToPlot)';  
-x = outVars.ensMaxD(opts.ensemblesToPlot)';  
+x = outVars.ensMeaD(opts.ensemblesToPlot)';  
 y = midResponse(opts.ensemblesToPlot);
 
 scatter(x,y,[],rgb('sienna'),'filled')
@@ -870,7 +872,34 @@ legend off
 [p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
 disp(['Pval is: ' num2str(pVal(1))])
 
+%% Close and Mid and Far
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.useVisCells = 0;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
 
+opts.variableCellFun =  '(outVars.distToEnsemble{i}>15)';
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[midResponse] = subsetPopResponse(All,outVars,opts);
+
+figure(19);clf
+
+% x = outVars.ensOSI(opts.ensemblesToPlot)';  
+x = outVars.ensMeaD(opts.ensemblesToPlot)';  
+y = midResponse(opts.ensemblesToPlot);
+
+scatter(x,y,[],rgb('sienna'),'filled')
+refline(0)
+xlabel('Spread ') ;
+nanEither = isnan(x) | isnan(y');
+
+[fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+hold on
+plot(fs)
+legend off
+
+[p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
+disp(['Pval is: ' num2str(pVal(1))])
 %% cut older analyses
 %
 
