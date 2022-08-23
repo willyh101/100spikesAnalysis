@@ -12,6 +12,7 @@ controlLoadList;
 
 % loadPath = 'path/to/outfiles/directory';
 loadPath = 'T:\Outfiles';
+loadPath = 'C:\Users\ian\Dropbox\Outfiles';
 
 addpath(genpath(loadPath))
 
@@ -41,12 +42,9 @@ end
 %CAUTION! ERRORS WILL OCCUR IF YOU RUN MORE THAN ONCE!
 [All] = allLoadListErrorFixer(All,loadList);
 
-%% Set Data To use
-for ind=1:numExps
-    All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
-end
-disp('Data To Use is set')
-
+%% Rematch Targeted Cells
+opts.matchDistanceMicrons = 12; 15.6; %6;
+rematchTargetedCells;
 %% clean Data, and create fields.
 
 opts.FRDefault=6;
@@ -63,6 +61,28 @@ opts.stimSuccessByZ = 1; %if 0 calculates based on dataTouse, if 1 calculates ba
 opts.runThreshold = 6 ; %trials with runspeed below this will be excluded
 opts.runValPercent = 0.75; %percent of frames that need to be below run threshold
 
+%% New Code for the removal of offTarget cells 
+
+% Note: cleanData is run here and after dataToUse code block
+[All, ~] = cleanData(All,opts);
+
+% Calculate the offTarget risk
+muPerPx=800/512;
+opts.thisPlaneTolerance = 15/muPerPx; %11.25;%7.5;%1FWHM%10; %in pixels
+opts.onePlaneTolerance = 30/muPerPx; %22.5;%15;%2FWHM %20;
+[All] = calcOffTargetRisk(All,opts);
+
+% Remove cells from analysis if they were an offTarget in the previous
+% trial
+[All] = prevOffTargetRemoval(All);
+
+%% Set Data To use
+for ind=1:numExps
+    All(ind).out.exp.dataToUse = All(ind).out.exp.dfData;
+end
+disp('Data To Use is set')
+
+%% Re-run clean data, and create fields.
 [All, outVars] = cleanData(All,opts);
 
 ensStimScore        = outVars.ensStimScore;
@@ -82,7 +102,7 @@ end
 outVars.names = names;
 
 %% restrict Cells to use
-opts.minMeanThreshold = 0.25;
+opts.minMeanThreshold = -0.25;
 opts.maxMeanThreshold = inf;
 
 opts.verbose =0;
@@ -98,19 +118,17 @@ disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd
 %% Make all dataPlots into matrixes of mean responses
 %%Determine Vis Responsive and Process Correlation
 
-opts.visAlpha = 0.05;
 
-%oftarget risk params
-opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
-opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
+opts.visAlpha = 0.05;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
-
-[All, outVars] = meanMatrixVisandCorr(All,opts,outVars); %one of the main analysis functions
+[All, outVars] = meanMatrixVisandCorr_v2(All,opts,outVars); %one of the main analysis functions
 
 visPercent = outVars.visPercent;
 outVars.visPercentFromExp = visPercent;
 ensIndNumber =outVars.ensIndNumber;
+ensHNumber = outVars.ensHNumber; %in order of uniqueStims
+
 
 
 %% REQUIRED: Calc pVisR from Visual Epoch [CAUTION: OVERWRITES PREVIOUS pVisR]
@@ -164,7 +182,7 @@ for ind=1:numExps
     for i=1:numel(us)
         trialsToUse = All(ind).out.exp.lowMotionTrials &...
             All(ind).out.exp.lowRunTrials &...
-            All(ind).out.exp.stimSuccessTrial &...
+            ...All(ind).out.exp.stimSuccessTrial &...
             All(ind).out.exp.stimID == us(i) & ...
             (All(ind).out.exp.visID == 1 | All(ind).out.exp.visID == 0); %restrict just to no vis stim conditions
 
@@ -204,7 +222,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 %Options
 opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
-opts.numTrialsPerEnsThreshold = 3;5; % changed from 10 by wh 4/23 for testing stuff
+opts.numTrialsPerEnsThreshold = 5;5; % changed from 10 by wh 4/23 for testing stuff
 
 lowBaseLineTrialCount = ismember(ensIndNumber,find(numTrialsNoStimEns<opts.numTrialsPerEnsThreshold));
 
@@ -221,10 +239,10 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~excludeExpressionType ...
     ...& ~ensMissedTarget ...
     & numMatchedTargets >= 3 ...
-    ...& ensembleOneSecond ... %cuts off a lot of the earlier
+    & ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
     ... & ensDate >= 210428 ...
-    ...& outVars.hzEachEns == 10 ...
+    & outVars.hzEachEns == 10 ...
     ...& outVars.hzEachEns >= 9 & outVars.hzEachEns <= 12 ...
     & ~lowCellCount ...
     ;
