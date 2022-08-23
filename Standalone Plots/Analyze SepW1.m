@@ -12,6 +12,7 @@ sepW1LoadList;
 
 % loadPath = 'path/to/outfiles/directory';
 loadPath = 'T:\Outfiles';
+loadPath = 'C:\Users\ian\Dropbox\Outfiles';
 
 addpath(genpath(loadPath))
 
@@ -207,7 +208,7 @@ excludeInds = ismember(ensIndNumber,[]); %Its possible that the visStimIDs got m
 % excludeInds = ismember(ensIndNumber,[]); 
 
 %Options
-opts.numSpikeToUseRange = [90 110];[1 inf];[80 120];%[0 1001];
+opts.numSpikeToUseRange =[1 inf];[80 120];%[0 1001];
 opts.ensStimScoreThreshold = 0.5; % default 0.5
 opts.numTrialsPerEnsThreshold = 5; % changed from 10 by wh 4/23 for testing stuff
 
@@ -225,8 +226,8 @@ ensemblesToUse = numSpikesEachEns > opts.numSpikeToUseRange(1) ...
     & ~ensHasRed ...
     & ~excludeExpressionType ...
     & ~ensMissedTarget ...
-    & numMatchedTargets >= 3 ...
-    & ensembleOneSecond ... %cuts off a lot of the earlier
+    ...& numMatchedTargets >= 3 ...
+    ...& ensembleOneSecond ... %cuts off a lot of the earlier
     & numCellsEachEns==10 ...
     ...& ensDate >= 211210 ...
     ...& outVars.hzEachEns == 10 ...
@@ -388,7 +389,7 @@ ax = subplot(1,1,1);
 
 opts.distBins = 5:5:50; %0:25:350; %can be set variably 0:25:1000 is defaultt
 opts.distType = 'min';
-opts.distAxisRange = [0 50]; %[0 350] is stand
+opts.distAxisRange = [0 150]; %[0 350] is stand
 
 backupEnsemblesToUse = outVars.ensemblesToUse;
 % noUnstimableCount = find(countUSC==0);
@@ -436,12 +437,14 @@ outVars.ensemblesToUse = backupEnsemblesToUse;
 hold on
 drawnow
 ylim([-0.05 0.11])
-ylim([-0.05 0.7])
+ylim([-0.05 0.35])
 
-
-allEnsResp = popRespDistAll(outVars.ensemblesToUse,1);
-posEnsResp = popRespDistPos(outVars.ensemblesToUse,1);
-negEnsResp = popRespDistNeg(outVars.ensemblesToUse,1);
+position = 1; 
+allEnsResp = popRespDistAll(outVars.ensemblesToUse,position);
+posEnsResp = popRespDistPos(outVars.ensemblesToUse,position);
+negEnsResp = popRespDistNeg(outVars.ensemblesToUse,position);
+ylim([-0.1 0.7])
+xlim([0 50])
 
 figure(107);clf
 datToPlot={posEnsResp; negEnsResp};
@@ -454,6 +457,47 @@ sum(~isnan(negEnsResp))
 ranksum(posEnsResp,negEnsResp)
 signrank(negEnsResp)
 signrank(posEnsResp)
+%%
+disp('Diff from eachother')
+for i=1:size(popRespDistAll,2)
+    position=i;
+    posEnsResp = popRespDistPos(outVars.ensemblesToUse,position);
+    negEnsResp = popRespDistNeg(outVars.ensemblesToUse,position);
+p = ranksum(posEnsResp,negEnsResp);
+if p<0.05
+    fprintf('* ')
+else
+    fprintf('- ')
+end
+end
+    disp('.')
+    
+disp('Pos diff from zero')
+for i=1:size(popRespDistAll,2)
+    position=i;
+    posEnsResp = popRespDistPos(outVars.ensemblesToUse,position);
+p = signrank(posEnsResp);
+if p<0.05
+    fprintf('* ')
+else
+    fprintf('- ')
+end
+end
+    disp('.')    
+
+disp('Neg diff from zero')
+for i=1:size(popRespDistAll,2)
+    position=i;
+      negEnsResp = popRespDistNeg(outVars.ensemblesToUse,position);
+p = signrank(negEnsResp);
+if p<0.05
+    fprintf('* ')
+else
+    fprintf('- ')
+end
+end
+    disp('.')  
+    
 
 
 %% plot ROI red Value
@@ -506,7 +550,7 @@ p1.Color=rgb('grey');
 hold on
 
 defPosThresh = prctile(allVals,80);
-defNegThresh = prctile(allVals,30);
+defNegThresh = prctile(allVals,20);
 
 plotMode=2;
 
