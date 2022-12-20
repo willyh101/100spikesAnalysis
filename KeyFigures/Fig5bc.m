@@ -6,7 +6,7 @@
 %
 % Should only included tuned and visually responsive cells
 %
-% Run cellByCellAnalysis_GH to use this function
+% Run expFigs2Through5_Dec22 to use this function
 %%
 function Fig5bc(cellTable,cellCondTuned,cellCondNonVis)
 
