@@ -6,7 +6,13 @@ numDist =numel(distBins)-1;
 numExps = numel(All);
 
 
-
+if ~isfield(opts,'visCond') || opts.visCond==1;
+    skipVis=1;
+    v=1;
+else
+    skipVis = 0;
+    v = opts.visCond;
+end
 
 c=0;
 for ind = 1:numExps
@@ -120,12 +126,16 @@ for ind = 1:numExps
                     distToUse > distBins(d) &...
                     distToUse <= distBins(d+1) &...
                     cellToUseLimit;
+                
                 %if you eventually want to use this with different vis
                 %stims use the commented out code.
                 %                 popRespDistEns(c,v,d) = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                 
-                
-                popRespDistEns(c,d) = nanmean(squeeze(respMat(i,1,cellsToUse) - baseMat(i,1,cellsToUse)));
+                if skipVis
+                    popRespDistEns(c,d) = nanmean(squeeze(respMat(i,1,cellsToUse) - baseMat(i,1,cellsToUse)));
+                else
+                    popRespDistEns(c,d) = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                end
                 
             end
         end
