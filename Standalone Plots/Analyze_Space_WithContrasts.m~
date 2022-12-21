@@ -395,7 +395,7 @@ opts.distAxisRange = [0 250]; %[0 350] is stand
 CellToUseVar = ''; %'anal.cellsToInclude ';%[];
 
 clist = colorMapPicker(6,'plasma');
-clist = {rgb('FireBrick'), 1,1,1,1, rgb('DarkTurquoise')}
+clist = {rgb('FireBrick'), 1,1,1,1, rgb('Medium')}
 
 for i = [1 6]
 opts.visCond = i; 

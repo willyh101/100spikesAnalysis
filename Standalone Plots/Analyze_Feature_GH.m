@@ -8,7 +8,7 @@ addpath(genpath('/Users/greghandy/Documents/GitHub/100spikesAnalysis'))
 
 %% loadLists
 
-oriLoadList;
+oriLoadList_relevant;
 % oriLoadListOnlyInt;
 
 % % allLoadList;
@@ -17,7 +17,8 @@ oriLoadList;
 % loadPath = 'T:\Outfiles';
 
 % loadPath = 'C:\Users\ian\Dropbox\Outfiles';
-loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
+% loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
+loadPath = '/Users/ianoldenburg/Dropbox/Outfiles_Pulled_221209';
 
 addpath(genpath(loadPath))
 

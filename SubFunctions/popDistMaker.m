@@ -6,7 +6,7 @@ numDist =numel(distBins)-1;
 numExps = numel(All);
 
 
-if ~isfield(opts,'visCond') || opts.visCond==1;
+if ~isfield(opts,'visCond');
     skipVis=1;
     v=1;
 else
@@ -134,7 +134,9 @@ for ind = 1:numExps
                 if skipVis
                     popRespDistEns(c,d) = nanmean(squeeze(respMat(i,1,cellsToUse) - baseMat(i,1,cellsToUse)));
                 else
-                    popRespDistEns(c,d) = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                    noStim = nanmean(squeeze(respMat(1,v,cellsToUse) - baseMat(1,v,cellsToUse)));
+                    Stim = nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
+                    popRespDistEns(c,d) = Stim - noStim; %nanmean(squeeze(respMat(i,v,cellsToUse) - baseMat(i,v,cellsToUse)));
                 end
                 
             end

@@ -1,4 +1,4 @@
-function [popVal] = subsetPopResponse(All,outVars,opts)
+function [popVal] = subsetPopResponseMatchedNoStim(All,outVars,opts)
 
 ensemblesToUse = opts.ensemblesToPlot; 
 
@@ -43,7 +43,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         end
 
          
-            s = outVars.ensHNumber(i);
+            s = 1; %outVars.ensHNumber(i);
             
             respMat = All(ind).out.anal.respMat;
             baseMat = All(ind).out.anal.baseMat;
