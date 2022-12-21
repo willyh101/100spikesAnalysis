@@ -3,6 +3,9 @@ function plotDistByOri(All,outVars,opts)
 % 
 % opts.distType = 'harm'; 
 % opts.distBins = [0:50:400];
+plotNonVis=1;
+
+
 names = outVars.names;
 
 [outVars] = grandDistanceMaker(opts,All,outVars);
@@ -74,7 +77,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
     end
     %plot all nonVis cells
     cellToUseVar = ~outVars.offTargetRiskEns{i}...
-        & outVars.pVisR{ind} > 0.05 ...
+        & outVars.pVisR{ind} > 0.1 ...
         & All(ind).out.anal.cellsToInclude ...
         ;
     cells2Plot =cellToUseVar;
@@ -112,9 +115,10 @@ if plotOrientation
     diffsPossible = [0 45 90];
 end
 
-plotNonVis=0;
 if plotNonVis
 numToPlot = numel(diffsPossible)+1;
+colorListOri{numToPlot} = rgb('grey');
+
 else
     numToPlot = numel(diffsPossible);
 end
@@ -143,7 +147,7 @@ for k = 1:numToPlot
     eHandle{1}.Color = colorListOri{k};
     ylabel('Pop Response (Mean \DeltaF/F)')
 
-    if k ==1 || k==3
+    if k ==1 || k==3 || (plotNonVis && k==numToPlot)
         figure(14); tempax = subplot(1,1,1);
         [eHandle] = plotDistRespGeneric(popToPlot(:,:,k),outVars,opts,tempax);
         eHandle{1}.Color = colorListOri{k};
@@ -180,12 +184,16 @@ p = anova1(datToPlot,[],'off');
 % [~,p2] = ttest2([datToPlot(:,1);datToPlot(:,5)],datToPlot(:,3));
 
 [~, p2T] = ttest2(squeeze(dataForStats(1,:)),squeeze(dataForStats(3,:)));
-disp(['ranksum iso v ortho Ttest p = ' num2str(p2T)]);
+disp(['Ttest iso v ortho Ttest p = ' num2str(p2T)]);
 
 
 p2 = ranksum(squeeze(dataForStats(1,:)),squeeze(dataForStats(3,:)));
 disp(['ranksum iso v ortho p = ' num2str(p2)]);
 
+pVNull = ranksum(squeeze(dataForStats(1,:)),squeeze(dataForStats(end,:)));
+disp(['ranksum iso v Not VisR p = ' num2str(pVNull)]);
+pVNull = ranksum(squeeze(dataForStats(3,:)),squeeze(dataForStats(end,:)));
+disp(['ranksum ortho v Not VisR p = ' num2str(pVNull)]);
 
 title({['Pvalue ' num2str(p)]...
     ['Iso vs Ortho PValue: ' num2str(p2) ' Ttest: ' num2str(p2T)] })

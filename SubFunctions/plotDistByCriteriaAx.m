@@ -1,4 +1,4 @@
-function [eHandle outDat] = plotDistByCriteriaAx(All,outVars,opts,ax)
+function [eHandle outDat ensemblesUsed] = plotDistByCriteriaAx(All,outVars,opts,ax)
 
 plotTraces=opts.plotTraces;
 
@@ -42,7 +42,7 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
                 & outVars.pVisR{ind} < 0.05;
         elseif opts.useVisCells == -1
             cellToUseVar = cellToUseVar...
-                & outVars.pVisR{ind} > 0.1;
+                & outVars.pVisR{ind} > 0.05;
         end
         if opts.useTunedCells
             cellToUseVar = cellToUseVar ...
@@ -88,6 +88,8 @@ for k = 1:numel(bins)-1
     end
     
 end
+
+ensemblesUsed = ~ensembleSelecter; 
 % linkaxes(ax)
 % figure(figNum+1);
 % xlim([0 opts.distBins(end)])

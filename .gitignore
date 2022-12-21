@@ -1,3 +1,7 @@
 
 *.asv
 temp.m
+.DS_Store
+.DS_Store
+KeyFigures/.DS_Store
+plotting_helpers/Colormaps/Thumbs.db

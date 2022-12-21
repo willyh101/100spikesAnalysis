@@ -1,10 +1,11 @@
-function [eHandle outData] = plotDistRespGeneric(RespToPlot,outVars,opts,axesHandle);
+function [eHandle outData] = plotDistRespGeneric(RespToPlot,outVars,opts,axesHandle,bypassEnsemblesToUse);
 
 % popResponseDist = outVars.popResponseDist;
 % numSpikesEachStim = outVars.numSpikesEachStim;
 % popResponseNumCells =outVars.popResponseNumCells;
-% 
+%
 ensemblesToUse = outVars.ensemblesToUse;
+
 numCellsEachEns = outVars.numCellsEachEns;
 
 distBins = opts.distBins;
@@ -16,7 +17,7 @@ xaxisrange = opts.distAxisRange;
 % popDistAll = cell2mat(popResponseDistVis');
 
 popDist =RespToPlot;% popDistAll(numSpikesEachStim~=0,:);
-% 
+%
 % popNumCells = cell2mat(popResponseNumCells');
 % popNCells = popNumCells(numSpikesEachStim~=0,:);
 
@@ -44,25 +45,25 @@ end
 % figure(9);clf
 subplot(axesHandle);
 for i = 1:size(ensSizes,2)
-% subplot(1,size(ensSizes),i)
-dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
-meanDat = nanmean(dat,1);
-stdDat = nanstd(dat,[],1);
-numpDat = sum(~isnan(dat),1);
-semDat = stdDat./sqrt(numpDat);
-
-temp.dat = dat;
-temp.meanDat = meanDat;
-temp.stdDat = stdDat;
-temp.numpDat = numpDat;
-temp.semDat = semDat;
-
-outData{i} = temp;
-
-hold on
-distBinSize = distBins(2)-distBins(1);
-xBins = distBins(2:end)-distBinSize/2; 
-eHandle{i} = errorbar(xBins(1:numel(meanDat)),meanDat,semDat,'linewidth',2,'color',colorList{i});
+    % subplot(1,size(ensSizes),i)
+    dat = popDist(ensemblesToUse & numCellsEachEns==ensSizes(i),:);
+    meanDat = nanmean(dat,1);
+    stdDat = nanstd(dat,[],1);
+    numpDat = sum(~isnan(dat),1);
+    semDat = stdDat./sqrt(numpDat);
+    
+    temp.dat = dat;
+    temp.meanDat = meanDat;
+    temp.stdDat = stdDat;
+    temp.numpDat = numpDat;
+    temp.semDat = semDat;
+    
+    outData{i} = temp;
+    
+    hold on
+    distBinSize = distBins(2)-distBins(1);
+    xBins = distBins(2:end)-distBinSize/2;
+    eHandle{i} = errorbar(xBins(1:numel(meanDat)),meanDat,semDat,'linewidth',2,'color',colorList{i});
 end
 eHandle{end+1} = refline(0);
 r = eHandle{end};

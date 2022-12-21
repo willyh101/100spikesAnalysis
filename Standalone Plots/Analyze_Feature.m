@@ -617,8 +617,9 @@ opts.distAxisRange = [0 150];
 
 opts.plotOrientation =1;%as opposed to Direction
 opts.minNumberOfCellsPerCondition =-10; %set to -1 to ignore
+% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10;
 opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5;
-% opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD>500;
+opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD>500;
 % opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>0.7 &  outVars.meanEnsOSI>0.5 & outVars.ensMaxD<400;
 
 % opts.ensemblesToPlot = outVars.ensemblesToUse  & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.3 &  outVars.meanEnsOSI<0.5;
@@ -634,7 +635,7 @@ ylim([-0.1 0.125])
 
 
 figure(14);
-ylim([-0.225 0.5])
+ylim([-0.2 0.2])
 
 
 %%Plot Space and Feature V3 
@@ -655,51 +656,58 @@ highEnsThresh = 0.7;
 closeVal =  400
 farVal =500
 
+
 outInfo=[];
 axs = [];
 ax = subplot(3,2,1);
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<lowEnsThresh & outVars.meanEnsOSI<lowMeanThresh;
 opts.criteriaToSplit =  outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
-[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+[e outInfo{end+1} es]= plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('grey');
 axs = [axs ax];
+stateN(es,outVars)
 
 ax = subplot(3,2,2);
 opts.criteriaBins = [farVal inf];% inf];
-[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+[e outInfo{end+1} es]= plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('grey');
 axs = [axs ax];
+stateN(es,outVars)
 
 
 ax = subplot(3,2,3);
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<lowEnsThresh & outVars.meanEnsOSI>highMeanThresh;
 % opts.criteriaToSplit = outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
-[e outInfo{end+1}]= plotDistByCriteriaAx(All,outVars,opts,ax);
+[e outInfo{end+1} es]= plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('sienna');
 axs = [axs ax];
+stateN(es,outVars)
 
 ax = subplot(3,2,4);
 opts.criteriaBins = [farVal inf];% inf];
-[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+[e outInfo{end+1} es] = plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('sienna');
 axs = [axs ax];
+stateN(es,outVars)
 
 
 ax = subplot(3,2,5);
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI>highEnsThresh & outVars.meanEnsOSI>highMeanThresh;
 % opts.criteriaToSplit = outVars.ensMaxD;
 opts.criteriaBins = [0 closeVal];% inf];
-[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+[e outInfo{end+1} es] = plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('Magenta');
 axs = [axs ax];
+stateN(es,outVars)
 
 ax = subplot(3,2,6);
 opts.criteriaBins = [farVal inf];% inf];
-[e outInfo{end+1}] = plotDistByCriteriaAx(All,outVars,opts,ax);
+[e outInfo{end+1} es] = plotDistByCriteriaAx(All,outVars,opts,ax);
 e{1}.Color = rgb('Magenta');
 axs = [axs ax];
+stateN(es,outVars)
 
 linkaxes(axs)
 ylim(lim);
@@ -717,6 +725,20 @@ disp(['Near Untuned vs Tuned p= ' num2str(p)]);
 
 [p h] = ranksum(outInfo{2}{1}.dat(:,1),outInfo{6}{1}.dat(:,1));
 disp(['Far Untuned vs Tuned p= ' num2str(p)]);
+% 
+everPloted = zeros([1 sum(outVars.ensemblesToUse)])'; 
+
+for i=[1 2 5 6]; 
+ everPloted = everPloted | ~isnan(outInfo{i}{1}.dat(:,4));
+end
+
+bigEverPlotted = zeros(size(outVars.ensemblesToUse)); 
+eList = find(outVars.ensemblesToUse);
+
+for i=1:numel(eList);
+    bigEverPlotted(eList(i))=everPloted(i);
+end
+stateN(bigEverPlotted,outVars)
 
 %%
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  &  outVars.ensOSI<0.7;
@@ -745,7 +767,7 @@ opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==1
 opts.useVisCells = 0;
 opts.useTunedCells =0; %don't use tuned without vis
 opts.minNumberOfCellsPerCondition = -1;
-opts.variableCellFun =  '(outVars.pVisR{ind} < 0.05 & outVars.distToEnsemble{i}<30)';
+opts.variableCellFun =  '(outVars.pVisR{ind} > 0.05 & outVars.distToEnsemble{i}<30)';
 [closeExcitation] = subsetPopResponse(All,outVars,opts);
 
 figure(19);clf
@@ -792,17 +814,18 @@ legend off
 disp(['Pval is: ' num2str(pVal(1))])
 
 %% Mid Distance Inhibition Ens OSI
-opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10  & outVars.meanEnsOSI>0.5;
 opts.useVisCells = 0;
 opts.useTunedCells =0; %don't use tuned without vis
 opts.minNumberOfCellsPerCondition = -1;
-
-% opts.variableCellFun =  '(outVars.distToEnsemble{i}<30)';
-opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>15)';
+opts.variableCellFun =  '(outVars.distToEnsemble{i}<30) ';
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
 [midResponse] = subsetPopResponse(All,outVars,opts);
 
 figure(19);clf
 
+% x = outVars.meanEnsOSI(opts.ensemblesToPlot)';  
 x = outVars.ensOSI(opts.ensemblesToPlot)';  
 % x = outVars.ensMaxD(opts.ensemblesToPlot)';  
 y = midResponse(opts.ensemblesToPlot);
@@ -818,7 +841,10 @@ plot(fs)
 legend off
 
 [p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
-disp(['Pval is: ' num2str(pVal(1))])
+disp(['Slope Pval is: ' num2str(pVal(1))])
+disp(['R2 is : ' num2str(Rsq)]);
+disp(['Mean ' num2str(mean(y),2) '+/-' num2str(ste(y),2) '. p=' num2str(signrank(y),2)])
+
 
 %% Close Excitation
 opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
@@ -828,13 +854,14 @@ opts.minNumberOfCellsPerCondition = -1;
 
 opts.variableCellFun =  '(outVars.distToEnsemble{i}<30)';
 % opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
-[midResponse] = subsetPopResponse(All,outVars,opts);
+[closeResponse] = subsetPopResponse(All,outVars,opts);
 
 figure(19);clf
 
-% x = outVars.ensOSI(opts.ensemblesToPlot)';  
-x = outVars.ensMaxD(opts.ensemblesToPlot)';  
-y = midResponse(opts.ensemblesToPlot);
+% x = outVars.meanEnsOSI(opts.ensemblesToPlot)';  
+x = outVars.ensOSI(opts.ensemblesToPlot)';  
+% x = outVars.ensMaxD(opts.ensemblesToPlot)';  
+y = closeResponse(opts.ensemblesToPlot);
 
 scatter(x,y,[],rgb('sienna'),'filled')
 refline(0)
@@ -849,7 +876,38 @@ legend off
 [p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
 disp(['Pval is: ' num2str(pVal(1))])
 
+disp(['Mean ' num2str(nanmean(y),2) '+/-' num2str(ste(y),2) '. p=' num2str(signrank(y),2)])
+%% Close Excitation
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10 & outVars.meanEnsOSI>0.5;
+opts.useVisCells = 0;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
 
+opts.variableCellFun =  '(outVars.distToEnsemble{i}<30) & outVars.pVisR{ind}>0.05';
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[closeResponse] = subsetPopResponse(All,outVars,opts);
+
+figure(19);clf
+
+% x = outVars.meanEnsOSI(opts.ensemblesToPlot)';  
+x = outVars.ensOSI(opts.ensemblesToPlot)';  
+% x = outVars.ensMaxD(opts.ensemblesToPlot)';  
+y = closeResponse(opts.ensemblesToPlot);
+
+scatter(x,y,[],rgb('sienna'),'filled')
+refline(0)
+xlabel('Spread ') ;
+nanEither = isnan(x) | isnan(y');
+
+[fs, gs] = fit(x(~nanEither),y(~nanEither)','poly1');
+hold on
+plot(fs)
+legend off
+
+[p Rsq pVal] = simplifiedLinearRegression(x(~nanEither),y(~nanEither)');
+disp(['Slope Pval is: ' num2str(pVal(1))])
+disp(['R2 is : ' num2str(Rsq)]);
+disp(['Mean ' num2str(nanmean(y),2) '+/-' num2str(ste(y),2) '. p=' num2str(signrank(y),2)])
 %% cut older analyses
 %
 

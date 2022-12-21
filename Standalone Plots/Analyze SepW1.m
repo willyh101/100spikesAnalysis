@@ -500,6 +500,40 @@ end
     
 
 
+%% compare vals in different bins 
+opts.ensemblesToPlot = outVars.ensemblesToUse & outVars.numCellsEachEnsBackup==10;
+opts.useVisCells = 0;
+opts.useTunedCells =0; %don't use tuned without vis
+opts.minNumberOfCellsPerCondition = -1;
+
+opts.variableCellFun =  '(outVars.distToEnsemble{i}>15 & outVars.distToEnsemble{i}<30) & All(ind).out.info.defNeg';
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[closeResp] = subsetPopResponse(All,outVars,opts);
+neg = closeResp(opts.ensemblesToPlot);
+
+opts.variableCellFun =  '(outVars.distToEnsemble{i}>15 & outVars.distToEnsemble{i}<30) & All(ind).out.info.defPos';
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[closeResp] = subsetPopResponse(All,outVars,opts);
+pos = closeResp(opts.ensemblesToPlot);
+
+disp(['Neg: ' num2str(nanmean(neg),2) ' +/- ' num2str(ste(neg),2)])
+disp(['Pos: ' num2str(nanmean(pos),2) ' +/- ' num2str(ste(pos),2)])
+disp(['Pval: ' num2str(ranksum(neg,pos))])
+
+opts.variableCellFun =  '(outVars.distToEnsemble{i}<15 & outVars.distToEnsemble{i}<30) & All(ind).out.info.defNeg';
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[closeResp] = subsetPopResponse(All,outVars,opts);
+neg = closeResp(opts.ensemblesToPlot);
+
+opts.variableCellFun =  '(outVars.distToEnsemble{i}<15 & outVars.distToEnsemble{i}<30) & All(ind).out.info.defPos';
+% opts.variableCellFun =  '(outVars.distToEnsemble{i}>50 & outVars.distToEnsemble{i}<100)';
+[closeResp] = subsetPopResponse(All,outVars,opts);
+pos = closeResp(opts.ensemblesToPlot);
+
+disp(['Neg: ' num2str(nanmean(neg),2) ' +/- ' num2str(ste(neg),2)])
+disp(['Pos: ' num2str(nanmean(pos),2) ' +/- ' num2str(ste(pos),2)])
+disp(['Pval: ' num2str(ranksum(neg,pos))])
+
 %% plot ROI red Value
 
 figure(2);clf

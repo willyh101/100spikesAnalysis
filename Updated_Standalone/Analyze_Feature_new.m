@@ -316,6 +316,15 @@ end
 opts.distType = 'min';
 [outVars] = grandDistanceMaker(opts,All,outVars);
 
+%% Basic Plots
+outVars.defaultColorMap = 'viridis';
+plotAllEnsResponse(outVars)
+plotResponseBySize(outVars,0)
+plotPopResponseBySession(All,outVars)
+plotPopResponseByExpressionType(All,outVars);
+[All, outVars] = createTSPlotByEnsSize(All,outVars);
+[All, outVars] = createTSPlotByEnsSizeAllVis(All,outVars);
+
 %% Plot Mean Responses
 opts.ensOSImethod = 'ensOSI';
 opts.plotFit=1;
