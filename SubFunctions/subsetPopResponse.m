@@ -12,16 +12,17 @@ else
     v = opts.visCond;
 end
 
+ 
 clear popToPlot
-for i=1:numEns %i know its slow, but All is big so don't parfor it
-    if mod(i,round(numEns/10))==1
+for ens=1:numEns %i know its slow, but All is big so don't parfor it
+    if mod(ens,round(numEns/10))==1
         fprintf('.')
     end
     
-    if ensemblesToUse(i)
-            ind = outVars.ensIndNumber(i);
+    if ensemblesToUse(ens)
+            ind = outVars.ensIndNumber(ens);
         
-        cellToUseVar = ~outVars.offTargetRiskEns{i} &  All(ind).out.anal.cellsToInclude & ~All(ind).out.anal.ROIinArtifact';
+        cellToUseVar = ~outVars.offTargetRiskEns{ens} &  All(ind).out.anal.cellsToInclude & ~All(ind).out.anal.ROIinArtifact';
         
         if opts.useVisCells
             cellToUseVar = cellToUseVar...
@@ -43,21 +44,21 @@ for i=1:numEns %i know its slow, but All is big so don't parfor it
         end
 
          
-            s = outVars.ensHNumber(i);
+            s = outVars.ensHNumber(ens);
             
             respMat = All(ind).out.anal.respMat;
             baseMat = All(ind).out.anal.baseMat;
             
             if skipVis
-                popVal(i) = nanmean(squeeze(respMat(s,1,cellToUseVar) - baseMat(s,1,cellToUseVar)));
+                popVal(ens) = nanmean(squeeze(respMat(s,1,cellToUseVar) - baseMat(s,1,cellToUseVar)));
             else
-                popVal(i) = nanmean(squeeze(respMat(s,v,cellToUseVar) - baseMat(s,v,cellToUseVar)));
+                popVal(ens) = nanmean(squeeze(respMat(s,v,cellToUseVar) - baseMat(s,v,cellToUseVar)));
             end
             
 %         popDistMakerSingle(opts,All(ensIndNumber(i)),cellToUseVar,0,ensHNumber(i));
 
     else
-        popVal(i) = nan;
+        popVal(ens) = nan;
     end
 end
 disp('Done')
