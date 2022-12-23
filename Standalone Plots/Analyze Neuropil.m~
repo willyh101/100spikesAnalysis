@@ -110,8 +110,8 @@ disp('Data To Use is set')
 for ind=1:numExps
     if ~ismember(AddtlExcludeInds,ind)
 %     All(ind).out.exp.dataToUse = All(ind).out.exp.dfDataNoNP; %No NP subtraction
-%         All(ind).out.exp.dataToUse = All(ind).out.exp.dfData; %default
-All(ind).out.exp.dataToUse = All(ind).out.exp.dfDataDoubleNP; %Double NP Subtraction
+        All(ind).out.exp.dataToUse = All(ind).out.exp.dfData; %default
+% All(ind).out.exp.dataToUse = All(ind).out.exp.dfDataDoubleNP; %Double NP Subtraction
 % All(ind).out.exp.dataToUse = All(ind).out.exp.allDataNoNP;
     end
 end

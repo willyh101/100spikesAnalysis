@@ -19,7 +19,7 @@ loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
 loadPath = '/Users/ianoldenburg/Dropbox/Outfiles_Pulled_221209';
 % Options: short (for debugging), all (all avaliable outfiles), used (data
 % files currently being used here; created for speed)
-loadList_all = oriLoadList_GH('used');
+% loadList_all = oriLoadList_GH('used');
 
 %% Loop over each experiment
 ensNum = 1; expNum = 1;

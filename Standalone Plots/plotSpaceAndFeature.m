@@ -6,10 +6,10 @@ ensemblesToUse = ...
     & outVars.numCellsEachEnsBackup==10 ...
     ...& outVars.meanEnsOSI>0.5 ...
     ;
-criteria =  outVars.ensMaxD; outVars.ensMeaD;%   outVars.ensMaxD;outVars.ensOSI; %outVars.ensMaxD;
+criteria = outVars.ensMeaD;% %paper uses mean pairwise  outVars.ensMaxD;outVars.ensOSI; %outVars.ensMaxD;
 useableCriteria = criteria(ensemblesToUse);
 % bins = [0 prctile(useableCriteria,25) prctile(useableCriteria,50) prctile(useableCriteria,75) max(useableCriteria)];
-bins = [0 400 500 inf];
+bins = [0 200 inf];
 
 
 % bins = [linspace(min(useableCriteria),max(useableCriteria),5)];

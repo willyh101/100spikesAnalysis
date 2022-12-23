@@ -126,8 +126,13 @@ disp([ num2str(sum(tooFewCellsInds)) ' inds have < ' num2str(opts.minNumCellsInd
 % Determine Vis Responsive and Process Correlation
 
 opts.visAlpha = 0.05;
+
+%oftarget risk params
+opts.thisPlaneTolerance = 11.25;%7.5;%1FWHM%10; %in um;% pixels
+opts.onePlaneTolerance = 22.5;%15;%2FWHM %20;
 opts.distBins =  [0:25:1000]; [0:25:1000];
 opts.skipVis =1;
+
 [All, outVars] = meanMatrixVisandCorr_v2(All,opts,outVars); %one of the main analysis functions
 
 visPercent = outVars.visPercent;
@@ -454,15 +459,15 @@ opts.useTunedCells =1;
 opts.minNumberOfCellsPerCondition =-20; %set to -1 to ignore
 
 
-opts.variableCellFun =  'outVars.ensOriDiff{i} == 0';
+opts.variableCellFun =  'outVars.ensOriDiff{ens} == 0';
 [OriDiff0] = subsetPopResponse(All,outVars,opts);
-opts.variableCellFun =  'outVars.ensOriDiff{i} == 45';
+opts.variableCellFun =  'outVars.ensOriDiff{ens} == 45';
 [OriDiff45] = subsetPopResponse(All,outVars,opts);
-opts.variableCellFun =  'outVars.ensOriDiff{i} == 90';
+opts.variableCellFun =  'outVars.ensOriDiff{ens} == 90';
 [OriDiff90] = subsetPopResponse(All,outVars,opts);
-opts.variableCellFun =  'outVars.ensOriDiff{i} == 135';
+opts.variableCellFun =  'outVars.ensOriDiff{ens} == 135';
 [OriDiff135] = subsetPopResponse(All,outVars,opts);
-opts.variableCellFun =  'outVars.ensOriDiff{i} == 180';
+opts.variableCellFun =  'outVars.ensOriDiff{ens} == 180';
 [OriDiff180] = subsetPopResponse(All,outVars,opts);
 
 
