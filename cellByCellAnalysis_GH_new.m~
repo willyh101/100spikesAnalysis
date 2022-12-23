@@ -174,8 +174,8 @@ cellTable.cellOrisDiff = cellOrisDiff;
 %% Cell conditions used in the functions
 cellCond = cellTable.offTarget==0;
 cellCondTuned = cellTable.offTarget==0 & cellTable.visP<0.05 & cellTable.cellOSI > 0.25;
-cellCondNonVis = cellTable.offTarget==0 & cellTable.visP>=0.05;
-cellCondNonTuned = cellTable.offTarget==0 & cellTable.visP<0.05 & (cellTable.cellOSI <= 0.25 | isnan(cellTable.cellOSI));
+cellCondNonVis = cellTable.offTarget==0 & cellTable.visP>0.05;
+c
 
 %% Figure 3: min distance plot
 Fig3(cellTable,cellCond)
