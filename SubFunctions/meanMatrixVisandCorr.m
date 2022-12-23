@@ -195,7 +195,7 @@ for ind=1:numExps
             else
                 cellsToUse = ~ROIinArtifact'  & ~offTargetRisk(holo,:) & ~All(ind).out.anal.cellsToExclude;
             end
-            popResp(i,v) = mean(squeeze(respMat(i,v ,cellsToUse) - baseMat(i,v,cellsToUse)));
+            popResp(i,v) = nanmean(squeeze(respMat(i,v ,cellsToUse) - baseMat(i,v,cellsToUse)));
             
             if i~=1 && holo~=0
                 Tg=All(ind).out.exp.rois{holo};
