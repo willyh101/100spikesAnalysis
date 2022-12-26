@@ -4,7 +4,7 @@
 % cellCond is a vector of 1's and 0's that denotes which cells should be
 % included (e.g., only non-offTarget cells)
 %
-% Run cellByCellAnalysis_GH to use this function
+% Run expFigs2Through5_Dec22 to use this function
 %%
 function Fig5a(cellTable,cellCond)
 
@@ -100,18 +100,12 @@ end
 
 %     [~,p]=ttest2(cellDataAveTight(1,:),cellDataAveLoose(1,:));
 
-%%
-
-% Plot the results
+%% Plot the results
 colorScheme =[];
 colorScheme(1,1,:) = [0 0 0]; colorScheme(1,2,:) = [0 0 0]+0.5;
 colorScheme(2,1,:) = [92, 64, 51]/255; colorScheme(2,2,:) = [165, 42, 42]/255;
 colorScheme(3,1,:) = [0.494 0.184 0.556]; colorScheme(3,2,:) = [1 0 1];
-
-
 %%
-
-
 % figure(3148866); clf; hold on;
 % bar([nanmedian(tightFirst(1,:)) nanmedian(tightFirst(3,:)) ...
 %     nanmedian(looseFirst(1,:)) nanmedian(looseFirst(3,:))])
@@ -125,15 +119,22 @@ colorScheme(3,1,:) = [0.494 0.184 0.556]; colorScheme(3,2,:) = [1 0 1];
 
 %%
 strOps = {'','*'};
-fprintf('----------Rank sum test---------------\n')
-p=ranksum(tightFirst(1,:),tightFirst(3,:)); s = strOps{1+(p<0.05)};
-fprintf('Tight Untuned vs Tight co-tuned p=%.3f%s\n',p,s);
-p=ranksum(looseFirst(1,:),looseFirst(3,:)); s = strOps{1+(p<0.05)};
-fprintf('Loose Untuned vs Loose co-tuned p=%.3f%s\n',p,s);
-p=ranksum(tightFirst(3,:),looseFirst(3,:)); s = strOps{1+(p<0.05)};
-fprintf('Tight co-tuned vs Loose co-tuned p=%.3f%s\n',p,s);
-p=ranksum(tightFirst(1,:),looseFirst(1,:)); s = strOps{1+(p<0.05)};
-fprintf('Tight untuned vs Loose untuned p=%.3f%s\n',p,s);
+fprintf('----------One-sided Rank sum test---------------\n')
+% p=ranksum(tightFirst(1,:),tightFirst(3,:)); s = strOps{1+(p<0.05)};
+% fprintf('Tight Untuned (N=%d) vs Tight co-tuned (N=%d) p=%.4f%s\n',...
+%     sum(~isnan(tightFirst(1,:))),sum(~isnan(tightFirst(3,:))),p,s);
+
+% p=ranksum(looseFirst(1,:),looseFirst(3,:)); s = strOps{1+(p<0.05)};
+% fprintf('Loose Untuned (N=%d) vs Loose co-tuned (N=%d) p=%.4f%s\n',...
+%     sum(~isnan(looseFirst(1,:))),sum(~isnan(looseFirst(3,:))),p,s);
+
+p=ranksum(tightFirst(3,:),looseFirst(3,:),'tail','left'); s = strOps{1+(p<0.05)};
+fprintf('Tight co-tuned (N=%d) vs Loose co-tuned (N=%d) p=%.4f%s\n',...
+    sum(~isnan(tightFirst(3,:))),sum(~isnan(looseFirst(3,:))),p,s);
+
+% p=ranksum(tightFirst(1,:),looseFirst(1,:)); s = strOps{1+(p<0.05)};
+% fprintf('Tight untuned (N=%d) vs Loose untuned (N=%d) p=%.4f%s\n',...
+%     sum(~isnan(tightFirst(1,:))),sum(~isnan(looseFirst(1,:))),p,s);
 
 %% t-test
 % fprintf('----------T-test---------------\n')

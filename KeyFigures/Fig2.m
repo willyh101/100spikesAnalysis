@@ -4,7 +4,7 @@
 % cellCond is a vector of 1's and 0's that denotes which cells should be
 % included (e.g., only non-offTarget cells)
 %
-% Run cellByCellAnalysis_GH to use this function
+% Run expFigs2Through5_Dec22 to use this function
 %%
 function Fig2(cellTable,cellCond)
 
@@ -58,6 +58,22 @@ legend(leg,{'Data','Fit'})
 fprintf('Fitted params: \n')
 fprintf('A = %f, sigma1 =%f\n', fnFit.A, sqrt(fnFit.sigma1))
 fprintf('B = %f, sigma2 =%f\n', fnFit.B, sqrt(fnFit.sigma2))
+
+
+%%
+
+nearbyCells = cellTable.cellDist < 30 & cellCond;
+fprintf('Nearby cells (<30 microns): %.3f +- %.3f \n',nanmean(cellTable.dff(nearbyCells)),...
+    nanstd(cellTable.dff(nearbyCells))/sqrt(sum(~isnan(cellTable.dff(nearbyCells)))))
+p1 = signrank(cellTable.dff(nearbyCells));
+fprintf('p-value: %e\n',p1)
+
+furtherCells = cellTable.cellDist >= 50 & cellTable.cellDist <= 150 & cellCond;
+fprintf('Further cells (50-150 microns): %.3f +- %.3f \n',nanmean(cellTable.dff(furtherCells)),...
+    nanstd(cellTable.dff(furtherCells))/sqrt(sum(~isnan(cellTable.dff(furtherCells)))))
+p2 = signrank(cellTable.dff(furtherCells));
+fprintf('p-value: %e\n',p2)
+
 
 end
 

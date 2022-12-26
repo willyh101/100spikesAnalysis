@@ -1,20 +1,21 @@
 %%
-% Analyzes the experimental data to produce cellTable, which has the core
-% statistics we are interested in (e.g., dF/F, OSI)
+% Analyzes the data then creates the key experimental plots
+%
+% Last edited: 12/20/2022
 %%
 clear; close all; clc;
 
 %%
 % Adds all subfolders to the path
 restoredefaultpath;
-folder = fileparts(which('cellByCellAnalysis_GH.m')); 
+folder = fileparts(which('expFigs2Through5_Dec22.m')); 
 addpath(genpath(folder));
 rmpath(folder);
 
 %% Specify data location and loadList
 
-% loadPath = '/Users/gregoryhandy/Research_Local/outfiles/'; % where ever your files are
-loadPath = '/Users/greghandy/Research_Local_v2/'; % where ever your files are
+% Edit this line to be wherever your files are'; 
+loadPath = '/Users/greghandy/Library/CloudStorage/Box-Box/allOutfiles';
 
 % Options: short (for debugging), all (all avaliable outfiles), used (data
 % files currently being used here; created for speed)
@@ -36,7 +37,7 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
     mouseName = mouseName{1};
     tempIndices = find(mouseName=='_');
     mouseName([1:tempIndices(1) tempIndices(end):end])='';
-
+       
     %% Get orientation tuning and OSI from dataset
     [All, outVars] = getTuningCurve(All, opts, outVars);
     [All, outVars] = calcOSI(All, outVars);
@@ -156,8 +157,9 @@ for outer_loop = 1:length(loadList_all) %10 for 60 offTarget
     if ~isempty(cellsToUse)
         expNum = expNum +1;
     end
-   
+    
     %%
+    
     fprintf('Exp %d out of %d done loading\n',outer_loop, length(loadList_all));
 end
 
@@ -176,8 +178,30 @@ cellOrisDiff(cellOrisDiff==135)=45;
 cellOrisDiff(cellOrisDiff==180)=0;
 cellTable.cellOrisDiff = cellOrisDiff;
 
-%% Optional: After the code runs, save cellTable to the compressedData folder 
+%% Cell conditions used in the functions
+cellCond = cellTable.offTarget==0; 
+cellCondTuned = cellTable.offTarget==0 & cellTable.visP<0.05 & cellTable.cellOSI > 0.25;
+cellCondNonVis = cellTable.offTarget==0 & cellTable.visP>0.05;
 
-% clearvars -except cellTable mouseNames
-% save('cellTableTodaysDate')
+%% Figure 2: min distance plot
+fprintf('-------------------------\n')
+fprintf('Creating Fig 2: min dist vs. dF/F plot\n')
+Fig2(cellTable,cellCond)
+fprintf('-------------------------\n')
 
+%% Figure 3: Effect of the spread of ensemble
+fprintf('Creating Fig 3: ensemble spread vs. dF/F plot\n')
+Fig3(cellTable,cellCond);
+fprintf('-------------------------\n')
+
+%% Figure 4: Iso vs. ortho
+% Note: the cells used here are tuned 
+fprintf('Creating Fig 4: Iso vs. Ortho\n')
+Fig4(cellTable,cellCondTuned,mouseNames);
+fprintf('-------------------------\n')
+
+%% Figure 5: Tight co-tuned investigation
+fprintf('Creating Fig 5: holo-squares\n')
+Fig5a(cellTable,cellCond);
+Fig5bc(cellTable,cellCondTuned,cellCondNonVis)
+fprintf('-------------------------\n')

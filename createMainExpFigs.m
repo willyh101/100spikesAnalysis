@@ -12,7 +12,8 @@ addpath(genpath(folder));
 rmpath(folder);
 
 %%
-load('./compressedData/cellTable220816.mat')
+load('./compressedData/cellTable220817.mat')
+% cellTable.Properties.VariableNames
 
 %% Cell conditions used in the functions
 cellCond = cellTable.offTarget==0; 
@@ -35,7 +36,7 @@ fprintf('-------------------------\n')
 %% Figure 4: Iso vs. ortho
 % Note: the cells used here are tuned 
 fprintf('Creating Fig 4: Iso vs. Ortho\n')
-Fig4(cellTable,cellCondTuned);
+Fig4(cellTable,cellCondTuned,mouseNames);
 % Fig4_cbc(cellTable,cellCondTuned);
 fprintf('-------------------------\n')
 
